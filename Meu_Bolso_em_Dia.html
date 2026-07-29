@@ -449,6 +449,10 @@ function round2(v){
 function sortItemsByDesc(list){
   list.sort((a,b)=>String(a.desc).localeCompare(String(b.desc), 'pt-BR', {sensitivity:'base'}));
 }
+function nomeDuplicado(list, desc, excludeIdx){
+  const alvo = String(desc).trim().toLowerCase();
+  return list.some((it,idx)=> idx !== excludeIdx && String(it.desc).trim().toLowerCase() === alvo);
+}
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
 }
@@ -675,7 +679,15 @@ function attachMonthEvents(monthKey){
   recCard.querySelectorAll('.item-row').forEach(row=>{
     const idx = parseInt(row.dataset.idx,10);
     row.querySelector('.chk-pago').addEventListener('change', e=>{ m.recebimentos[idx].pago = e.target.checked; save(); renderContent(); });
-    row.querySelector('.item-desc').addEventListener('change', e=>{ m.recebimentos[idx].desc = e.target.value; save(); renderContent(); });
+    row.querySelector('.item-desc').addEventListener('change', e=>{
+      const novoDesc = e.target.value.trim();
+      if(nomeDuplicado(m.recebimentos, novoDesc, idx)){
+        alert('Já existe um recebimento com esse nome.');
+        e.target.value = m.recebimentos[idx].desc;
+        return;
+      }
+      m.recebimentos[idx].desc = novoDesc; save(); renderContent();
+    });
     row.querySelector('.item-valor').addEventListener('change', e=>{ m.recebimentos[idx].valor = round2(parseFloat(e.target.value)||0); save(); renderContent(); });
     row.querySelector('.item-remove').addEventListener('click', ()=>{
       if(!confirm(`Remover "${m.recebimentos[idx].desc}"?`)) return;
@@ -687,6 +699,11 @@ function attachMonthEvents(monthKey){
     const desc = recAddRow.querySelector('.add-desc').value.trim();
     const valor = round2(parseFloat(recAddRow.querySelector('.add-valor').value)||0);
     if(!desc){ recAddRow.querySelector('.add-desc').focus(); return; }
+    if(nomeDuplicado(m.recebimentos, desc)){
+      alert('Já existe um recebimento com esse nome.');
+      recAddRow.querySelector('.add-desc').focus();
+      return;
+    }
     m.recebimentos.push({ desc, valor, pago:false });
     sortItemsByDesc(m.recebimentos);
     save(); renderContent();
@@ -708,7 +725,15 @@ function attachMonthEvents(monthKey){
     card.querySelectorAll('.item-row').forEach(row=>{
       const idx = parseInt(row.dataset.idx,10);
       row.querySelector('.chk-pago').addEventListener('change', e=>{ categoria.items[idx].pago = e.target.checked; save(); renderContent(); });
-      row.querySelector('.item-desc').addEventListener('change', e=>{ categoria.items[idx].desc = e.target.value; save(); renderContent(); });
+      row.querySelector('.item-desc').addEventListener('change', e=>{
+        const novoDesc = e.target.value.trim();
+        if(nomeDuplicado(categoria.items, novoDesc, idx)){
+          alert('Já existe um item com esse nome nesta categoria.');
+          e.target.value = categoria.items[idx].desc;
+          return;
+        }
+        categoria.items[idx].desc = novoDesc; save(); renderContent();
+      });
       row.querySelector('.item-valor').addEventListener('change', e=>{ categoria.items[idx].valor = round2(parseFloat(e.target.value)||0); save(); renderContent(); });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
         if(!confirm(`Remover "${categoria.items[idx].desc}"?`)) return;
@@ -721,6 +746,11 @@ function attachMonthEvents(monthKey){
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valor = round2(parseFloat(addRow.querySelector('.add-valor').value)||0);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
+      if(nomeDuplicado(categoria.items, desc)){
+        alert('Já existe um item com esse nome nesta categoria.');
+        addRow.querySelector('.add-desc').focus();
+        return;
+      }
       categoria.items.push({ desc, valor, pago:false });
       sortItemsByDesc(categoria.items);
       save(); renderContent();

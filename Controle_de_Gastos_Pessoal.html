@@ -832,6 +832,10 @@ function round2(v){
 function sortItemsByDesc(list){
   list.sort((a,b)=>String(a.desc).localeCompare(String(b.desc), 'pt-BR', {sensitivity:'base'}));
 }
+function nomeDuplicado(list, desc, excludeIdx){
+  const alvo = String(desc).trim().toLowerCase();
+  return list.some((it,idx)=> idx !== excludeIdx && String(it.desc).trim().toLowerCase() === alvo);
+}
 
 // ============================= TABS =============================
 function renderTabs(){
@@ -1163,7 +1167,13 @@ function attachMonthEvents(monthKey){
         list[idx].pago = e.target.checked; save(); renderContent();
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
-        list[idx].desc = e.target.value; save(); renderContent();
+        const novoDesc = e.target.value.trim();
+        if(nomeDuplicado(list, novoDesc, idx)){
+          alert('Já existe um item com esse nome neste bloco.');
+          e.target.value = list[idx].desc;
+          return;
+        }
+        list[idx].desc = novoDesc; save(); renderContent();
       });
       row.querySelector('.item-valor').addEventListener('change', e=>{
         list[idx].valor = round2(parseFloat(e.target.value)||0); save(); renderContent();
@@ -1179,6 +1189,11 @@ function attachMonthEvents(monthKey){
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valor = round2(parseFloat(addRow.querySelector('.add-valor').value)||0);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
+      if(nomeDuplicado(list, desc)){
+        alert('Já existe um item com esse nome neste bloco.');
+        addRow.querySelector('.add-desc').focus();
+        return;
+      }
       list.push({ desc, valor, pago:false });
       sortItemsByDesc(list);
       save(); renderContent();
@@ -1200,7 +1215,13 @@ function attachMonthEvents(monthKey){
         detail.items[idx].pago = e.target.checked; save(); renderContent();
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
-        detail.items[idx].desc = e.target.value; save(); renderContent();
+        const novoDesc = e.target.value.trim();
+        if(nomeDuplicado(detail.items, novoDesc, idx)){
+          alert('Já existe um item com esse nome neste detalhamento.');
+          e.target.value = detail.items[idx].desc;
+          return;
+        }
+        detail.items[idx].desc = novoDesc; save(); renderContent();
       });
       row.querySelector('.item-valor').addEventListener('change', e=>{
         detail.items[idx].valor = round2(parseFloat(e.target.value)||0);
@@ -1218,6 +1239,11 @@ function attachMonthEvents(monthKey){
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valor = round2(parseFloat(addRow.querySelector('.add-valor').value)||0);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
+      if(nomeDuplicado(detail.items, desc)){
+        alert('Já existe um item com esse nome neste detalhamento.');
+        addRow.querySelector('.add-desc').focus();
+        return;
+      }
       detail.items.push({ desc, valor, pago:false });
       sortItemsByDesc(detail.items);
       syncDetailsIntoMain(m); save(); renderContent();
