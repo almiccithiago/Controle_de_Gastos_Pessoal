@@ -1,0 +1,14 @@
+{
+  "name": "meu-bolso-em-dia-backend",
+  "version": "1.0.0",
+  "description": "Backend do Meu Bolso em Dia (Express + Turso/libSQL), pronto para Render",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "@libsql/client": "^0.14.0",
+    "cors": "^2.8.5"
+  }
+}
