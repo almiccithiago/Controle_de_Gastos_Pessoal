@@ -17,6 +17,9 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meu Bolso em Dia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --navy: #0F2A4A;
@@ -141,7 +144,7 @@
   .section-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .section-header h3{ font-size:14.5px; margin:0; font-weight:700; }
   .section-header-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
-  .section-header .pill{ font-size:11px; font-weight:700; color:#fff; background:var(--teal); padding: 3px 9px; border-radius:99px; }
+  .section-header .pill{ font-size:11px; font-weight:700; color:#fff; background:var(--teal); padding: 3px 9px; border-radius:99px; font-family:'Poppins', sans-serif; }
   .cat-title-input{
     font-size:14.5px; font-weight:700; color:var(--text); border:none; background:transparent;
     padding:2px 2px; width:100%; font-family:inherit;
@@ -160,10 +163,10 @@
   .item-row.paid .item-desc,
   .item-row.paid .item-valor{ color:#A6AEB9; opacity:0.6; }
   .item-row input[type=checkbox]{ width:20px; height:20px; accent-color: var(--green); cursor:pointer; flex-shrink:0; }
-  .item-desc{ flex:1; border:none; background:transparent; font-size:13.5px; color:var(--text); padding:4px 2px; min-width:0; }
+  .item-desc{ flex:1; border:none; background:transparent; font-size:13.5px; color:var(--text); padding:4px 2px; min-width:0; font-family:'Poppins', sans-serif; font-weight:600; }
   .item-desc:focus{ outline: 1px solid var(--blue); border-radius:4px; }
-  .rs-prefix{ font-size:12px; font-weight:700; color:var(--muted); flex-shrink:0; }
-  .item-valor{ width: 78px; text-align:right; border:none; background:transparent; font-size:13.5px; font-weight:700; color:var(--text); padding:4px 2px; }
+  .rs-prefix{ font-size:12px; font-weight:700; color:var(--muted); flex-shrink:0; font-family:'Poppins', sans-serif; }
+  .item-valor{ width: 78px; text-align:right; border:none; background:transparent; font-size:13.5px; font-weight:700; color:var(--text); padding:4px 2px; font-family:'Poppins', sans-serif; }
   .item-valor:focus{ outline:1px solid var(--blue); border-radius:4px; }
   .item-remove{ border:none; background:transparent; color: var(--red); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px; flex-shrink:0; opacity:0.6; }
   .item-remove:hover{ opacity:1; }
