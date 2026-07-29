@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<script>
+// Anti-cache: garante que o navegador sempre busque a versão mais recente do arquivo,
+// adicionando um parâmetro único na URL na primeira visita de cada carregamento.
+(function(){
+  if(!location.search.includes('_v=')){
+    var sep = location.search ? '&' : '?';
+    location.replace(location.pathname + location.search + sep + '_v=' + Date.now());
+  }
+})();
+</script>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
