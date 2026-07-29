@@ -634,13 +634,14 @@ function categoriaHtml(cat, catIdx){
 }
 
 // ============================= VISÃO DO MÊS =============================
-function comparativoTexto(atual, anterior){
+function comparativoTexto(atual, anterior, aumentoEBom){
   if(!anterior || anterior === 0) return '';
   const diff = atual - anterior;
   const pct = (diff/anterior)*100;
   if(Math.abs(pct) < 0.5) return `<div class="comparativo" style="color:var(--muted);">· igual ao mês anterior</div>`;
   const seta = diff>0 ? '↑' : '↓';
-  const cor = diff>0 ? 'var(--red)' : 'var(--green)';
+  const aumentouEhBom = aumentoEBom ? diff>0 : diff<0;
+  const cor = aumentouEhBom ? 'var(--green)' : 'var(--red)';
   return `<div class="comparativo" style="color:${cor};">${seta} ${Math.abs(pct).toFixed(0)}% vs mês anterior</div>`;
 }
 
@@ -658,8 +659,8 @@ function renderMonthView(monthKey){
     const prevM = prevKey ? DATA.months[prevKey] : null;
     if(prevM){
       const prevT = monthTotals(prevM);
-      compRenda = comparativoTexto(t.rendaTotal, prevT.rendaTotal);
-      compDespesas = comparativoTexto(t.despesasTotal, prevT.despesasTotal);
+      compRenda = comparativoTexto(t.rendaTotal, prevT.rendaTotal, true);
+      compDespesas = comparativoTexto(t.despesasTotal, prevT.despesasTotal, false);
     }
   }
 
