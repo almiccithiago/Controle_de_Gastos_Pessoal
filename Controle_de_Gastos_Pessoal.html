@@ -936,6 +936,7 @@ function renderContent(){
 function syncDetailsIntoMain(m){
   (m.detalhamentos||[]).forEach(det=>{
     if(!det.linkTo) return;
+    if(m.blocosOcultos && m.blocosOcultos[det.linkTo.list]) return; // bloco excluído — não recria o item
     const total = round2(det.items.reduce((s,x)=>s+Number(x.valor||0),0));
     const list = m[det.linkTo.list];
     if(!list) return;
