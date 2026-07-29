@@ -63,7 +63,20 @@ async function initSchema() {
     await db.execute("UPDATE app_state SET app_id = 'bolso' WHERE app_id IS NULL");
   }
   await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_app_state_app_id ON app_state(app_id)');
+
+  // Histórico automático: guarda uma cópia do estado anterior a cada save.
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS app_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      app_id TEXT NOT NULL,
+      data TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+  await db.execute('CREATE INDEX IF NOT EXISTS idx_app_history_app_id ON app_history(app_id, id)');
 }
+
+const MAX_HISTORICO_POR_APP = 20;
 
 // ---------------------- App ----------------------
 const app = express();
@@ -105,6 +118,26 @@ app.post('/api/data/:appId', requirePassword, async (req, res) => {
   try {
     const { appId } = req.params;
     const jsonStr = JSON.stringify(req.body);
+
+    // Antes de sobrescrever, guarda o estado atual (se existir) como snapshot de histórico.
+    const atual = await db.execute({
+      sql: 'SELECT data FROM app_state WHERE app_id = ?',
+      args: [appId],
+    });
+    if (atual.rows.length > 0) {
+      await db.execute({
+        sql: 'INSERT INTO app_history (app_id, data) VALUES (?, ?)',
+        args: [appId, atual.rows[0].data],
+      });
+      // Mantém só os últimos MAX_HISTORICO_POR_APP snapshots por app.
+      await db.execute({
+        sql: `DELETE FROM app_history WHERE app_id = ? AND id NOT IN (
+                SELECT id FROM app_history WHERE app_id = ? ORDER BY id DESC LIMIT ?
+              )`,
+        args: [appId, appId, MAX_HISTORICO_POR_APP],
+      });
+    }
+
     await db.execute({
       sql: `INSERT INTO app_state (app_id, data, updated_at) VALUES (?, ?, datetime('now'))
             ON CONFLICT(app_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`,
@@ -114,6 +147,40 @@ app.post('/api/data/:appId', requirePassword, async (req, res) => {
   } catch (e) {
     console.error('Erro ao salvar dados:', e);
     res.status(500).json({ erro: 'Erro ao salvar dados no banco.' });
+  }
+});
+
+// ---- Histórico automático de versões ----
+app.get('/api/history/:appId', requirePassword, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    const { appId } = req.params;
+    const result = await db.execute({
+      sql: 'SELECT id, created_at FROM app_history WHERE app_id = ? ORDER BY id DESC LIMIT ?',
+      args: [appId, MAX_HISTORICO_POR_APP],
+    });
+    res.json({ snapshots: result.rows });
+  } catch (e) {
+    console.error('Erro ao ler histórico:', e);
+    res.status(500).json({ erro: 'Erro ao ler histórico.' });
+  }
+});
+
+app.get('/api/history/:appId/:snapshotId', requirePassword, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    const { appId, snapshotId } = req.params;
+    const result = await db.execute({
+      sql: 'SELECT data, created_at FROM app_history WHERE app_id = ? AND id = ?',
+      args: [appId, snapshotId],
+    });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ erro: 'Snapshot não encontrado.' });
+    }
+    res.json({ data: JSON.parse(result.rows[0].data), created_at: result.rows[0].created_at });
+  } catch (e) {
+    console.error('Erro ao ler snapshot:', e);
+    res.status(500).json({ erro: 'Erro ao ler snapshot.' });
   }
 });
 
