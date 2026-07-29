@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle de Gastos Pessoal</title>
 <style>
@@ -606,21 +609,23 @@ function defaultData(){
 let DATA = null;
 let currentTab = null;
 let dataReady = false;
+let currentPassword = '';
 
 async function loadFromServer(){
-  try{
-    const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`);
-    if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
-    const json = await resp.json();
-    if(json.data){
-      return migrateData(json.data);
-    }
-    return migrateData(defaultData());
-  }catch(e){
-    console.error('Falha ao carregar dados do servidor', e);
-    alert('Não foi possível conectar ao servidor agora. Se o servidor estiver "dormindo" (plano gratuito), aguarde uns 30 segundos e recarregue a página.');
-    return migrateData(defaultData());
+  const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
+    headers: { 'x-app-password': currentPassword }
+  });
+  if(resp.status === 401){
+    const err = new Error('Senha incorreta');
+    err.isAuthError = true;
+    throw err;
   }
+  if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
+  const json = await resp.json();
+  if(json.data){
+    return migrateData(json.data);
+  }
+  return migrateData(defaultData());
 }
 
 function migrateData(data){
@@ -799,7 +804,7 @@ async function save(){
   try{
     const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-app-password': currentPassword },
       body: JSON.stringify(DATA)
     });
     if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
@@ -814,11 +819,18 @@ async function save(){
 }
 
 async function initApp(){
-  DATA = await loadFromServer();
-  currentTab = DATA.monthOrder[0] || "Empréstimos";
-  dataReady = true;
-  renderTabs();
-  renderContent();
+  try{
+    DATA = await loadFromServer();
+    currentTab = DATA.monthOrder[0] || "Empréstimos";
+    dataReady = true;
+    renderTabs();
+    renderContent();
+    return { ok:true };
+  }catch(e){
+    console.error('Falha ao carregar dados do servidor', e);
+    if(e.isAuthError) return { ok:false, erro:'senha' };
+    return { ok:false, erro:'conexao' };
+  }
 }
 function fmt(v){
   if(v === null || v === undefined || isNaN(v)) return "—";
@@ -1476,31 +1488,46 @@ function initLock(){
   const errorMsg = document.getElementById('lock-error');
   const logoutBtn = document.getElementById('logout-btn');
 
-  function tryUnlock(){
-    if(input.value === APP_PASSWORD){
-      if(!dataReady){
-        errorMsg.textContent = 'Carregando dados do servidor, aguarde alguns segundos e tente novamente...';
-        errorMsg.style.color = '#8A6A00';
-        errorMsg.style.display = 'block';
-        return;
-      }
-      errorMsg.textContent = 'Senha incorreta. Tente novamente.';
-      errorMsg.style.color = '';
-      lockScreen.style.display = 'none';
-      appRoot.style.display = 'block';
-    } else {
+  async function tryUnlock(){
+    if(input.value !== APP_PASSWORD){
       errorMsg.textContent = 'Senha incorreta. Tente novamente.';
       errorMsg.style.color = '';
       errorMsg.style.display = 'block';
       input.value = '';
       input.focus();
+      return;
     }
+    currentPassword = input.value;
+    btn.disabled = true;
+    errorMsg.style.color = '#8A6A00';
+    errorMsg.textContent = 'Carregando dados do servidor, aguarde...';
+    errorMsg.style.display = 'block';
+
+    const resultado = await initApp();
+
+    btn.disabled = false;
+    if(!resultado.ok){
+      if(resultado.erro === 'senha'){
+        errorMsg.textContent = 'Senha incorreta (o servidor recusou). Tente novamente.';
+      } else {
+        errorMsg.textContent = 'Não foi possível conectar ao servidor. Se ele estiver "dormindo" (plano gratuito), aguarde uns 30 segundos e tente de novo.';
+      }
+      errorMsg.style.color = '';
+      input.value = '';
+      input.focus();
+      return;
+    }
+    errorMsg.style.display = 'none';
+    lockScreen.style.display = 'none';
+    appRoot.style.display = 'block';
   }
   function lock(){
     appRoot.style.display = 'none';
     lockScreen.style.display = 'flex';
     errorMsg.style.display = 'none';
     input.value = '';
+    currentPassword = '';
+    dataReady = false;
     input.focus();
   }
   btn.addEventListener('click', tryUnlock);
@@ -1522,7 +1549,6 @@ function initAddMonthModal(){
 initLock();
 initAddMonthModal();
 initExportImport();
-initApp();
 </script>
 
 </body>

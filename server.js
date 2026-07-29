@@ -18,6 +18,22 @@ const { createClient } = require('@libsql/client');
 const APP_PASSWORD = process.env.APP_PASSWORD || '712035';
 const PORT = process.env.PORT || 3001;
 
+// Permite senha diferente por app via variável de ambiente PASSWORD_<APPID> (ex: PASSWORD_GASTOS).
+// Se não existir, cai na senha genérica APP_PASSWORD.
+function getPasswordForApp(appId) {
+  const key = `PASSWORD_${String(appId || '').toUpperCase()}`;
+  return process.env[key] || APP_PASSWORD;
+}
+
+function requirePassword(req, res, next) {
+  const expected = getPasswordForApp(req.params.appId);
+  const provided = req.header('x-app-password');
+  if (provided !== expected) {
+    return res.status(401).json({ erro: 'Senha inválida ou ausente.' });
+  }
+  next();
+}
+
 if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
   console.error('ERRO: defina TURSO_DATABASE_URL e TURSO_AUTH_TOKEN nas variáveis de ambiente.');
   process.exit(1);
@@ -62,7 +78,7 @@ app.post('/api/login', (req, res) => {
 });
 
 // ---- Dados de um app específico (identificado por :appId, ex: "bolso", "gastos") ----
-app.get('/api/data/:appId', async (req, res) => {
+app.get('/api/data/:appId', requirePassword, async (req, res) => {
   try {
     const { appId } = req.params;
     const result = await db.execute({
@@ -79,7 +95,7 @@ app.get('/api/data/:appId', async (req, res) => {
   }
 });
 
-app.post('/api/data/:appId', async (req, res) => {
+app.post('/api/data/:appId', requirePassword, async (req, res) => {
   try {
     const { appId } = req.params;
     const jsonStr = JSON.stringify(req.body);
