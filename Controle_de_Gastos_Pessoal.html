@@ -688,11 +688,24 @@ function migrateData(data){
   });
 
   // labels editáveis das caixas (Recebimento Dia 18/08, títulos das seções)
-  if(!data.labels) data.labels = {};
-  if(!data.labels.recebDia18) data.labels.recebDia18 = "Recebimento · Dia 18";
-  if(!data.labels.recebDia08) data.labels.recebDia08 = "Recebimento · Dia 08";
-  if(!data.labels.secaoDia18) data.labels.secaoDia18 = "DIA 18 · Vencimentos";
-  if(!data.labels.secaoDia08) data.labels.secaoDia08 = "DIA 08 · Vencimentos";
+  // — agora são POR MÊS, não mais um valor único global.
+  const labelsPadrao = {
+    recebDia18: "Recebimento · Dia 18",
+    recebDia08: "Recebimento · Dia 08",
+    secaoDia18: "DIA 18 · Vencimentos",
+    secaoDia08: "DIA 08 · Vencimentos",
+  };
+  // migração: se existia um valor global antigo, usa ele como ponto de partida pros meses
+  const globalAntigo = data.labels || {};
+  delete data.labels;
+  const aplicarLabels = (m)=>{
+    if(!m.labels) m.labels = {};
+    Object.keys(labelsPadrao).forEach(k=>{
+      if(!m.labels[k]) m.labels[k] = globalAntigo[k] || labelsPadrao[k];
+    });
+  };
+  Object.values(data.months || {}).forEach(aplicarLabels);
+  if(data.template) aplicarLabels(data.template);
 
   return data;
 }
@@ -1043,20 +1056,20 @@ function renderMonthView(monthKey){
 
   <div class="recebimentos-row">
     ${!oc.dia18 ? `<div class="receb-card ${Number(m.recebimentos.dia18)===0 ? 'receb-zero' : ''}">
-      <input type="text" class="rlabel-input" data-label-key="recebDia18" value="${escapeHtml(DATA.labels.recebDia18)}">
+      <input type="text" class="rlabel-input" data-label-key="recebDia18" value="${escapeHtml(m.labels.recebDia18)}">
       <span class="receb-prefix">R$</span>
       <input type="number" step="0.01" id="receb-dia18" value="${round2(m.recebimentos.dia18)}">
     </div>` : ''}
     ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.dia08)===0 ? 'receb-zero' : ''}">
-      <input type="text" class="rlabel-input" data-label-key="recebDia08" value="${escapeHtml(DATA.labels.recebDia08)}">
+      <input type="text" class="rlabel-input" data-label-key="recebDia08" value="${escapeHtml(m.labels.recebDia08)}">
       <span class="receb-prefix">R$</span>
       <input type="number" step="0.01" id="receb-dia08" value="${round2(m.recebimentos.dia08)}">
     </div>` : ''}
   </div>
 
   <div class="sections-grid">
-    ${!oc.dia18 ? sectionHtml(monthKey, DATA.labels.secaoDia18, "dia18", m.dia18, "var(--blue)") : ''}
-    ${!oc.dia08 ? sectionHtml(monthKey, DATA.labels.secaoDia08, "dia08", m.dia08, "var(--purple)") : ''}
+    ${!oc.dia18 ? sectionHtml(monthKey, m.labels.secaoDia18, "dia18", m.dia18, "var(--blue)") : ''}
+    ${!oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)") : ''}
   </div>
   `;
 
@@ -1130,7 +1143,8 @@ function attachMonthEvents(monthKey){
         secaoDia18: "DIA 18 · Vencimentos",
         secaoDia08: "DIA 08 · Vencimentos",
       }[key];
-      DATA.labels[key] = e.target.value.trim() || valorPadrao;
+      if(!m.labels) m.labels = {};
+      m.labels[key] = e.target.value.trim() || valorPadrao;
       save(); renderContent();
     });
   });

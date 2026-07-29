@@ -58,6 +58,10 @@
   .save-status.saving{ color:#F5B301; }
   .save-status.saved{ color:#5FE0A0; }
   .save-status.error{ color:#FF8A8A; background:rgba(229,72,77,0.15); }
+  #multi-tab-warning{
+    display:none; background:#F5B301; color:#3A2900; font-weight:700; font-size:13px;
+    text-align:center; padding:10px 16px; position:sticky; top:0; z-index:60;
+  }
   #export-btn, #import-btn{
     background: rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); color:#fff;
     border-radius:8px; padding:7px 14px; font-size:12.5px; font-weight:700; cursor:pointer;
@@ -380,8 +384,15 @@ async function loadFromServer(){
 function migrateData(data){
   if(!data.monthOrder) data.monthOrder = Object.keys(data.months || {});
   if(!data.template) data.template = defaultData().template;
-  if(!data.labels) data.labels = {};
-  if(!data.labels.recebimentos) data.labels.recebimentos = "Recebimentos";
+  // label "Recebimentos" — agora é POR MÊS, não mais um valor único global
+  const globalAntigo = data.labels || {};
+  delete data.labels;
+  const aplicarLabels = (m)=>{
+    if(!m.labels) m.labels = {};
+    if(!m.labels.recebimentos) m.labels.recebimentos = globalAntigo.recebimentos || "Recebimentos";
+  };
+  Object.values(data.months || {}).forEach(aplicarLabels);
+  if(data.template) aplicarLabels(data.template);
   return data;
 }
 function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -571,7 +582,7 @@ function itemRowHtml(listType, catIdx, idx, item){
   </div>`;
 }
 
-function recebimentosSectionHtml(items){
+function recebimentosSectionHtml(items, titulo){
   const total = round2(items.reduce((s,x)=>s+Number(x.valor||0),0));
   const rows = items.length
     ? items.map((it,idx)=>itemRowHtml('recebimentos', undefined, idx, it)).join('')
@@ -579,7 +590,7 @@ function recebimentosSectionHtml(items){
   return `
   <div class="section-card" data-section="recebimentos">
     <div class="section-header">
-      <input type="text" class="cat-title-input" id="recebimentos-title-input" value="${escapeHtml(DATA.labels.recebimentos)}">
+      <input type="text" class="cat-title-input" id="recebimentos-title-input" value="${escapeHtml(titulo)}">
       <span class="pill" style="background:var(--blue)">R$ ${fmt(total)}</span>
     </div>
     ${rows}
@@ -644,7 +655,7 @@ function renderMonthView(monthKey){
 
   ${(!isTemplate && t.rendaTotal===0) ? `<div class="receb-warning">⚠️ nenhum recebimento preenchido neste mês — confira se não foi esquecido.</div>` : ''}
 
-  ${recebimentosSectionHtml(m.recebimentos)}
+  ${recebimentosSectionHtml(m.recebimentos, m.labels.recebimentos)}
 
   <div class="despesas-grid">
     ${m.despesas.map((c,idx)=>categoriaHtml(c, idx)).join('')}
@@ -691,7 +702,8 @@ function attachMonthEvents(monthKey){
   const recCard = content.querySelector('.section-card[data-section="recebimentos"]');
   recCard.querySelector('#recebimentos-title-input').addEventListener('change', e=>{
     const novoTitulo = e.target.value.trim() || "Recebimentos";
-    DATA.labels.recebimentos = novoTitulo;
+    if(!m.labels) m.labels = {};
+    m.labels.recebimentos = novoTitulo;
     save(); renderContent();
   });
   recCard.querySelectorAll('.item-row').forEach(row=>{
