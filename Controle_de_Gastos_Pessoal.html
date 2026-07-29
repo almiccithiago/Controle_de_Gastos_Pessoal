@@ -412,7 +412,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-29.7</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-29.8</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">SE</div>
@@ -998,7 +998,7 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
     <span class="rs-prefix">R$</span>
-    <input type="number" step="0.01" class="item-valor" value="${round2(item.valor)}">
+    <input type="number" step="0.01" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-remove" title="Remover item">×</button>
   </div>`;
 }
@@ -1110,12 +1110,12 @@ function renderMonthView(monthKey){
     ${!oc.dia18 ? `<div class="receb-card ${Number(m.recebimentos.dia18)===0 ? 'receb-zero' : ''}">
       <input type="text" class="rlabel-input" data-label-key="recebDia18" value="${escapeHtml(m.labels.recebDia18)}">
       <span class="receb-prefix">R$</span>
-      <input type="number" step="0.01" id="receb-dia18" value="${round2(m.recebimentos.dia18)}">
+      <input type="number" step="0.01" id="receb-dia18" value="${round2(m.recebimentos.dia18).toFixed(2)}">
     </div>` : ''}
     ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.dia08)===0 ? 'receb-zero' : ''}">
       <input type="text" class="rlabel-input" data-label-key="recebDia08" value="${escapeHtml(m.labels.recebDia08)}">
       <span class="receb-prefix">R$</span>
-      <input type="number" step="0.01" id="receb-dia08" value="${round2(m.recebimentos.dia08)}">
+      <input type="number" step="0.01" id="receb-dia08" value="${round2(m.recebimentos.dia08).toFixed(2)}">
     </div>` : ''}
   </div>
 
@@ -1367,8 +1367,8 @@ function loanTableHtml(key, loan){
   const rows = loan.parcelas.map((p, idx)=>`
     <tr data-idx="${idx}" class="${p.pago?'paid':''}">
       <td><input type="text" class="loan-parcela" value="${escapeHtml(p.parcela)}"></td>
-      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="number" step="0.01" class="loan-saldo" value="${round2(p.saldo)}" title="Editar ajusta manualmente o saldo desta parcela em diante"></span></td>
-      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="number" step="0.01" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago) : ''}" placeholder="—"></span></td>
+      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="number" step="0.01" class="loan-saldo" value="${round2(p.saldo).toFixed(2)}" title="Editar ajusta manualmente o saldo desta parcela em diante"></span></td>
+      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="number" step="0.01" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : ''}" placeholder="—"></span></td>
       <td><input type="date" class="loan-data" value="${p.data ?? ''}"></td>
       <td><button class="loan-remove" title="Remover parcela">×</button></td>
     </tr>`).join('');
@@ -1380,7 +1380,7 @@ function loanTableHtml(key, loan){
     <label class="loan-inicial-row">
       <span>Saldo inicial do empréstimo</span>
       <span class="rs-prefix-dark">R$</span>
-      <input type="number" step="0.01" class="loan-saldo-inicial" value="${round2(loan.saldoInicial)}">
+      <input type="number" step="0.01" class="loan-saldo-inicial" value="${round2(loan.saldoInicial).toFixed(2)}">
     </label>
     <table class="loan-table">
       <thead><tr><th>Parcela</th><th class="nowrap">Saldo Restante</th><th>Valor Pago</th><th>Data</th><th></th></tr></thead>
