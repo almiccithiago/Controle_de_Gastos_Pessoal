@@ -905,9 +905,18 @@ function syncDetailsIntoMain(m){
     const total = round2(det.items.reduce((s,x)=>s+Number(x.valor||0),0));
     const list = m[det.linkTo.list];
     if(!list) return;
-    const target = list.find(it=>String(it.desc).trim().toLowerCase() === det.linkTo.desc.toLowerCase());
-    if(target){ target.valor = total; }
-    else { list.push({ desc: det.linkTo.desc, valor: total, pago:false }); }
+    const descNorm = det.linkTo.desc.trim().toLowerCase();
+    const matches = list.filter(it=>String(it.desc).trim().toLowerCase() === descNorm);
+    if(matches.length > 0){
+      // mantém só o primeiro encontrado e atualiza o valor; remove duplicados (se houver)
+      matches[0].valor = total;
+      for(let i=1;i<matches.length;i++){
+        const idx = list.indexOf(matches[i]);
+        if(idx !== -1) list.splice(idx,1);
+      }
+    } else {
+      list.push({ desc: det.linkTo.desc, valor: total, pago:false });
+    }
   });
 }
 
