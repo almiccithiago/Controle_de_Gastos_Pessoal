@@ -2,6 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meu Bolso em Dia</title>
 <style>
@@ -101,8 +104,8 @@
   }
   #delete-month-btn:hover{ background:var(--red); color:#fff; }
 
-  .summary-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-bottom: 20px; }
-  @media (max-width: 900px){ .summary-grid{ grid-template-columns: 1fr; } }
+  .summary-grid{ display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; margin-bottom: 20px; }
+  @media (max-width: 900px){ .summary-grid{ grid-template-columns: repeat(2,1fr); } }
   .summary-card{ background: var(--card); border-radius: var(--radius); padding: 14px 16px; border: 1px solid var(--border); }
   .summary-card .label{ font-size:11.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;}
   .summary-card .value{ font-size:20px; font-weight:800; margin-top:4px; }
@@ -110,6 +113,7 @@
   .summary-card.accent-blue{ border-top:3px solid var(--blue); }
   .summary-card.accent-green{ border-top:3px solid var(--green); }
   .summary-card.accent-red{ border-top:3px solid var(--red); }
+  .summary-card.accent-amber{ border-top:3px solid var(--amber); }
   .value.negative{ color: var(--red); }
   .value.positive{ color: var(--green); }
 
@@ -539,7 +543,10 @@ function monthTotals(m){
   const rendaTotal = round2(m.recebimentos.reduce((s,x)=>s+Number(x.valor||0),0));
   const despesasTotal = round2(m.despesas.reduce((s,c)=>s+c.items.reduce((s2,x)=>s2+Number(x.valor||0),0),0));
   const saldo = round2(rendaTotal - despesasTotal);
-  return { rendaTotal, despesasTotal, saldo };
+  const todosItens = m.despesas.reduce((acc,c)=>acc.concat(c.items), []);
+  const pago = round2(todosItens.filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0));
+  const pendente = round2(despesasTotal - pago);
+  return { rendaTotal, despesasTotal, saldo, pago, pendente };
 }
 
 // ============================= ITENS =============================
@@ -622,6 +629,8 @@ function renderMonthView(monthKey){
     <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div></div>
     <div class="summary-card accent-red"><div class="label">Total Despesas</div><div class="value">R$ ${fmt(t.despesasTotal)}</div></div>
     <div class="summary-card ${t.saldo>=0?'accent-green':'accent-red'}"><div class="label">Saldo do Mês</div><div class="value ${saldoClass}">R$ ${fmt(t.saldo)}</div></div>
+    <div class="summary-card accent-green"><div class="label">Pago</div><div class="value">R$ ${fmt(t.pago)}</div></div>
+    <div class="summary-card accent-amber"><div class="label">Pendente</div><div class="value">R$ ${fmt(t.pendente)}</div></div>
   </div>
 
   ${(!isTemplate && t.rendaTotal===0) ? `<div class="receb-warning">⚠️ nenhum recebimento preenchido neste mês — confira se não foi esquecido.</div>` : ''}
