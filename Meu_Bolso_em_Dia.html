@@ -113,6 +113,7 @@
   .summary-card{ background: var(--card); border-radius: var(--radius); padding: 14px 16px; border: 1px solid var(--border); }
   .summary-card .label{ font-size:11.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;}
   .summary-card .value{ font-size:20px; font-weight:800; margin-top:4px; }
+  .summary-card .comparativo{ font-size:11px; font-weight:700; margin-top:4px; }
   .summary-card.accent-teal{ border-top:3px solid var(--teal); }
   .summary-card.accent-blue{ border-top:3px solid var(--blue); }
   .summary-card.accent-green{ border-top:3px solid var(--green); }
@@ -164,6 +165,11 @@
   .add-item-row input.add-valor{ width:85px; }
   .add-item-row button{ background: var(--teal); color:#fff; border:none; border-radius:8px; padding: 6px 12px; font-size:13px; font-weight:700; cursor:pointer; }
   .add-item-row button:hover{ background:#0E8F8C; }
+  .replicate-check{
+    display:flex; align-items:center; gap:4px; font-size:11px; color:var(--muted); font-weight:600;
+    white-space:nowrap; cursor:pointer; flex-shrink:0;
+  }
+  .replicate-check input{ width:14px; height:14px; margin:0; cursor:pointer; }
 
   .despesas-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:20px; }
   @media (max-width: 900px){ .despesas-grid{ grid-template-columns:1fr; } }
@@ -477,6 +483,9 @@ function nomeDuplicado(list, desc, excludeIdx){
   const alvo = String(desc).trim().toLowerCase();
   return list.some((it,idx)=> idx !== excludeIdx && String(it.desc).trim().toLowerCase() === alvo);
 }
+function todosOsMesesETemplate(){
+  return [...Object.values(DATA.months), DATA.template];
+}
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
 }
@@ -599,6 +608,9 @@ function recebimentosSectionHtml(items, titulo){
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
       <input type="number" step="0.01" class="add-valor" placeholder="Valor">
+      <label class="replicate-check" title="Adiciona este item em todos os meses (incluindo o Modelo)">
+        <input type="checkbox" class="replicate-all"> replicar em todos os meses
+      </label>
       <button class="btn-add">+ Add</button>
     </div>
   </div>`;
@@ -624,18 +636,43 @@ function categoriaHtml(cat, catIdx){
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
       <input type="number" step="0.01" class="add-valor" placeholder="Valor">
+      <label class="replicate-check" title="Adiciona este item na categoria de mesmo nome em todos os meses (incluindo o Modelo)">
+        <input type="checkbox" class="replicate-all"> replicar em todos os meses
+      </label>
       <button class="btn-add">+ Add</button>
     </div>
   </div>`;
 }
 
 // ============================= VISÃO DO MÊS =============================
+function comparativoTexto(atual, anterior){
+  if(!anterior || anterior === 0) return '';
+  const diff = atual - anterior;
+  const pct = (diff/anterior)*100;
+  if(Math.abs(pct) < 0.5) return `<div class="comparativo" style="color:var(--muted);">· igual ao mês anterior</div>`;
+  const seta = diff>0 ? '↑' : '↓';
+  const cor = diff>0 ? 'var(--red)' : 'var(--green)';
+  return `<div class="comparativo" style="color:${cor};">${seta} ${Math.abs(pct).toFixed(0)}% vs mês anterior</div>`;
+}
+
 function renderMonthView(monthKey){
   const isTemplate = monthKey === "Modelo";
   const m = isTemplate ? DATA.template : DATA.months[monthKey];
   const t = monthTotals(m);
   const saldoClass = t.saldo >= 0 ? 'positive' : 'negative';
   const bannerClass = t.saldo >= 0 ? 'pos' : 'neg';
+
+  let compRenda = '', compDespesas = '';
+  if(!isTemplate){
+    const idx = DATA.monthOrder.indexOf(monthKey);
+    const prevKey = idx > 0 ? DATA.monthOrder[idx-1] : null;
+    const prevM = prevKey ? DATA.months[prevKey] : null;
+    if(prevM){
+      const prevT = monthTotals(prevM);
+      compRenda = comparativoTexto(t.rendaTotal, prevT.rendaTotal);
+      compDespesas = comparativoTexto(t.despesasTotal, prevT.despesasTotal);
+    }
+  }
 
   let html = `
   <div class="month-title-bar">
@@ -646,8 +683,8 @@ function renderMonthView(monthKey){
     }
   </div>
   <div class="summary-grid">
-    <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div></div>
-    <div class="summary-card accent-red"><div class="label">Total Despesas</div><div class="value">R$ ${fmt(t.despesasTotal)}</div></div>
+    <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div>${compRenda}</div>
+    <div class="summary-card accent-red"><div class="label">Total Despesas</div><div class="value">R$ ${fmt(t.despesasTotal)}</div>${compDespesas}</div>
     <div class="summary-card ${t.saldo>=0?'accent-green':'accent-red'}"><div class="label">Saldo do Mês</div><div class="value ${saldoClass}">R$ ${fmt(t.saldo)}</div></div>
     <div class="summary-card accent-green"><div class="label">Pago</div><div class="value">R$ ${fmt(t.pago)}</div></div>
     <div class="summary-card accent-amber"><div class="label">Pendente</div><div class="value">R$ ${fmt(t.pendente)}</div></div>
@@ -728,14 +765,27 @@ function attachMonthEvents(monthKey){
   recAddRow.querySelector('.btn-add').addEventListener('click', ()=>{
     const desc = recAddRow.querySelector('.add-desc').value.trim();
     const valor = round2(parseFloat(recAddRow.querySelector('.add-valor').value)||0);
+    const replicar = recAddRow.querySelector('.replicate-all').checked;
     if(!desc){ recAddRow.querySelector('.add-desc').focus(); return; }
-    if(nomeDuplicado(m.recebimentos, desc)){
+    if(!replicar && nomeDuplicado(m.recebimentos, desc)){
       alert('Já existe um recebimento com esse nome.');
       recAddRow.querySelector('.add-desc').focus();
       return;
     }
-    m.recebimentos.push({ desc, valor, pago:false });
-    sortItemsByDesc(m.recebimentos);
+    if(replicar){
+      let count = 0;
+      todosOsMesesETemplate().forEach(mes=>{
+        if(!nomeDuplicado(mes.recebimentos, desc)){
+          mes.recebimentos.push({ desc, valor, pago:false });
+          sortItemsByDesc(mes.recebimentos);
+          count++;
+        }
+      });
+      alert(`Item adicionado em ${count} mês(es) + Modelo.`);
+    } else {
+      m.recebimentos.push({ desc, valor, pago:false });
+      sortItemsByDesc(m.recebimentos);
+    }
     save(); renderContent();
   });
 
@@ -775,14 +825,29 @@ function attachMonthEvents(monthKey){
     addRow.querySelector('.btn-add').addEventListener('click', ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valor = round2(parseFloat(addRow.querySelector('.add-valor').value)||0);
+      const replicar = addRow.querySelector('.replicate-all').checked;
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
-      if(nomeDuplicado(categoria.items, desc)){
+      if(!replicar && nomeDuplicado(categoria.items, desc)){
         alert('Já existe um item com esse nome nesta categoria.');
         addRow.querySelector('.add-desc').focus();
         return;
       }
-      categoria.items.push({ desc, valor, pago:false });
-      sortItemsByDesc(categoria.items);
+      if(replicar){
+        const tituloAlvo = categoria.titulo.trim().toLowerCase();
+        let count = 0;
+        todosOsMesesETemplate().forEach(mes=>{
+          const catCorrespondente = mes.despesas.find(c=>c.titulo.trim().toLowerCase() === tituloAlvo);
+          if(catCorrespondente && !nomeDuplicado(catCorrespondente.items, desc)){
+            catCorrespondente.items.push({ desc, valor, pago:false });
+            sortItemsByDesc(catCorrespondente.items);
+            count++;
+          }
+        });
+        alert(`Item adicionado em ${count} categoria(s) "${categoria.titulo}" (meses + Modelo que têm essa categoria).`);
+      } else {
+        categoria.items.push({ desc, valor, pago:false });
+        sortItemsByDesc(categoria.items);
+      }
       save(); renderContent();
     });
   });
