@@ -955,7 +955,17 @@ function syncDetailsIntoMain(m){
   });
 }
 
+function limparBlocosExcluidos(m){
+  if(!m.blocosOcultos) return;
+  Object.keys(m.blocosOcultos).forEach(key=>{
+    if(m.blocosOcultos[key] && m[key] && m[key].length > 0){
+      m[key] = [];
+    }
+  });
+}
+
 function monthTotals(m){
+  limparBlocosExcluidos(m);
   syncDetailsIntoMain(m);
   const dia18Total = round2(m.dia18.reduce((s,x)=>s+Number(x.valor||0),0));
   const dia08Total = round2(m.dia08.reduce((s,x)=>s+Number(x.valor||0),0));
