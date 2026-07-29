@@ -70,6 +70,11 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
+// ---- Rota de saúde (pra ferramentas de monitoramento tipo UptimeRobot) ----
+app.get('/', (req, res) => {
+  res.status(200).send('OK - Meu Bolso em Dia / Controle de Gastos Pessoal backend no ar.');
+});
+
 // ---- Login simples (mesma senha compartilhada entre apps, hoje não é usado pelos HTMLs) ----
 app.post('/api/login', (req, res) => {
   const { senha } = req.body;
