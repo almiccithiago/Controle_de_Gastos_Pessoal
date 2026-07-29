@@ -79,6 +79,7 @@ app.post('/api/login', (req, res) => {
 
 // ---- Dados de um app específico (identificado por :appId, ex: "bolso", "gastos") ----
 app.get('/api/data/:appId', requirePassword, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
   try {
     const { appId } = req.params;
     const result = await db.execute({

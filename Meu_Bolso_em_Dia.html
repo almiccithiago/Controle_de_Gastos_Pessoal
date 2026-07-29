@@ -360,6 +360,7 @@ let currentPassword = '';
 
 async function loadFromServer(){
   const resp = await fetch(`${API_BASE}/api/data/bolso`, {
+    cache: 'no-store',
     headers: { 'x-app-password': currentPassword }
   });
   if(resp.status === 401){
