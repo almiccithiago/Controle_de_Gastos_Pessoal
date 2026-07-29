@@ -178,6 +178,12 @@
   .add-item-row input.add-valor{ width:85px; }
   .add-item-row button{ background: var(--teal); color:#fff; border:none; border-radius:8px; padding: 6px 12px; font-size:13px; font-weight:700; cursor:pointer; }
   .add-item-row button:hover{ background:#0E8F8C; }
+  .meta-row{ display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11.5px; color:var(--muted); }
+  .meta-row .meta-label{ font-weight:700; flex-shrink:0; }
+  .meta-input{ width:80px; border:1px solid var(--border); border-radius:6px; padding:3px 6px; font-size:12px; }
+  .meta-bar-track{ width:100%; height:8px; background:#EEF0F3; border-radius:99px; overflow:hidden; margin-top:6px; }
+  .meta-bar-fill{ height:100%; border-radius:99px; transition:width .2s ease; }
+  .meta-bar-text{ font-size:11px; font-weight:700; margin-top:4px; }
 
   .despesas-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:20px; }
   @media (max-width: 900px){ .despesas-grid{ grid-template-columns:1fr; } }
@@ -242,7 +248,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-29.8</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-29.9</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">SE</div>
@@ -622,6 +628,19 @@ function recebimentosSectionHtml(items, titulo){
   </div>`;
 }
 
+function metaBarraHtml(gasto, meta){
+  const metaNum = Number(meta) || 0;
+  if(metaNum <= 0) return '';
+  const pctReal = round2((gasto/metaNum)*100);
+  const pctBarra = Math.min(100, pctReal);
+  let cor = 'var(--green)';
+  if(pctReal >= 100) cor = 'var(--red)';
+  else if(pctReal >= 70) cor = 'var(--amber)';
+  return `
+  <div class="meta-bar-track"><div class="meta-bar-fill" style="width:${pctBarra}%; background:${cor};"></div></div>
+  <div class="meta-bar-text" style="color:${cor};">${pctReal.toFixed(0)}% da meta (R$ ${fmt(gasto)} de R$ ${fmt(metaNum)})</div>`;
+}
+
 function categoriaHtml(cat, catIdx){
   const total = round2(cat.items.reduce((s,x)=>s+Number(x.valor||0),0));
   const rows = cat.items.length
@@ -638,6 +657,12 @@ function categoriaHtml(cat, catIdx){
     </div>
     ${rows}
     <div class="section-total"><span>Total</span><span>R$ ${fmt(total)}</span></div>
+    <div class="meta-row">
+      <span class="meta-label">Meta</span>
+      <span class="rs-prefix">R$</span>
+      <input type="number" step="0.01" class="meta-input" value="${cat.meta ? round2(cat.meta).toFixed(2) : ''}" placeholder="sem meta definida">
+    </div>
+    ${metaBarraHtml(total, cat.meta)}
     <div class="add-item-row" data-add-cat="${catIdx}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
@@ -799,6 +824,11 @@ function attachMonthEvents(monthKey){
 
     card.querySelector('.cat-title-input').addEventListener('change', e=>{
       categoria.titulo = e.target.value; save(); renderContent();
+    });
+    card.querySelector('.meta-input').addEventListener('change', e=>{
+      const val = e.target.value.trim();
+      categoria.meta = val === '' ? null : round2(parseFloat(val)||0);
+      save(); renderContent();
     });
     card.querySelector('.block-remove[data-cat-remove]').addEventListener('click', ()=>{
       if(!confirm(`Excluir a categoria "${categoria.titulo}" deste mês? Essa ação não pode ser desfeita.`)) return;

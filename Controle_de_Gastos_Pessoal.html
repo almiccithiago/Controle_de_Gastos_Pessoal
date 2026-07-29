@@ -260,6 +260,12 @@
     padding: 6px 12px; font-size:13px; font-weight:700; cursor:pointer;
   }
   .add-item-row button:hover{ background:#0E8F8C; }
+  .meta-row{ display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11.5px; color:var(--muted); }
+  .meta-row .meta-label{ font-weight:700; flex-shrink:0; }
+  .meta-input{ width:80px; border:1px solid var(--border); border-radius:6px; padding:3px 6px; font-size:12px; }
+  .meta-bar-track{ width:100%; height:8px; background:#EEF0F3; border-radius:99px; overflow:hidden; margin-top:6px; }
+  .meta-bar-fill{ height:100%; border-radius:99px; transition:width .2s ease; }
+  .meta-bar-text{ font-size:11px; font-weight:700; margin-top:4px; }
 
   .saldo-banner{
     margin-top: 18px; padding: 14px 18px; border-radius: var(--radius);
@@ -412,7 +418,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-29.8</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-29.9</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">SE</div>
@@ -1003,7 +1009,20 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   </div>`;
 }
 
-function sectionHtml(monthKey, title, listKey, items, pillColor){
+function metaBarraHtml(gasto, meta){
+  const metaNum = Number(meta) || 0;
+  if(metaNum <= 0) return '';
+  const pctReal = round2((gasto/metaNum)*100);
+  const pctBarra = Math.min(100, pctReal);
+  let cor = 'var(--green)';
+  if(pctReal >= 100) cor = 'var(--red)';
+  else if(pctReal >= 70) cor = 'var(--amber)';
+  return `
+  <div class="meta-bar-track"><div class="meta-bar-fill" style="width:${pctBarra}%; background:${cor};"></div></div>
+  <div class="meta-bar-text" style="color:${cor};">${pctReal.toFixed(0)}% da meta (R$ ${fmt(gasto)} de R$ ${fmt(metaNum)})</div>`;
+}
+
+function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
   const total = round2(items.reduce((s,x)=>s+Number(x.valor||0),0));
   const rows = items.length
     ? items.map((it,idx)=>itemRowHtml(monthKey, listKey, idx, it)).join('')
@@ -1019,6 +1038,12 @@ function sectionHtml(monthKey, title, listKey, items, pillColor){
     </div>
     ${rows}
     <div class="section-total"><span>Total</span><span>R$ ${fmt(total)}</span></div>
+    <div class="meta-row" data-meta-for="${listKey}">
+      <span class="meta-label">Meta</span>
+      <span class="rs-prefix">R$</span>
+      <input type="number" step="0.01" class="meta-input" value="${meta ? round2(meta).toFixed(2) : ''}" placeholder="sem meta definida">
+    </div>
+    ${metaBarraHtml(total, meta)}
     <div class="add-item-row" data-add="${listKey}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
@@ -1120,8 +1145,8 @@ function renderMonthView(monthKey){
   </div>
 
   <div class="sections-grid">
-    ${!oc.dia18 ? sectionHtml(monthKey, m.labels.secaoDia18, "dia18", m.dia18, "var(--blue)") : ''}
-    ${!oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)") : ''}
+    ${!oc.dia18 ? sectionHtml(monthKey, m.labels.secaoDia18, "dia18", m.dia18, "var(--blue)", m.metas ? m.metas.dia18 : null) : ''}
+    ${!oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : ''}
   </div>
   `;
 
@@ -1239,6 +1264,13 @@ function attachMonthEvents(monthKey){
   content.querySelectorAll('.section-card[data-section]').forEach(card=>{
     const listKey = card.dataset.section;
     const list = m[listKey];
+
+    card.querySelector('.meta-input').addEventListener('change', e=>{
+      if(!m.metas) m.metas = { dia18:null, dia08:null };
+      const val = e.target.value.trim();
+      m.metas[listKey] = val === '' ? null : round2(parseFloat(val)||0);
+      save(); renderContent();
+    });
 
     card.querySelectorAll('.item-row').forEach(row=>{
       const idx = parseInt(row.dataset.idx,10);
@@ -1382,10 +1414,12 @@ function loanTableHtml(key, loan){
       <span class="rs-prefix-dark">R$</span>
       <input type="number" step="0.01" class="loan-saldo-inicial" value="${round2(loan.saldoInicial).toFixed(2)}">
     </label>
+    <div style="overflow-x:auto;">
     <table class="loan-table">
       <thead><tr><th>Parcela</th><th class="nowrap">Saldo Restante</th><th>Valor Pago</th><th>Data</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
+    </div>
     <div class="loan-footer">
       <button class="loan-add-btn">+ Adicionar parcela</button>
       <div class="loan-current">Saldo devedor atual: R$ ${fmt(loanCurrentBalance(loan))}</div>
