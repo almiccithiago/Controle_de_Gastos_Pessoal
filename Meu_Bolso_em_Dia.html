@@ -2,12 +2,20 @@
 <html lang="pt-BR">
 <head>
 <script>
-// Anti-cache: garante que o navegador sempre busque a versão mais recente do arquivo,
-// adicionando um parâmetro único na URL na primeira visita de cada carregamento.
+// Anti-cache: garante que o navegador sempre busque a versão mais recente do arquivo.
+// Não basta checar se já existe um "_v=" na URL — se a página foi aberta de um favorito,
+// aba antiga ou link salvo com um _v velho, o navegador podia continuar servindo a versão
+// cacheada daquela URL exata pra sempre. Por isso comparamos a IDADE do valor: só pulamos o
+// redirecionamento se o _v atual tiver poucos segundos (ou seja, acabamos de gerar ele agora
+// mesmo, no redirecionamento anterior) — evitando loop infinito mas garantindo versão nova
+// em qualquer acesso "de verdade" (favorito, aba antiga, digitação da URL, etc).
 (function(){
-  if(!location.search.includes('_v=')){
-    var sep = location.search ? '&' : '?';
-    location.replace(location.pathname + location.search + sep + '_v=' + Date.now());
+  var m = location.search.match(/[?&]_v=(\d+)/);
+  var agora = Date.now();
+  if(!m || (agora - parseInt(m[1],10)) > 3000){
+    var params = new URLSearchParams(location.search);
+    params.set('_v', agora);
+    location.replace(location.pathname + '?' + params.toString());
   }
 })();
 </script>
