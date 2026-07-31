@@ -592,6 +592,17 @@ function parseValorBR(str){
 function sortItemsByDesc(list){
   list.sort((a,b)=>String(a.desc).localeCompare(String(b.desc), 'pt-BR', {sensitivity:'base'}));
 }
+// Exige que a pessoa digite o nome exato antes de excluir algo que não pode ser desfeito
+// (categoria, box, mês, obrigação). Evita exclusões acidentais por clique errado ou confirm() apressado.
+function confirmarExclusaoComNome(tipo, nome){
+  const digitado = window.prompt(`Isso vai excluir ${tipo} "${nome}" e NÃO pode ser desfeito.\n\nPra confirmar, digite o nome exatamente como está:\n"${nome}"`);
+  if(digitado === null) return false;
+  if(digitado.trim().toLowerCase() !== nome.trim().toLowerCase()){
+    alert('O nome digitado não confere — nada foi excluído.');
+    return false;
+  }
+  return true;
+}
 function nomeDuplicado(list, desc, excludeIdx){
   const alvo = String(desc).trim().toLowerCase();
   return list.some((it,idx)=> idx !== excludeIdx && String(it.desc).trim().toLowerCase() === alvo);
@@ -994,7 +1005,7 @@ function attachMonthEvents(monthKey){
       save(); renderContent();
     });
     card.querySelector('.block-remove[data-cat-remove]').addEventListener('click', ()=>{
-      if(!confirm(`Excluir a categoria "${categoria.titulo}" deste mês? Essa ação não pode ser desfeita.`)) return;
+      if(!confirmarExclusaoComNome('a categoria', categoria.titulo)) return;
       m.despesas.splice(catIdx,1); save(); renderContent();
     });
 
@@ -1151,7 +1162,7 @@ function confirmAddMonth(){
   renderContent();
 }
 function deleteMonth(monthKey){
-  if(!confirm(`Excluir o mês "${monthKey}"? Essa ação não pode ser desfeita.`)) return;
+  if(!confirmarExclusaoComNome('o mês', monthKey)) return;
   delete DATA.months[monthKey];
   DATA.monthOrder = DATA.monthOrder.filter(m=>m!==monthKey);
   save();

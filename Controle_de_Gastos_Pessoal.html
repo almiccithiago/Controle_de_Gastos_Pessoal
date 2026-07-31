@@ -879,7 +879,7 @@ function confirmAddMonth(){
 }
 
 function deleteMonth(monthKey){
-  if(!confirm(`Excluir o mês "${monthKey}"? Essa ação não pode ser desfeita.`)) return;
+  if(!confirmarExclusaoComNome('o mês', monthKey)) return;
   delete DATA.months[monthKey];
   DATA.monthOrder = DATA.monthOrder.filter(m=>m!==monthKey);
   save();
@@ -975,6 +975,17 @@ function parseValorBR(str){
 }
 function sortItemsByDesc(list){
   list.sort((a,b)=>String(a.desc).localeCompare(String(b.desc), 'pt-BR', {sensitivity:'base'}));
+}
+// Exige que a pessoa digite o nome exato antes de excluir algo que não pode ser desfeito
+// (bloco, mês, obrigação). Evita exclusões acidentais por clique errado ou confirm() apressado.
+function confirmarExclusaoComNome(tipo, nome){
+  const digitado = window.prompt(`Isso vai excluir ${tipo} "${nome}" e NÃO pode ser desfeito.\n\nPra confirmar, digite o nome exatamente como está:\n"${nome}"`);
+  if(digitado === null) return false;
+  if(digitado.trim().toLowerCase() !== nome.trim().toLowerCase()){
+    alert('O nome digitado não confere — nada foi excluído.');
+    return false;
+  }
+  return true;
 }
 function nomeDuplicado(list, desc, excludeIdx){
   const alvo = String(desc).trim().toLowerCase();
@@ -1444,7 +1455,7 @@ function attachMonthEvents(monthKey){
     const listKey = btn.dataset.block;
     btn.addEventListener('click', ()=>{
       const label = listKey === 'dia18' ? 'Dia 18' : 'Dia 08';
-      if(!confirm(`Excluir o bloco "${label}" deste mês? Os itens e o recebimento desse bloco serão zerados. Você pode trazer o bloco de volta depois, mas vazio.`)) return;
+      if(!confirmarExclusaoComNome('o bloco (os itens e o recebimento serão zerados)', label)) return;
       if(!m.blocosOcultos) m.blocosOcultos = { dia18:false, dia08:false };
       m.blocosOcultos[listKey] = true;
       m[listKey] = [];
@@ -1467,7 +1478,7 @@ function attachMonthEvents(monthKey){
     const dIdx = parseInt(btn.dataset.detailIdx,10);
     btn.addEventListener('click', ()=>{
       const titulo = m.detalhamentos[dIdx] ? m.detalhamentos[dIdx].titulo : 'este bloco';
-      if(!confirm(`Excluir o bloco "${titulo}"? Essa ação não pode ser desfeita.`)) return;
+      if(!confirmarExclusaoComNome('o bloco', titulo)) return;
       m.detalhamentos.splice(dIdx,1);
       save(); renderContent();
     });
@@ -1529,17 +1540,11 @@ function attachMonthEvents(monthKey){
           d.linkTo && d.linkTo.list === listKey && String(d.linkTo.desc).trim().toLowerCase() === descAlvo
         );
         if(detVinculado){
-          const excluirTambem = confirm(
-            `"${list[idx].desc}" é o resumo automático do detalhamento "${detVinculado.titulo}". ` +
-            `Enquanto esse detalhamento existir, o valor dele volta a aparecer aqui sozinho a cada atualização.\n\n` +
-            `Quer excluir o detalhamento "${detVinculado.titulo}" também, removendo os dois de vez? ` +
-            `(Cancelar não remove nada)`
+          alert(
+            `"${list[idx].desc}" é o resumo automático do detalhamento "${detVinculado.titulo}" — não dá pra excluir por aqui, ` +
+            `senão ele volta sozinho na próxima atualização.\n\n` +
+            `Pra remover de vez, exclua o bloco "${detVinculado.titulo}" (mais abaixo, no botão × dele).`
           );
-          if(!excluirTambem) return;
-          const detIdx = m.detalhamentos.indexOf(detVinculado);
-          m.detalhamentos.splice(detIdx,1);
-          list.splice(idx,1);
-          save(); renderContent();
           return;
         }
         if(!confirm(`Remover "${list[idx].desc}"?`)) return;
@@ -1978,7 +1983,7 @@ function attachEmprestimosEvents(){
     });
 
     card.querySelector('.block-remove[data-loan-remove]').addEventListener('click', ()=>{
-      if(!confirm(`Excluir a obrigação "${loan.titulo}"? Essa ação não pode ser desfeita.`)) return;
+      if(!confirmarExclusaoComNome('a obrigação', loan.titulo)) return;
       delete DATA.emprestimos[key];
       save(); renderContent();
     });
