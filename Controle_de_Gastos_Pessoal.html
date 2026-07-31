@@ -243,7 +243,8 @@
   .move-btn:hover{ color:var(--navy); opacity:1; background:rgba(0,0,0,0.06); }
   .block-remove{
     border:none; background:transparent; color:var(--muted); cursor:pointer;
-    font-size:17px; line-height:1; padding:2px 4px; opacity:0.55; flex-shrink:0;
+    font-size:17px; line-height:1; padding:6px 8px; opacity:0.55; flex-shrink:0;
+    margin-left:6px; border-left:1px solid var(--border); padding-left:12px;
     transition: color .15s ease, opacity .15s ease;
   }
   .block-remove:hover{ color:var(--red); opacity:1; }
@@ -955,6 +956,23 @@ function round2(v){
   if(isNaN(n)) return 0;
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
+// Interpreta valores digitados no formato brasileiro (vírgula decimal, ponto de milhar,
+// símbolo "R$" colado, etc.) sem depender da validação nativa do <input type="number">,
+// que costuma invalidar silenciosamente o campo quando a vírgula é usada.
+function parseValorBR(str){
+  if(str === null || str === undefined) return NaN;
+  let s = String(str).trim();
+  if(s === '') return NaN;
+  s = s.replace(/[^\d.,-]/g, '');
+  const temVirgula = s.includes(',');
+  const temPonto = s.includes('.');
+  if(temVirgula && temPonto){
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if(temVirgula){
+    s = s.replace(',', '.');
+  }
+  return parseFloat(s);
+}
 function sortItemsByDesc(list){
   list.sort((a,b)=>String(a.desc).localeCompare(String(b.desc), 'pt-BR', {sensitivity:'base'}));
 }
@@ -1108,7 +1126,7 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
     <span class="rs-prefix">R$</span>
-    <input type="number" step="0.01" class="item-valor" value="${round2(item.valor).toFixed(2)}">
+    <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-remove" title="Remover item">×</button>
   </div>`;
 }
@@ -1145,13 +1163,13 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
     <div class="meta-row" data-meta-for="${listKey}">
       <span class="meta-label">Meta</span>
       <span class="rs-prefix">R$</span>
-      <input type="number" step="0.01" class="meta-input" value="${meta ? round2(meta).toFixed(2) : ''}" placeholder="sem meta definida">
+      <input type="text" inputmode="decimal" class="meta-input" value="${meta ? round2(meta).toFixed(2) : ''}" placeholder="sem meta definida">
     </div>
     ${metaBarraHtml(total, meta)}
     <div class="add-item-row" data-add="${listKey}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
-      <input type="number" step="0.01" class="add-valor" placeholder="Valor">
+      <input type="text" inputmode="decimal" class="add-valor" placeholder="Valor">
       <button class="btn-add">+ Add</button>
     </div>
   </div>`;
@@ -1215,7 +1233,7 @@ function detailSectionHtml(monthKey, detail, dIdx){
     <div class="add-item-row" data-add-detail="${dIdx}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
-      <input type="number" step="0.01" class="add-valor" placeholder="Valor">
+      <input type="text" inputmode="decimal" class="add-valor" placeholder="Valor">
       <button class="btn-add">+ Add</button>
     </div>
   </div>`;
@@ -1307,12 +1325,12 @@ function renderMonthView(monthKey){
     ${!oc.dia18 ? `<div class="receb-card ${Number(m.recebimentos.dia18)===0 ? 'receb-zero' : ''}">
       <input type="text" class="rlabel-input" data-label-key="recebDia18" value="${escapeHtml(m.labels.recebDia18)}">
       <span class="receb-prefix">R$</span>
-      <input type="number" step="0.01" id="receb-dia18" value="${round2(m.recebimentos.dia18).toFixed(2)}">
+      <input type="text" inputmode="decimal" id="receb-dia18" value="${round2(m.recebimentos.dia18).toFixed(2)}">
     </div>` : ''}
     ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.dia08)===0 ? 'receb-zero' : ''}">
       <input type="text" class="rlabel-input" data-label-key="recebDia08" value="${escapeHtml(m.labels.recebDia08)}">
       <span class="receb-prefix">R$</span>
-      <input type="number" step="0.01" id="receb-dia08" value="${round2(m.recebimentos.dia08).toFixed(2)}">
+      <input type="text" inputmode="decimal" id="receb-dia08" value="${round2(m.recebimentos.dia08).toFixed(2)}">
     </div>` : ''}
   </div>
 
@@ -1386,11 +1404,23 @@ function attachMonthEvents(monthKey){
 
   const receb18El = content.querySelector('#receb-dia18');
   if(receb18El) receb18El.addEventListener('change', e=>{
-    m.recebimentos.dia18 = round2(parseFloat(e.target.value)||0); save(); renderContent();
+    const novoValor = parseValorBR(e.target.value);
+    if(isNaN(novoValor)){
+      alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 6600,00).');
+      e.target.value = round2(m.recebimentos.dia18).toFixed(2);
+      return;
+    }
+    m.recebimentos.dia18 = round2(novoValor); save(); renderContent();
   });
   const receb08El = content.querySelector('#receb-dia08');
   if(receb08El) receb08El.addEventListener('change', e=>{
-    m.recebimentos.dia08 = round2(parseFloat(e.target.value)||0); save(); renderContent();
+    const novoValor = parseValorBR(e.target.value);
+    if(isNaN(novoValor)){
+      alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 9900,00).');
+      e.target.value = round2(m.recebimentos.dia08).toFixed(2);
+      return;
+    }
+    m.recebimentos.dia08 = round2(novoValor); save(); renderContent();
   });
 
   // labels editáveis (Recebimento · Dia 18/08, títulos das seções DIA 18/08)
@@ -1459,7 +1489,14 @@ function attachMonthEvents(monthKey){
     card.querySelector('.meta-input').addEventListener('change', e=>{
       if(!m.metas) m.metas = { dia18:null, dia08:null };
       const val = e.target.value.trim();
-      m.metas[listKey] = val === '' ? null : round2(parseFloat(val)||0);
+      if(val === ''){ m.metas[listKey] = null; save(); renderContent(); return; }
+      const novaMeta = parseValorBR(val);
+      if(isNaN(novaMeta)){
+        alert('Valor de meta inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 500,00).');
+        e.target.value = m.metas[listKey] ? round2(m.metas[listKey]).toFixed(2) : '';
+        return;
+      }
+      m.metas[listKey] = round2(novaMeta);
       save(); renderContent();
     });
 
@@ -1478,7 +1515,13 @@ function attachMonthEvents(monthKey){
         list[idx].desc = novoDesc; save(); renderContent();
       });
       row.querySelector('.item-valor').addEventListener('change', e=>{
-        list[idx].valor = round2(parseFloat(e.target.value)||0); save(); renderContent();
+        const novoValor = parseValorBR(e.target.value);
+        if(isNaN(novoValor)){
+          alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 150,00).');
+          e.target.value = round2(list[idx].valor).toFixed(2);
+          return;
+        }
+        list[idx].valor = round2(novoValor); save(); renderContent();
       });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
         const descAlvo = String(list[idx].desc).trim().toLowerCase();
@@ -1508,7 +1551,7 @@ function attachMonthEvents(monthKey){
     addRow.querySelector('.btn-add').addEventListener('click', ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valorStr = addRow.querySelector('.add-valor').value.trim();
-      const valorNum = parseFloat(valorStr);
+      const valorNum = parseValorBR(valorStr);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
       if(valorStr === '' || isNaN(valorNum) || valorNum === 0){
         alert('Informe um valor maior que zero.');
@@ -1573,7 +1616,13 @@ function attachMonthEvents(monthKey){
         detail.items[idx].desc = novoDesc; save(); renderContent();
       });
       row.querySelector('.item-valor').addEventListener('change', e=>{
-        detail.items[idx].valor = round2(parseFloat(e.target.value)||0);
+        const novoValor = parseValorBR(e.target.value);
+        if(isNaN(novoValor)){
+          alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 150,00).');
+          e.target.value = round2(detail.items[idx].valor).toFixed(2);
+          return;
+        }
+        detail.items[idx].valor = round2(novoValor);
         syncDetailsIntoMain(m); save(); renderContent();
       });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
@@ -1587,7 +1636,7 @@ function attachMonthEvents(monthKey){
     addRow.querySelector('.btn-add').addEventListener('click', ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valorStr = addRow.querySelector('.add-valor').value.trim();
-      const valorNum = parseFloat(valorStr);
+      const valorNum = parseValorBR(valorStr);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
       if(valorStr === '' || isNaN(valorNum) || valorNum === 0){
         alert('Informe um valor maior que zero.');
@@ -1711,8 +1760,8 @@ function loanTableHtml(key, loan){
   const rows = loan.parcelas.map((p, idx)=>`
     <tr data-idx="${idx}" class="${p.pago?'paid':''}">
       <td><input type="text" class="loan-parcela" value="${escapeHtml(p.parcela)}"></td>
-      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="number" step="0.01" class="loan-saldo" value="${round2(p.saldo).toFixed(2)}" title="Editar ajusta manualmente o saldo desta parcela em diante"></span></td>
-      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="number" step="0.01" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : ''}" placeholder="—"></span></td>
+      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-saldo" value="${round2(p.saldo).toFixed(2)}" title="Editar ajusta manualmente o saldo desta parcela em diante"></span></td>
+      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : ''}" placeholder="—"></span></td>
       <td><input type="date" class="loan-data" value="${p.data ?? ''}"></td>
       <td><button class="loan-remove" title="Remover parcela">×</button></td>
     </tr>`).join('');
@@ -1728,7 +1777,7 @@ function loanTableHtml(key, loan){
       <span>Saldo inicial do empréstimo</span>
       <span class="loan-inicial-valor-group">
         <span class="rs-prefix-dark">R$</span>
-        <input type="number" step="0.01" class="loan-saldo-inicial" value="${round2(loan.saldoInicial).toFixed(2)}">
+        <input type="text" inputmode="decimal" class="loan-saldo-inicial" value="${round2(loan.saldoInicial).toFixed(2)}">
       </span>
     </label>
     ${projecaoQuitacaoHtml(loan)}
@@ -1935,7 +1984,13 @@ function attachEmprestimosEvents(){
     });
 
     card.querySelector('.loan-saldo-inicial').addEventListener('change', e=>{
-      loan.saldoInicial = round2(parseFloat(e.target.value)||0); save(); renderContent();
+      const novoValor = parseValorBR(e.target.value);
+      if(isNaN(novoValor)){
+        alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 50000,00).');
+        e.target.value = round2(loan.saldoInicial).toFixed(2);
+        return;
+      }
+      loan.saldoInicial = round2(novoValor); save(); renderContent();
     });
 
     card.querySelectorAll('tbody tr').forEach(tr=>{
@@ -1943,11 +1998,32 @@ function attachEmprestimosEvents(){
       const p = loan.parcelas[idx];
       tr.querySelector('.loan-parcela').addEventListener('change', e=>{ p.parcela = e.target.value; save(); });
       tr.querySelector('.loan-saldo').addEventListener('change', e=>{
-        p.saldoOverride = e.target.value === '' ? null : round2(parseFloat(e.target.value));
+        const raw = e.target.value.trim();
+        if(raw === ''){ p.saldoOverride = null; save(); renderContent(); return; }
+        const novoValor = parseValorBR(raw);
+        if(isNaN(novoValor)){
+          alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos.');
+          e.target.value = p.saldoOverride !== null && p.saldoOverride !== undefined ? round2(p.saldoOverride).toFixed(2) : '';
+          return;
+        }
+        p.saldoOverride = round2(novoValor);
         save(); renderContent();
       });
       tr.querySelector('.loan-valorpago').addEventListener('change', e=>{
-        const val = e.target.value === '' ? null : round2(parseFloat(e.target.value));
+        const raw = e.target.value.trim();
+        if(raw === ''){
+          p.valorPago = null;
+          p.pago = false;
+          save(); renderContent();
+          return;
+        }
+        const novoValor = parseValorBR(raw);
+        if(isNaN(novoValor)){
+          alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos.');
+          e.target.value = p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : '';
+          return;
+        }
+        const val = round2(novoValor);
         p.valorPago = val;
         // marca automaticamente como pago quando um valor é informado, e desmarca quando é apagado
         p.pago = val !== null;

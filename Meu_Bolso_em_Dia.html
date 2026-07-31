@@ -192,7 +192,8 @@
   .cat-title-input:focus{ outline:1px solid var(--blue); border-radius:4px; }
   .block-remove{
     border:none; background:transparent; color:var(--muted); cursor:pointer;
-    font-size:17px; line-height:1; padding:2px 4px; opacity:0.55; flex-shrink:0;
+    font-size:17px; line-height:1; padding:6px 8px; opacity:0.55; flex-shrink:0;
+    margin-left:6px; border-left:1px solid var(--border); padding-left:12px;
     transition: color .15s ease, opacity .15s ease;
   }
   .block-remove:hover{ color:var(--red); opacity:1; }
@@ -571,6 +572,23 @@ function round2(v){
   if(isNaN(n)) return 0;
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
+// Interpreta valores digitados no formato brasileiro (vírgula decimal, ponto de milhar,
+// símbolo "R$" colado, etc.) sem depender da validação nativa do <input type="number">,
+// que costuma invalidar silenciosamente o campo quando a vírgula é usada.
+function parseValorBR(str){
+  if(str === null || str === undefined) return NaN;
+  let s = String(str).trim();
+  if(s === '') return NaN;
+  s = s.replace(/[^\d.,-]/g, '');
+  const temVirgula = s.includes(',');
+  const temPonto = s.includes('.');
+  if(temVirgula && temPonto){
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if(temVirgula){
+    s = s.replace(',', '.');
+  }
+  return parseFloat(s);
+}
 function sortItemsByDesc(list){
   list.sort((a,b)=>String(a.desc).localeCompare(String(b.desc), 'pt-BR', {sensitivity:'base'}));
 }
@@ -644,7 +662,7 @@ function itemRowHtml(listType, catIdx, idx, item){
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
     <span class="rs-prefix">R$</span>
-    <input type="number" step="0.01" class="item-valor" value="${round2(item.valor).toFixed(2)}">
+    <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-remove" title="Remover item">×</button>
   </div>`;
 }
@@ -665,7 +683,7 @@ function recebimentosSectionHtml(items, titulo){
     <div class="add-item-row" data-add="recebimentos">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
-      <input type="number" step="0.01" class="add-valor" placeholder="Valor">
+      <input type="text" inputmode="decimal" class="add-valor" placeholder="Valor">
       <button class="btn-add">+ Add</button>
     </div>
   </div>`;
@@ -743,13 +761,13 @@ function categoriaHtml(cat, catIdx){
     <div class="meta-row">
       <span class="meta-label">Meta</span>
       <span class="rs-prefix">R$</span>
-      <input type="number" step="0.01" class="meta-input" value="${cat.meta ? round2(cat.meta).toFixed(2) : ''}" placeholder="sem meta definida">
+      <input type="text" inputmode="decimal" class="meta-input" value="${cat.meta ? round2(cat.meta).toFixed(2) : ''}" placeholder="sem meta definida">
     </div>
     ${metaBarraHtml(total, cat.meta)}
     <div class="add-item-row" data-add-cat="${catIdx}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
-      <input type="number" step="0.01" class="add-valor" placeholder="Valor">
+      <input type="text" inputmode="decimal" class="add-valor" placeholder="Valor">
       <button class="btn-add">+ Add</button>
     </div>
   </div>`;
@@ -899,7 +917,15 @@ function attachMonthEvents(monthKey){
       }
       m.recebimentos[idx].desc = novoDesc; save(); renderContent();
     });
-    row.querySelector('.item-valor').addEventListener('change', e=>{ m.recebimentos[idx].valor = round2(parseFloat(e.target.value)||0); save(); renderContent(); });
+    row.querySelector('.item-valor').addEventListener('change', e=>{
+      const novoValor = parseValorBR(e.target.value);
+      if(isNaN(novoValor)){
+        alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 150,00).');
+        e.target.value = round2(m.recebimentos[idx].valor).toFixed(2);
+        return;
+      }
+      m.recebimentos[idx].valor = round2(novoValor); save(); renderContent();
+    });
     row.querySelector('.item-remove').addEventListener('click', ()=>{
       if(!confirm(`Remover "${m.recebimentos[idx].desc}"?`)) return;
       m.recebimentos.splice(idx,1); save(); renderContent();
@@ -909,7 +935,7 @@ function attachMonthEvents(monthKey){
   recAddRow.querySelector('.btn-add').addEventListener('click', ()=>{
     const desc = recAddRow.querySelector('.add-desc').value.trim();
     const valorStr = recAddRow.querySelector('.add-valor').value.trim();
-    const valorNum = parseFloat(valorStr);
+    const valorNum = parseValorBR(valorStr);
     if(!desc){ recAddRow.querySelector('.add-desc').focus(); return; }
     if(valorStr === '' || isNaN(valorNum) || valorNum === 0){
       alert('Informe um valor maior que zero.');
@@ -957,7 +983,14 @@ function attachMonthEvents(monthKey){
     });
     card.querySelector('.meta-input').addEventListener('change', e=>{
       const val = e.target.value.trim();
-      categoria.meta = val === '' ? null : round2(parseFloat(val)||0);
+      if(val === ''){ categoria.meta = null; save(); renderContent(); return; }
+      const novaMeta = parseValorBR(val);
+      if(isNaN(novaMeta)){
+        alert('Valor de meta inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 500,00).');
+        e.target.value = categoria.meta ? round2(categoria.meta).toFixed(2) : '';
+        return;
+      }
+      categoria.meta = round2(novaMeta);
       save(); renderContent();
     });
     card.querySelector('.block-remove[data-cat-remove]').addEventListener('click', ()=>{
@@ -983,7 +1016,15 @@ function attachMonthEvents(monthKey){
         }
         categoria.items[idx].desc = novoDesc; save(); renderContent();
       });
-      row.querySelector('.item-valor').addEventListener('change', e=>{ categoria.items[idx].valor = round2(parseFloat(e.target.value)||0); save(); renderContent(); });
+      row.querySelector('.item-valor').addEventListener('change', e=>{
+        const novoValor = parseValorBR(e.target.value);
+        if(isNaN(novoValor)){
+          alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 150,00).');
+          e.target.value = round2(categoria.items[idx].valor).toFixed(2);
+          return;
+        }
+        categoria.items[idx].valor = round2(novoValor); save(); renderContent();
+      });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
         if(!confirm(`Remover "${categoria.items[idx].desc}"?`)) return;
         categoria.items.splice(idx,1); save(); renderContent();
@@ -994,7 +1035,7 @@ function attachMonthEvents(monthKey){
     addRow.querySelector('.btn-add').addEventListener('click', ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valorStr = addRow.querySelector('.add-valor').value.trim();
-      const valorNum = parseFloat(valorStr);
+      const valorNum = parseValorBR(valorStr);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
       if(valorStr === '' || isNaN(valorNum) || valorNum === 0){
         alert('Informe um valor maior que zero.');
