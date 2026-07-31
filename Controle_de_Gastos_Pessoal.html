@@ -488,7 +488,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-31.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-31.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1335,8 +1335,10 @@ function renderMonthView(monthKey){
   const detsComIdx = m.detalhamentos.map((d,idx)=>({d,idx}));
   const detsEsquerda = detsComIdx.filter(o=>detColOf(o.d)===0);
   const detsDireita = detsComIdx.filter(o=>detColOf(o.d)===1);
-  const totalColEsquerda = round2(detsEsquerda.reduce((s,o)=>s + o.d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0));
-  const totalColDireita = round2(detsDireita.reduce((s,o)=>s + o.d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0));
+  const dia18TotalPreview = round2((m.dia18||[]).reduce((s,x)=>s+Number(x.valor||0),0));
+  const dia08TotalPreview = round2((m.dia08||[]).reduce((s,x)=>s+Number(x.valor||0),0));
+  const totalColEsquerda = round2(dia18TotalPreview + detsEsquerda.reduce((s,o)=>s + o.d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0));
+  const totalColDireita = round2(dia08TotalPreview + detsDireita.reduce((s,o)=>s + o.d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0));
 
   html += `
   <div class="recebimentos-row">
