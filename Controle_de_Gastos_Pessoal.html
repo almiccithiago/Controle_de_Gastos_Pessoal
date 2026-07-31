@@ -214,6 +214,14 @@
   .receb-card.receb-zero input{ background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.3); }
 
   .sections-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  .col-totals-row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px; }
+  @media (max-width:700px){ .col-totals-row{ grid-template-columns: 1fr; } }
+  .col-total-card{
+    background:var(--card); border:1px solid var(--border); border-top:3px solid var(--teal);
+    border-radius:14px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .col-total-card span:first-child{ font-size:12px; color:var(--muted); font-weight:600; }
+  .col-total-card span:last-child{ font-size:17px; font-weight:800; color:var(--text); }
   @media (max-width: 900px){ .sections-grid{ grid-template-columns:1fr; } }
 
   .section-card{
@@ -1315,6 +1323,16 @@ function renderMonthView(monthKey){
     ${oc.dia08 ? `<button class="block-restore" data-restore="dia08">+ mostrar bloco Dia 08</button>` : ''}
   </div>` : ''}
 
+  `;
+
+  if(!m.detalhamentos) m.detalhamentos = [];
+  const detsComIdx = m.detalhamentos.map((d,idx)=>({d,idx}));
+  const detsEsquerda = detsComIdx.filter(o=>detColOf(o.d)===0);
+  const detsDireita = detsComIdx.filter(o=>detColOf(o.d)===1);
+  const totalColEsquerda = round2(detsEsquerda.reduce((s,o)=>s + o.d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0));
+  const totalColDireita = round2(detsDireita.reduce((s,o)=>s + o.d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0));
+
+  html += `
   <div class="recebimentos-row">
     ${!oc.dia18 ? `<div class="receb-card ${Number(m.recebimentos.dia18)===0 ? 'receb-zero' : ''}">
       <input type="text" class="rlabel-input" data-label-key="recebDia18" value="${escapeHtml(m.labels.recebDia18)}">
@@ -1328,16 +1346,16 @@ function renderMonthView(monthKey){
     </div>` : ''}
   </div>
 
+  <div class="col-totals-row">
+    <div class="col-total-card"><span>total blocos · coluna esquerda</span><span>R$ ${fmt(totalColEsquerda)}</span></div>
+    <div class="col-total-card"><span>total blocos · coluna direita</span><span>R$ ${fmt(totalColDireita)}</span></div>
+  </div>
+
   <div class="sections-grid">
     ${!oc.dia18 ? sectionHtml(monthKey, m.labels.secaoDia18, "dia18", m.dia18, "var(--blue)", m.metas ? m.metas.dia18 : null) : ''}
     ${!oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : ''}
   </div>
   `;
-
-  if(!m.detalhamentos) m.detalhamentos = [];
-  const detsComIdx = m.detalhamentos.map((d,idx)=>({d,idx}));
-  const detsEsquerda = detsComIdx.filter(o=>detColOf(o.d)===0);
-  const detsDireita = detsComIdx.filter(o=>detColOf(o.d)===1);
 
   html += `
   <div class="detalhamentos-grid">
