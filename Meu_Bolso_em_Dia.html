@@ -300,7 +300,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-31.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-31.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -971,7 +971,7 @@ function attachMonthEvents(monthKey){
     m.recebimentos.push({ desc, valor, pago:false });
     sortItemsByDesc(m.recebimentos);
     save(); renderContent();
-    if(confirm(`Adicionar "${desc}" também nos meses seguintes (e no Modelo)?`)){
+    if(confirm(`"${desc}" já foi adicionado neste mês. Quer adicionar também nos meses seguintes (e no Modelo)?`)){
       let count = 0;
       mesesSeguintesETemplate(monthKey).forEach(mes=>{
         if(mes !== m && !nomeDuplicado(mes.recebimentos, desc)){
@@ -1071,7 +1071,7 @@ function attachMonthEvents(monthKey){
       categoria.items.push({ desc, valor, pago:false });
       sortItemsByDesc(categoria.items);
       save(); renderContent();
-      if(confirm(`Adicionar "${desc}" também na categoria "${categoria.titulo}" dos meses seguintes (e do Modelo)?`)){
+      if(confirm(`"${desc}" já foi adicionado nesta categoria neste mês. Quer adicionar também na categoria "${categoria.titulo}" dos meses seguintes (e do Modelo)?`)){
         const tituloAlvo = categoria.titulo.trim().toLowerCase();
         let count = 0;
         mesesSeguintesETemplate(monthKey).forEach(mes=>{
