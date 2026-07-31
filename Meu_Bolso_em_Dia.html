@@ -980,14 +980,20 @@ function attachMonthEvents(monthKey){
         let count = 0;
         todosOsMesesETemplate().forEach(mes=>{
           if(mes === m) return;
-          const catCorrespondente = mes.despesas.find(c=>c.titulo.trim().toLowerCase() === tituloAlvo);
-          if(catCorrespondente && !nomeDuplicado(catCorrespondente.items, desc)){
+          let catCorrespondente = mes.despesas.find(c=>c.titulo.trim().toLowerCase() === tituloAlvo);
+          if(!catCorrespondente){
+            // a categoria ainda não existe nesse mês — cria ela (mesma coluna/meta da original) antes de adicionar o item
+            catCorrespondente = { titulo: categoria.titulo, items: [], col: catColOf(categoria) };
+            if(categoria.meta != null) catCorrespondente.meta = categoria.meta;
+            mes.despesas.push(catCorrespondente);
+          }
+          if(!nomeDuplicado(catCorrespondente.items, desc)){
             catCorrespondente.items.push({ desc, valor, pago:false });
             sortItemsByDesc(catCorrespondente.items);
             count++;
           }
         });
-        alert(`Item adicionado em mais ${count} mês(es)/Modelo com a categoria "${categoria.titulo}".`);
+        alert(`Item adicionado em mais ${count} mês(es)/Modelo (a categoria "${categoria.titulo}" foi criada onde ainda não existia).`);
         save(); renderContent();
       }
     });

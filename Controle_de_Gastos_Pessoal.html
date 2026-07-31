@@ -1069,10 +1069,21 @@ function monthTotals(m){
   syncDetailsIntoMain(m);
   const dia18Total = round2(m.dia18.reduce((s,x)=>s+Number(x.valor||0),0));
   const dia08Total = round2(m.dia08.reduce((s,x)=>s+Number(x.valor||0),0));
-  const despesasTotal = round2(dia18Total + dia08Total);
+  // boxes de detalhamento SEM vínculo (linkTo) são caixas independentes — não são "detalhe" de
+  // nenhum item já somado em dia18/dia08, então precisam entrar no total do mês.
+  // Os vinculados (ex: REVOLUT/NOH) continuam de fora pra não contar em dobro.
+  const detalhamentosLivresTotal = round2(
+    (m.detalhamentos||[]).filter(d=>!d.linkTo)
+      .reduce((s,d)=>s + d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0)
+  );
+  const despesasTotal = round2(dia18Total + dia08Total + detalhamentosLivresTotal);
   const rendaTotal = round2(Number(m.recebimentos.dia18||0) + Number(m.recebimentos.dia08||0));
   const saldo = round2(rendaTotal - despesasTotal);
-  const pago = round2([...m.dia18, ...m.dia08].filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0));
+  const pagoDetalhamentosLivres = round2(
+    (m.detalhamentos||[]).filter(d=>!d.linkTo)
+      .reduce((s,d)=>s + d.items.filter(x=>x.pago).reduce((s2,x)=>s2+Number(x.valor||0),0), 0)
+  );
+  const pago = round2([...m.dia18, ...m.dia08].filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0) + pagoDetalhamentosLivres);
   const pendente = round2(despesasTotal - pago);
   return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente };
 }
@@ -1545,15 +1556,23 @@ function attachMonthEvents(monthKey){
         let count = 0;
         todosOsMesesETemplate().forEach(mes=>{
           if(mes === m) return;
-          const detCorrespondente = (mes.detalhamentos||[]).find(d=>d.titulo.trim().toLowerCase() === tituloAlvo);
-          if(detCorrespondente && !nomeDuplicado(detCorrespondente.items, desc)){
+          if(!mes.detalhamentos) mes.detalhamentos = [];
+          let detCorrespondente = mes.detalhamentos.find(d=>d.titulo.trim().toLowerCase() === tituloAlvo);
+          if(!detCorrespondente){
+            // o box ainda não existe nesse mês — cria ele (mesma coluna e vínculo do original) antes de adicionar o item
+            detCorrespondente = { titulo: detail.titulo, items: [], col: detColOf(detail) };
+            if(detail.linkTo) detCorrespondente.linkTo = { ...detail.linkTo };
+            if(detail.refer) detCorrespondente.refer = detail.refer;
+            mes.detalhamentos.push(detCorrespondente);
+          }
+          if(!nomeDuplicado(detCorrespondente.items, desc)){
             detCorrespondente.items.push({ desc, valor, pago:false });
             sortItemsByDesc(detCorrespondente.items);
             syncDetailsIntoMain(mes);
             count++;
           }
         });
-        alert(`Item adicionado em mais ${count} detalhamento(s) "${detail.titulo}".`);
+        alert(`Item adicionado em mais ${count} mês(es)/Modelo (o box "${detail.titulo}" foi criado onde ainda não existia).`);
         save(); renderContent();
       }
     });
