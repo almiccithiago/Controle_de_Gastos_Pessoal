@@ -1507,8 +1507,15 @@ function attachMonthEvents(monthKey){
     const addRow = card.querySelector('.add-item-row');
     addRow.querySelector('.btn-add').addEventListener('click', ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
-      const valor = round2(parseFloat(addRow.querySelector('.add-valor').value)||0);
+      const valorStr = addRow.querySelector('.add-valor').value.trim();
+      const valorNum = parseFloat(valorStr);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
+      if(valorStr === '' || isNaN(valorNum) || valorNum === 0){
+        alert('Informe um valor maior que zero.');
+        addRow.querySelector('.add-valor').focus();
+        return;
+      }
+      const valor = round2(valorNum);
       if(nomeDuplicado(list, desc)){
         alert('Já existe um item com esse nome neste bloco.');
         addRow.querySelector('.add-desc').focus();
@@ -1540,7 +1547,15 @@ function attachMonthEvents(monthKey){
     const detail = m.detalhamentos[dIdx];
 
     card.querySelector('.detail-title-input').addEventListener('change', e=>{
-      detail.titulo = e.target.value; save(); renderContent();
+      const novoTitulo = e.target.value.trim();
+      if(!novoTitulo){ e.target.value = detail.titulo; return; }
+      const duplicado = m.detalhamentos.some(d => d !== detail && d.titulo.trim().toLowerCase() === novoTitulo.toLowerCase());
+      if(duplicado){
+        alert(`Já existe um bloco chamado "${novoTitulo}" neste mês.`);
+        e.target.value = detail.titulo;
+        return;
+      }
+      detail.titulo = novoTitulo; save(); renderContent();
     });
 
     card.querySelectorAll('.item-row').forEach(row=>{
@@ -1571,8 +1586,15 @@ function attachMonthEvents(monthKey){
     const addRow = card.querySelector('.add-item-row');
     addRow.querySelector('.btn-add').addEventListener('click', ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
-      const valor = round2(parseFloat(addRow.querySelector('.add-valor').value)||0);
+      const valorStr = addRow.querySelector('.add-valor').value.trim();
+      const valorNum = parseFloat(valorStr);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
+      if(valorStr === '' || isNaN(valorNum) || valorNum === 0){
+        alert('Informe um valor maior que zero.');
+        addRow.querySelector('.add-valor').focus();
+        return;
+      }
+      const valor = round2(valorNum);
       if(nomeDuplicado(detail.items, desc)){
         alert('Já existe um item com esse nome neste detalhamento.');
         addRow.querySelector('.add-desc').focus();
@@ -1616,6 +1638,10 @@ function attachMonthEvents(monthKey){
     const nomeLimpo = nome.trim();
     if(!nomeLimpo) return;
     if(!m.detalhamentos) m.detalhamentos = [];
+    if(m.detalhamentos.some(d=>d.titulo.trim().toLowerCase() === nomeLimpo.toLowerCase())){
+      alert(`Já existe um bloco chamado "${nomeLimpo}" neste mês.`);
+      return;
+    }
     m.detalhamentos.push({ titulo: nomeLimpo, items: [], col: 0 });
     save(); renderContent();
   });
@@ -1626,6 +1652,10 @@ function attachMonthEvents(monthKey){
     const nomeLimpo = nome.trim();
     if(!nomeLimpo) return;
     if(!m.detalhamentos) m.detalhamentos = [];
+    if(m.detalhamentos.some(d=>d.titulo.trim().toLowerCase() === nomeLimpo.toLowerCase())){
+      alert(`Já existe um bloco chamado "${nomeLimpo}" neste mês.`);
+      return;
+    }
     m.detalhamentos.push({ titulo: nomeLimpo, items: [], col: 1 });
     save(); renderContent();
   });

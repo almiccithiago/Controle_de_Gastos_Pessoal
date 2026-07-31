@@ -908,8 +908,15 @@ function attachMonthEvents(monthKey){
   const recAddRow = recCard.querySelector('.add-item-row');
   recAddRow.querySelector('.btn-add').addEventListener('click', ()=>{
     const desc = recAddRow.querySelector('.add-desc').value.trim();
-    const valor = round2(parseFloat(recAddRow.querySelector('.add-valor').value)||0);
+    const valorStr = recAddRow.querySelector('.add-valor').value.trim();
+    const valorNum = parseFloat(valorStr);
     if(!desc){ recAddRow.querySelector('.add-desc').focus(); return; }
+    if(valorStr === '' || isNaN(valorNum) || valorNum === 0){
+      alert('Informe um valor maior que zero.');
+      recAddRow.querySelector('.add-valor').focus();
+      return;
+    }
+    const valor = round2(valorNum);
     if(nomeDuplicado(m.recebimentos, desc)){
       alert('Já existe um recebimento com esse nome.');
       recAddRow.querySelector('.add-desc').focus();
@@ -938,7 +945,15 @@ function attachMonthEvents(monthKey){
     const categoria = m.despesas[catIdx];
 
     card.querySelector('.cat-title-input').addEventListener('change', e=>{
-      categoria.titulo = e.target.value; save(); renderContent();
+      const novoTitulo = e.target.value.trim();
+      if(!novoTitulo){ e.target.value = categoria.titulo; return; }
+      const duplicado = m.despesas.some(c => c !== categoria && c.titulo.trim().toLowerCase() === novoTitulo.toLowerCase());
+      if(duplicado){
+        alert(`Já existe uma categoria chamada "${novoTitulo}" neste mês.`);
+        e.target.value = categoria.titulo;
+        return;
+      }
+      categoria.titulo = novoTitulo; save(); renderContent();
     });
     card.querySelector('.meta-input').addEventListener('change', e=>{
       const val = e.target.value.trim();
@@ -978,8 +993,15 @@ function attachMonthEvents(monthKey){
     const addRow = card.querySelector('.add-item-row');
     addRow.querySelector('.btn-add').addEventListener('click', ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
-      const valor = round2(parseFloat(addRow.querySelector('.add-valor').value)||0);
+      const valorStr = addRow.querySelector('.add-valor').value.trim();
+      const valorNum = parseFloat(valorStr);
       if(!desc){ addRow.querySelector('.add-desc').focus(); return; }
+      if(valorStr === '' || isNaN(valorNum) || valorNum === 0){
+        alert('Informe um valor maior que zero.');
+        addRow.querySelector('.add-valor').focus();
+        return;
+      }
+      const valor = round2(valorNum);
       if(nomeDuplicado(categoria.items, desc)){
         alert('Já existe um item com esse nome nesta categoria.');
         addRow.querySelector('.add-desc').focus();
@@ -1017,6 +1039,10 @@ function attachMonthEvents(monthKey){
     if(!nome) return;
     const nomeLimpo = nome.trim();
     if(!nomeLimpo) return;
+    if(m.despesas.some(c=>c.titulo.trim().toLowerCase() === nomeLimpo.toLowerCase())){
+      alert(`Já existe uma categoria chamada "${nomeLimpo}" neste mês.`);
+      return;
+    }
     m.despesas.push({ titulo: nomeLimpo, items: [], col: 0 });
     save(); renderContent();
   });
@@ -1025,6 +1051,10 @@ function attachMonthEvents(monthKey){
     if(!nome) return;
     const nomeLimpo = nome.trim();
     if(!nomeLimpo) return;
+    if(m.despesas.some(c=>c.titulo.trim().toLowerCase() === nomeLimpo.toLowerCase())){
+      alert(`Já existe uma categoria chamada "${nomeLimpo}" neste mês.`);
+      return;
+    }
     m.despesas.push({ titulo: nomeLimpo, items: [], col: 1 });
     save(); renderContent();
   });
