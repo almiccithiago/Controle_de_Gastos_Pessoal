@@ -172,7 +172,7 @@
     border: 1px solid var(--border);
     position:relative; overflow:hidden;
   }
-  .summary-card .label{ font-size:11.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px;}
+  .summary-card .label{ font-size:11.5px; color:var(--muted); font-weight:600; text-transform:lowercase; letter-spacing:0.4px;}
   .summary-card .value{ font-size:20px; font-weight:800; margin-top:4px; }
   .summary-card .comparativo{ font-size:11px; font-weight:700; margin-top:4px; }
   .summary-card.accent-teal{ border-top:3px solid var(--teal); }
@@ -190,9 +190,9 @@
     color:#fff; border-radius: var(--radius); padding:14px 18px;
     display:flex; align-items:center; justify-content:space-between;
   }
-  .receb-card .rlabel{ font-size:12.5px; color:#B7C49A; font-weight:600; text-transform:uppercase;}
+  .receb-card .rlabel{ font-size:12.5px; color:#B7C49A; font-weight:600; text-transform:lowercase;}
   .receb-card .rlabel-input{
-    font-size:12.5px; color:#B7C49A; font-weight:600; text-transform:uppercase;
+    font-size:12.5px; color:#B7C49A; font-weight:600; text-transform:lowercase;
     border:none; background:transparent; font-family:inherit; padding:2px 2px;
     width:190px; max-width:55%; text-align:left; -webkit-appearance:none; appearance:none;
   }
@@ -350,7 +350,7 @@
   }
   table.loan-table{ width:100%; border-collapse: collapse; font-size:12.5px; }
   table.loan-table th{
-    text-align:left; font-size:10.5px; text-transform:uppercase; color:var(--muted);
+    text-align:left; font-size:10.5px; text-transform:lowercase; color:var(--muted);
     padding: 6px 4px; border-bottom:2px solid var(--border);
   }
   table.loan-table td{ padding: 5px 4px; border-bottom:1px solid var(--border); vertical-align:middle;}
@@ -415,8 +415,8 @@
   .loan-inicial-row span, .brand-text p, nav.tabs button {
     text-transform: lowercase;
   }
-  input, textarea, select { text-transform: none; }
-  .rs-prefix, .rs-prefix-dark, .receb-prefix { text-transform: none !important; }
+  input, textarea, select { text-transform: lowercase; }
+  .rs-prefix, .rs-prefix-dark, .receb-prefix { text-transform: lowercase !important; }
 
   .modal-overlay{
     display:none; position:fixed; inset:0; z-index:90;
@@ -429,7 +429,7 @@
   }
   .modal-card h3{ margin:0 0 16px 0; font-size:16px; color:var(--navy); }
   .modal-field{ display:block; margin-bottom:14px; }
-  .modal-field span{ display:block; font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
+  .modal-field span{ display:block; font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; margin-bottom:5px; }
   .modal-field select, .modal-field input{
     width:100%; border:1px solid var(--border); border-radius:8px; padding:9px 10px; font-size:14px;
   }
@@ -448,7 +448,7 @@
   .annual-chart-wrap{ margin: 6px 0 16px 0; }
   table.annual-table{ width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; }
   table.annual-table th{
-    text-align:center; font-size:10.5px; text-transform:uppercase; color:var(--muted);
+    text-align:center; font-size:10.5px; text-transform:lowercase; color:var(--muted);
     padding:8px 6px; border-bottom:2px solid var(--border);
   }
   table.annual-table th:first-child, table.annual-table td:first-child{ text-align:left; }
@@ -1909,7 +1909,7 @@ function projecaoSaldoFuturoHtml(){
   return `
   <div class="section-card" style="margin-bottom:20px;">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;">
-      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px;">projeção de saldo futuro</span>
+      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">projeção de saldo futuro</span>
       <span style="font-size:10.5px; color:var(--muted);">baseado na média dos últimos ${ultimos.length} meses</span>
     </div>
     ${grafico}
