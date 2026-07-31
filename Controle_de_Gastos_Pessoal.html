@@ -965,6 +965,19 @@ function nomeDuplicado(list, desc, excludeIdx){
 function todosOsMesesETemplate(){
   return [...Object.values(DATA.months), DATA.template];
 }
+// Retorna os meses para os quais um item deve ser duplicado: só os que vêm DEPOIS do mês atual
+// na ordem das abas (não mexe nos meses anteriores), mais o Modelo (que serve de base pros meses futuros).
+// Se o mês atual for o próprio Modelo, aplica em todos os meses (não há "depois" nesse caso).
+function mesesSeguintesETemplate(monthKeyAtual){
+  if(monthKeyAtual === "Modelo"){
+    return [...Object.values(DATA.months), DATA.template];
+  }
+  const idx = DATA.monthOrder.indexOf(monthKeyAtual);
+  const seguintes = idx === -1
+    ? Object.values(DATA.months)
+    : DATA.monthOrder.slice(idx+1).map(k=>DATA.months[k]);
+  return [...seguintes, DATA.template];
+}
 
 // ============================= TABS =============================
 function renderTabs(){
@@ -1468,6 +1481,24 @@ function attachMonthEvents(monthKey){
         list[idx].valor = round2(parseFloat(e.target.value)||0); save(); renderContent();
       });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
+        const descAlvo = String(list[idx].desc).trim().toLowerCase();
+        const detVinculado = (m.detalhamentos||[]).find(d =>
+          d.linkTo && d.linkTo.list === listKey && String(d.linkTo.desc).trim().toLowerCase() === descAlvo
+        );
+        if(detVinculado){
+          const excluirTambem = confirm(
+            `"${list[idx].desc}" é o resumo automático do detalhamento "${detVinculado.titulo}". ` +
+            `Enquanto esse detalhamento existir, o valor dele volta a aparecer aqui sozinho a cada atualização.\n\n` +
+            `Quer excluir o detalhamento "${detVinculado.titulo}" também, removendo os dois de vez? ` +
+            `(Cancelar não remove nada)`
+          );
+          if(!excluirTambem) return;
+          const detIdx = m.detalhamentos.indexOf(detVinculado);
+          m.detalhamentos.splice(detIdx,1);
+          list.splice(idx,1);
+          save(); renderContent();
+          return;
+        }
         if(!confirm(`Remover "${list[idx].desc}"?`)) return;
         list.splice(idx,1); save(); renderContent();
       });
@@ -1486,9 +1517,9 @@ function attachMonthEvents(monthKey){
       list.push({ desc, valor, pago:false });
       sortItemsByDesc(list);
       save(); renderContent();
-      if(confirm(`Adicionar "${desc}" também neste bloco em todos os outros meses (e no Modelo)?`)){
+      if(confirm(`Adicionar "${desc}" também neste bloco nos meses seguintes (e no Modelo)?`)){
         let count = 0;
-        todosOsMesesETemplate().forEach(mes=>{
+        mesesSeguintesETemplate(monthKey).forEach(mes=>{
           if(mes === m) return;
           const listCorrespondente = mes[listKey];
           if(listCorrespondente && !nomeDuplicado(listCorrespondente, desc)){
@@ -1551,10 +1582,10 @@ function attachMonthEvents(monthKey){
       sortItemsByDesc(detail.items);
       syncDetailsIntoMain(m);
       save(); renderContent();
-      if(confirm(`Adicionar "${desc}" também no detalhamento "${detail.titulo}" de todos os outros meses (e do Modelo)?`)){
+      if(confirm(`Adicionar "${desc}" também no detalhamento "${detail.titulo}" dos meses seguintes (e do Modelo)?`)){
         const tituloAlvo = detail.titulo.trim().toLowerCase();
         let count = 0;
-        todosOsMesesETemplate().forEach(mes=>{
+        mesesSeguintesETemplate(monthKey).forEach(mes=>{
           if(mes === m) return;
           if(!mes.detalhamentos) mes.detalhamentos = [];
           let detCorrespondente = mes.detalhamentos.find(d=>d.titulo.trim().toLowerCase() === tituloAlvo);
