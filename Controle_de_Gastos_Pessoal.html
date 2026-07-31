@@ -566,7 +566,7 @@ function defaultData(){
           i("noh",3724), i("pedro",1100), i("TFIF",126.11), i("vacinas cachorros",220), i("vó",2000)
         ],
         detalhamentos: [
-          { titulo:"NOH", refer:"detalha o item “noh”", linkTo:{list:"dia08",desc:"noh"}, items: [
+          { titulo:"NOH", refer:"detalha o item “noh”", items: [
             i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500)
           ]}
         ]
@@ -583,8 +583,8 @@ function defaultData(){
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 04",264.08), i("júnior",350), i("noh",3724), i("vó",6000)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", linkTo:{list:"dia18",desc:"revolut"}, items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
-          { titulo:"NOH", refer:"detalha o item “noh”", linkTo:{list:"dia08",desc:"noh"}, items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
+          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
+          { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       },
       "Outubro/2026": {
@@ -598,8 +598,8 @@ function defaultData(){
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 05",264.08), i("júnior",350), i("noh",3724), i("vó",7500)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", linkTo:{list:"dia18",desc:"revolut"}, items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
-          { titulo:"NOH", refer:"detalha o item “noh”", linkTo:{list:"dia08",desc:"noh"}, items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
+          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
+          { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       },
       "Novembro/2026": {
@@ -613,8 +613,8 @@ function defaultData(){
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 06",264.08), i("júnior",350), i("noh",3724), i("vó",7500)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", linkTo:{list:"dia18",desc:"revolut"}, items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
-          { titulo:"NOH", refer:"detalha o item “noh”", linkTo:{list:"dia08",desc:"noh"}, items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
+          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
+          { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       },
       "Dezembro/2026": {
@@ -628,8 +628,8 @@ function defaultData(){
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 07",264.08), i("júnior",350), i("noh",3724), i("vó",7000)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", linkTo:{list:"dia18",desc:"revolut"}, items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
-          { titulo:"NOH", refer:"detalha o item “noh”", linkTo:{list:"dia08",desc:"noh"}, items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
+          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
+          { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       }
     },
@@ -645,8 +645,8 @@ function defaultData(){
         i("INSS",178.31), i("IPTU",54.67), i("júnior",350), i("noh",3724), i("vó",8000)
       ],
       detalhamentos: [
-        { titulo:"REVOLUT", refer:"detalha o item “revolut”", linkTo:{list:"dia18",desc:"revolut"}, items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
-        { titulo:"NOH", refer:"detalha o item “noh”", linkTo:{list:"dia08",desc:"noh"}, items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
+        { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
+        { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
       ]
     },
     emprestimos: {
@@ -746,20 +746,26 @@ function migrateData(data){
     });
   }
 
-  // migração: detalhamentos (NOH / PEDRO-REVOLUT) agora sincronizam com a linha principal
-  const guessLinkTo = (titulo)=>{
-    const t = titulo.toUpperCase();
-    if(t.includes("NOH")) return { list:"dia08", desc:"noh" };
-    if(t.includes("PEDRO") || t.includes("REVOLUT")) return { list:"dia18", desc:"revolut" };
-    return null;
-  };
+  // Observação: sistema de "blocos vinculados" foi descontinuado — todo bloco de
+  // detalhamento agora é sempre independente. Dados antigos que ainda tinham linkTo
+  // salvo são migrados uma única vez aqui: a linha do resumo que era só um espelho
+  // automático do bloco é removida (senão o valor contaria em dobro), e o bloco vira
+  // independente de vez.
   const allMonthObjs = [...Object.values(data.months||{}), data.template].filter(Boolean);
   allMonthObjs.forEach(m=>{
     (m.detalhamentos||[]).forEach(det=>{
-      if(!det.linkTo) det.linkTo = guessLinkTo(det.titulo||"");
-      // migração: box "PEDRO" / "PEDRO / REVOLUT" renomeado para "REVOLUT"
+      // migração: box "PEDRO" / "PEDRO / REVOLUT" renomeado para "REVOLUT" (só ajusta nome)
       if(det.titulo === "PEDRO" || det.titulo === "PEDRO / REVOLUT"){
         det.titulo = "REVOLUT";
+      }
+      if(det.linkTo){
+        const list = m[det.linkTo.list];
+        if(list){
+          const descNorm = String(det.linkTo.desc).trim().toLowerCase();
+          const idx = list.findIndex(it=>String(it.desc).trim().toLowerCase() === descNorm);
+          if(idx !== -1) list.splice(idx,1);
+        }
+        delete det.linkTo;
       }
     });
   });
@@ -1075,29 +1081,6 @@ function renderContent(){
 }
 
 // ============================= MÊS =============================
-function syncDetailsIntoMain(m){
-  (m.detalhamentos||[]).forEach(det=>{
-    if(!det.linkTo) return;
-    if(m.blocosOcultos && m.blocosOcultos[det.linkTo.list]) return; // bloco excluído — não recria o item
-    const total = round2(det.items.reduce((s,x)=>s+Number(x.valor||0),0));
-    const list = m[det.linkTo.list];
-    if(!list) return;
-    const descNorm = det.linkTo.desc.trim().toLowerCase();
-    const matches = list.filter(it=>String(it.desc).trim().toLowerCase() === descNorm);
-    if(matches.length > 0){
-      // mantém só o primeiro encontrado e atualiza o valor; remove duplicados (se houver)
-      matches[0].valor = total;
-      for(let i=1;i<matches.length;i++){
-        const idx = list.indexOf(matches[i]);
-        if(idx !== -1) list.splice(idx,1);
-      }
-    } else {
-      list.push({ desc: det.linkTo.desc, valor: total, pago:false });
-      sortItemsByDesc(list);
-    }
-  });
-}
-
 function limparBlocosExcluidos(m){
   if(!m.blocosOcultos) return;
   Object.keys(m.blocosOcultos).forEach(key=>{
@@ -1109,7 +1092,6 @@ function limparBlocosExcluidos(m){
 
 function monthTotals(m){
   limparBlocosExcluidos(m);
-  syncDetailsIntoMain(m);
   const dia18Total = round2(m.dia18.reduce((s,x)=>s+Number(x.valor||0),0));
   const dia08Total = round2(m.dia08.reduce((s,x)=>s+Number(x.valor||0),0));
   // boxes de detalhamento SEM vínculo (linkTo) são caixas independentes — não são "detalhe" de
@@ -1239,7 +1221,7 @@ function detailSectionHtml(monthKey, detail, dIdx){
         <button class="block-remove" data-detail-idx="${dIdx}" title="Excluir este bloco do mês">×</button>
       </div>
     </div>
-    <div class="detail-note">${detail.linkTo ? `Detalhamento — ${detail.refer}; não soma de novo ao total do mês.` : 'Bloco independente; não sincroniza com nenhum outro item.'}</div>
+    <div class="detail-note">Bloco independente; não sincroniza com nenhum outro item.</div>
     ${rows}
     <div class="section-total"><span>Total</span><span>R$ ${fmt(total)}</span></div>
     <div class="add-item-row" data-add-detail="${dIdx}">
@@ -1536,18 +1518,6 @@ function attachMonthEvents(monthKey){
         list[idx].valor = round2(novoValor); save(); renderContent();
       });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
-        const descAlvo = String(list[idx].desc).trim().toLowerCase();
-        const detVinculado = (m.detalhamentos||[]).find(d =>
-          d.linkTo && d.linkTo.list === listKey && String(d.linkTo.desc).trim().toLowerCase() === descAlvo
-        );
-        if(detVinculado){
-          alert(
-            `"${list[idx].desc}" é o resumo automático do detalhamento "${detVinculado.titulo}" — não dá pra excluir por aqui, ` +
-            `senão ele volta sozinho na próxima atualização.\n\n` +
-            `Pra remover de vez, exclua o bloco "${detVinculado.titulo}" (mais abaixo, no botão × dele).`
-          );
-          return;
-        }
         if(!confirm(`Remover "${list[idx].desc}"?`)) return;
         list.splice(idx,1); save(); renderContent();
       });
@@ -1629,12 +1599,12 @@ function attachMonthEvents(monthKey){
           return;
         }
         detail.items[idx].valor = round2(novoValor);
-        syncDetailsIntoMain(m); save(); renderContent();
+        save(); renderContent();
       });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
         if(!confirm(`Remover "${detail.items[idx].desc}"?`)) return;
         detail.items.splice(idx,1);
-        syncDetailsIntoMain(m); save(); renderContent();
+        save(); renderContent();
       });
     });
 
@@ -1657,7 +1627,6 @@ function attachMonthEvents(monthKey){
       }
       detail.items.push({ desc, valor, pago:false });
       sortItemsByDesc(detail.items);
-      syncDetailsIntoMain(m);
       save(); renderContent();
       if(confirm(`Adicionar "${desc}" também no detalhamento "${detail.titulo}" dos meses seguintes (e do Modelo)?`)){
         const tituloAlvo = detail.titulo.trim().toLowerCase();
@@ -1669,14 +1638,11 @@ function attachMonthEvents(monthKey){
           if(!detCorrespondente){
             // o box ainda não existe nesse mês — cria ele (mesma coluna e vínculo do original) antes de adicionar o item
             detCorrespondente = { titulo: detail.titulo, items: [], col: detColOf(detail) };
-            if(detail.linkTo) detCorrespondente.linkTo = { ...detail.linkTo };
-            if(detail.refer) detCorrespondente.refer = detail.refer;
             mes.detalhamentos.push(detCorrespondente);
           }
           if(!nomeDuplicado(detCorrespondente.items, desc)){
             detCorrespondente.items.push({ desc, valor, pago:false });
             sortItemsByDesc(detCorrespondente.items);
-            syncDetailsIntoMain(mes);
             count++;
           }
         });
@@ -1727,7 +1693,6 @@ function attachMonthEvents(monthKey){
       const todosMarcados = todosItens.every(it=>it.pago);
       const novoValor = !todosMarcados;
       todosItens.forEach(it=>{ it.pago = novoValor; });
-      syncDetailsIntoMain(m);
       save(); renderContent();
     });
   }
