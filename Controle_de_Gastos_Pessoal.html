@@ -156,9 +156,10 @@
     .brand-text p{ display:none; }
     .save-status{ display:none; }
     #history-btn, #logout-btn{ padding:5px 9px; font-size:10.5px; border-radius:7px; }
-    nav.tabs{ gap:2px; margin:0 -10px; padding:0 10px; }
-    nav.tabs button{ padding:8px 9px; font-size:11.5px; }
-    nav.tabs button#add-month-tab{ padding:8px 8px; }
+    nav.tabs{ gap:4px 6px; margin:0; padding:0; flex-wrap:wrap; overflow-x:visible; overflow-y:visible; row-gap:6px; border-bottom:none; padding-bottom:8px; }
+    nav.tabs button{ padding:7px 10px; font-size:11.5px; border-radius:6px; background:rgba(255,255,255,0.06); border-bottom:none !important; }
+    nav.tabs button.active{ background:rgba(255,255,255,0.18); }
+    nav.tabs button#add-month-tab{ padding:7px 10px; }
     #version-badge{ top:auto !important; bottom:6px !important; right:6px !important; }
     .receb-card{ padding:14px 16px; gap:10px; }
     .receb-card .rlabel-input{ font-size:12.5px; width:150px; }
@@ -493,7 +494,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-02.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-02.6</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1263,25 +1264,11 @@ function moveDetalhamento(m, dIdx, direction){
   const detalhamentos = m.detalhamentos;
   const detail = detalhamentos[dIdx];
   if(!detail) return;
-  const col = detColOf(detail);
 
-  if(direction === 'left' || direction === 'right'){
-    const novaCol = direction === 'left' ? 0 : 1;
-    if(col === novaCol) return;
-    detail.col = novaCol;
-  } else if(direction === 'up' || direction === 'down'){
-    const mesmaColuna = [];
-    detalhamentos.forEach((d,i)=>{ if(detColOf(d) === col) mesmaColuna.push(i); });
-    const posicao = mesmaColuna.indexOf(dIdx);
-    if(direction === 'up' && posicao > 0){
-      const alvoIdx = mesmaColuna[posicao-1];
-      [detalhamentos[dIdx], detalhamentos[alvoIdx]] = [detalhamentos[alvoIdx], detalhamentos[dIdx]];
-    } else if(direction === 'down' && posicao < mesmaColuna.length-1){
-      const alvoIdx = mesmaColuna[posicao+1];
-      [detalhamentos[dIdx], detalhamentos[alvoIdx]] = [detalhamentos[alvoIdx], detalhamentos[dIdx]];
-    } else {
-      return;
-    }
+  if(direction === 'up' && dIdx > 0){
+    [detalhamentos[dIdx], detalhamentos[dIdx-1]] = [detalhamentos[dIdx-1], detalhamentos[dIdx]];
+  } else if(direction === 'down' && dIdx < detalhamentos.length-1){
+    [detalhamentos[dIdx], detalhamentos[dIdx+1]] = [detalhamentos[dIdx+1], detalhamentos[dIdx]];
   } else {
     return;
   }
@@ -1301,8 +1288,6 @@ function detailSectionHtml(monthKey, detail, dIdx){
         <div class="move-btns">
           <button class="move-btn" data-move="up" data-detail-move="${dIdx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-detail-move="${dIdx}" title="Mover para baixo">▼</button>
-          <button class="move-btn" data-move="left" data-detail-move="${dIdx}" title="Mover para a esquerda">◀</button>
-          <button class="move-btn" data-move="right" data-detail-move="${dIdx}" title="Mover para a direita">▶</button>
         </div>
         <button class="block-remove" data-detail-idx="${dIdx}" title="Excluir este bloco do mês">×</button>
       </div>
@@ -1404,16 +1389,9 @@ function renderMonthView(monthKey){
 
   if(!m.detalhamentos) m.detalhamentos = [];
   const detsComIdx = m.detalhamentos.map((d,idx)=>({d,idx}));
-  const detsEsquerda = detsComIdx.filter(o=>detColOf(o.d)===0);
-  const detsDireita = detsComIdx.filter(o=>detColOf(o.d)===1);
 
   html += `
   <div class="recebimentos-row">
-    ${!oc.dia18 ? `<div class="receb-card ${Number(m.recebimentos.dia18)===0 ? 'receb-zero' : ''}">
-      <input type="text" class="rlabel-input" data-label-key="recebDia18" value="${escapeHtml(m.labels.recebDia18)}">
-      <span class="receb-prefix">R$</span>
-      <input type="text" inputmode="decimal" id="receb-dia18" value="${round2(m.recebimentos.dia18).toFixed(2)}">
-    </div>` : ''}
     ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.dia08)===0 ? 'receb-zero' : ''}">
       <input type="text" class="rlabel-input" data-label-key="recebDia08" value="${escapeHtml(m.labels.recebDia08)}">
       <span class="receb-prefix">R$</span>
@@ -1422,20 +1400,17 @@ function renderMonthView(monthKey){
   </div>
 
   <div class="sections-grid">
-    ${!oc.dia18 ? sectionHtml(monthKey, m.labels.secaoDia18, "dia18", m.dia18, "var(--blue)", m.metas ? m.metas.dia18 : null) : ''}
     ${!oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : ''}
   </div>
   `;
 
   html += `
   <div class="detalhamentos-grid">
-    <div class="detalhamentos-col" data-col="0">${detsEsquerda.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
-    <div class="detalhamentos-col" data-col="1">${detsDireita.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
+    <div class="detalhamentos-col" data-col="1">${detsComIdx.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
   </div>
 
   <div class="add-detail-row">
-    <button id="add-detail-left-btn" class="add-block-btn">◀ Inserir box à esquerda</button>
-    <button id="add-detail-right-btn" class="add-block-btn">Inserir box à direita ▶</button>
+    <button id="add-detail-right-btn" class="add-block-btn">+ Inserir novo box</button>
   </div>
   `;
 
@@ -1484,16 +1459,6 @@ function attachMonthEvents(monthKey){
     });
   }
 
-  const receb18El = content.querySelector('#receb-dia18');
-  if(receb18El) receb18El.addEventListener('change', e=>{
-    const novoValor = parseValorBR(e.target.value);
-    if(isNaN(novoValor)){
-      alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 6600,00).');
-      e.target.value = round2(m.recebimentos.dia18).toFixed(2);
-      return;
-    }
-    m.recebimentos.dia18 = round2(novoValor); save(); renderContent();
-  });
   const receb08El = content.querySelector('#receb-dia08');
   if(receb08El) receb08El.addEventListener('change', e=>{
     const novoValor = parseValorBR(e.target.value);
@@ -1744,23 +1709,9 @@ function attachMonthEvents(monthKey){
     });
   });
 
-  const addDetailLeftBtn = content.querySelector('#add-detail-left-btn');
-  if(addDetailLeftBtn) addDetailLeftBtn.addEventListener('click', ()=>{
-    const nome = window.prompt("Nome do novo bloco de detalhamento (à esquerda):");
-    if(!nome) return;
-    const nomeLimpo = nome.trim();
-    if(!nomeLimpo) return;
-    if(!m.detalhamentos) m.detalhamentos = [];
-    if(m.detalhamentos.some(d=>d.titulo.trim().toLowerCase() === nomeLimpo.toLowerCase())){
-      alert(`Já existe um bloco chamado "${nomeLimpo}" neste mês.`);
-      return;
-    }
-    m.detalhamentos.push({ titulo: nomeLimpo, items: [], col: 0 });
-    save(); renderContent();
-  });
-  const addDetailRightBtn = content.querySelector('#add-detail-right-btn');
-  if(addDetailRightBtn) addDetailRightBtn.addEventListener('click', ()=>{
-    const nome = window.prompt("Nome do novo bloco de detalhamento (à direita):");
+  const addDetailBtn = content.querySelector('#add-detail-right-btn');
+  if(addDetailBtn) addDetailBtn.addEventListener('click', ()=>{
+    const nome = window.prompt("Nome do novo bloco de detalhamento:");
     if(!nome) return;
     const nomeLimpo = nome.trim();
     if(!nomeLimpo) return;
