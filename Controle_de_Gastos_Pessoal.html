@@ -67,6 +67,11 @@
     position: sticky;
     top:0;
     z-index: 50;
+    isolation: isolate;
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
   }
   .topbar-inner{
     max-width: 1180px;
@@ -117,8 +122,11 @@
   .brand-text h1{ font-size: 19px; margin:0; font-weight:700; letter-spacing:0.2px;}
   .brand-text p{ font-size: 12px; margin:2px 0 0 0; color: #C9D6B0; }
   nav.tabs{
-    display:flex; gap:4px; overflow-x:auto; scrollbar-width:none;
+    display:flex; flex-wrap:nowrap; gap:4px; overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
     border-bottom: 1px solid rgba(255,255,255,0.12);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    background: inherit;
   }
   nav.tabs::-webkit-scrollbar{ display:none; }
   nav.tabs button{
@@ -141,15 +149,22 @@
   nav.tabs button[draggable="true"]:active{ cursor:grabbing; }
 
   @media (max-width:480px){
-    .topbar-inner{ padding:12px 12px 0 12px; }
-    .brand{ gap:8px; margin-bottom:8px; }
-    .brand-mark{ width:34px; height:34px; font-size:12px; border-radius:8px; }
-    .brand-text h1{ font-size:15px; }
+    .topbar-inner{ padding:10px 10px 0 10px; }
+    .brand{ gap:8px; margin-bottom:8px; flex-wrap:nowrap; }
+    .brand-mark{ width:30px; height:30px; font-size:11px; border-radius:8px; }
+    .brand-text h1{ font-size:14px; line-height:1.2; }
     .brand-text p{ display:none; }
-    #logout-btn{ padding:5px 10px; font-size:11px; }
-    .save-status{ font-size:10px; padding:4px 6px; }
-    nav.tabs button{ padding:8px 10px; font-size:12px; }
+    .save-status{ display:none; }
+    #history-btn, #logout-btn{ padding:5px 9px; font-size:10.5px; border-radius:7px; }
+    nav.tabs{ gap:2px; margin:0 -10px; padding:0 10px; }
+    nav.tabs button{ padding:8px 9px; font-size:11.5px; }
+    nav.tabs button#add-month-tab{ padding:8px 8px; }
     #version-badge{ top:auto !important; bottom:6px !important; right:6px !important; }
+    .receb-card{ padding:14px 16px; gap:10px; }
+    .receb-card .rlabel-input{ font-size:12.5px; width:150px; }
+    .receb-card input{ font-size:16px; width:120px; padding:6px 10px; }
+    .col-total-card{ padding:12px 16px; }
+    .col-total-card span:last-child{ font-size:16px; }
   }
   nav.tabs button.dragging{ opacity:0.4; }
   nav.tabs button.drag-over{ box-shadow: inset 0 -3px 0 var(--orange); background: rgba(255,138,61,0.12); }
@@ -191,25 +206,25 @@
   .value.negative{ color: var(--red); }
   .value.positive{ color: var(--green); }
 
-  .recebimentos-row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:20px;}
+  .recebimentos-row{ display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom:20px; }
   @media (max-width:700px){ .recebimentos-row{ grid-template-columns: 1fr; } }
   .receb-card{
     background: linear-gradient(135deg, var(--navy-soft), var(--navy));
-    color:#fff; border-radius: var(--radius); padding:14px 18px;
-    display:flex; align-items:center; justify-content:space-between;
+    color:#fff; border-radius: var(--radius); padding:18px 26px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
   }
-  .receb-card .rlabel{ font-size:12.5px; color:#B7C49A; font-weight:600; text-transform:lowercase;}
+  .receb-card .rlabel{ font-size:14px; color:#B7C49A; font-weight:600; text-transform:lowercase;}
   .receb-card .rlabel-input{
-    font-size:12.5px; color:#B7C49A; font-weight:600; text-transform:lowercase;
+    font-size:14px; color:#B7C49A; font-weight:600; text-transform:lowercase;
     border:none; background:transparent; font-family:inherit; padding:2px 2px;
-    width:190px; max-width:55%; text-align:left; -webkit-appearance:none; appearance:none;
+    width:260px; max-width:60%; text-align:left; -webkit-appearance:none; appearance:none;
   }
   .receb-card .rlabel-input:focus{ outline:1px solid rgba(255,255,255,0.4); border-radius:4px; color:#fff; }
-  .receb-prefix{ font-size:13px; font-weight:700; color:#B7C49A; }
+  .receb-prefix{ font-size:15px; font-weight:700; color:#B7C49A; }
   .receb-card input{
     background: rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
-    color:#fff; font-size:17px; font-weight:700; border-radius:8px; padding:6px 10px;
-    width:130px; text-align:right;
+    color:#fff; font-size:20px; font-weight:700; border-radius:8px; padding:8px 14px;
+    width:170px; text-align:right;
   }
   .receb-card input:focus{ outline:2px solid var(--teal); }
   .receb-card.receb-zero{
@@ -221,15 +236,15 @@
   .receb-card.receb-zero .receb-prefix{ color:#FFE1E2; }
   .receb-card.receb-zero input{ background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.3); }
 
-  .sections-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-  .col-totals-row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px; }
+  .sections-grid{ display:grid; grid-template-columns: 1fr; gap:16px; }
+  .col-totals-row{ display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom:16px; }
   @media (max-width:700px){ .col-totals-row{ grid-template-columns: 1fr; } }
   .col-total-card{
     background:var(--card); border:1px solid var(--border); border-top:3px solid var(--teal);
-    border-radius:14px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+    border-radius:14px; padding:14px 22px; display:flex; align-items:center; justify-content:space-between;
   }
-  .col-total-card span:first-child{ font-size:12px; color:var(--muted); font-weight:600; }
-  .col-total-card span:last-child{ font-size:17px; font-weight:800; color:var(--text); }
+  .col-total-card span:first-child{ font-size:13px; color:var(--muted); font-weight:600; }
+  .col-total-card span:last-child{ font-size:19px; font-weight:800; color:var(--text); }
   @media (max-width: 900px){ .sections-grid{ grid-template-columns:1fr; } }
 
   .section-card{
@@ -265,7 +280,7 @@
     transition: color .15s ease, opacity .15s ease;
   }
   .block-remove:hover{ color:var(--red); opacity:1; }
-  .detalhamentos-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px; align-items:start; }
+  .detalhamentos-grid{ display:grid; grid-template-columns: 1fr; gap:16px; margin-top:16px; align-items:start; }
   .detalhamentos-col{ display:flex; flex-direction:column; gap:16px; min-width:0; }
   @media (max-width: 900px){ .detalhamentos-grid{ grid-template-columns:1fr; } }
   .add-detail-row{ margin-top:16px; text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
@@ -488,7 +503,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-07-31.5</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-02.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -822,6 +837,36 @@ function migrateData(data){
     (m.detalhamentos||[]).forEach((d,idx)=>{
       if(d.col !== 0 && d.col !== 1) d.col = idx % 2;
     });
+  });
+
+  // migração: coluna "Dia 18" removida — tudo integrado na coluna "Dia 08" pra não perder nenhuma conta
+  allMonthObjs.forEach(m=>{
+    if(!m.recebimentos) m.recebimentos = { dia18:0, dia08:0 };
+    if(!Array.isArray(m.dia18)) m.dia18 = [];
+    if(!Array.isArray(m.dia08)) m.dia08 = [];
+    // soma o recebimento do dia 18 dentro do dia 08
+    if(Number(m.recebimentos.dia18) !== 0){
+      m.recebimentos.dia08 = round2(Number(m.recebimentos.dia08||0) + Number(m.recebimentos.dia18||0));
+      m.recebimentos.dia18 = 0;
+    }
+    // integra os itens do dia 18 no dia 08 (soma o valor se já existir uma conta com o mesmo nome)
+    if(m.dia18.length){
+      m.dia18.forEach(item=>{
+        const nomeNorm = String(item.desc).trim().toLowerCase();
+        const existente = m.dia08.find(x=>String(x.desc).trim().toLowerCase() === nomeNorm);
+        if(existente){
+          existente.valor = round2(Number(existente.valor||0) + Number(item.valor||0));
+          existente.pago = existente.pago && item.pago;
+        } else {
+          m.dia08.push(item);
+        }
+      });
+      m.dia18 = [];
+    }
+    // qualquer bloco que ainda estivesse na coluna esquerda passa pra direita
+    (m.detalhamentos||[]).forEach(d=>{ d.col = 1; });
+    // o bloco "Dia 18" nunca mais fica oculto/restaurável — só existe o Dia 08 agora
+    if(m.blocosOcultos) m.blocosOcultos.dia18 = false;
   });
 
   // garante que os itens fiquem sempre em ordem alfabética, mesmo os que já existiam antes
@@ -1322,11 +1367,10 @@ function renderMonthView(monthKey){
     <div class="summary-card accent-amber"><div class="label">Pendente</div><div class="value">R$ ${fmt(t.pendente)}</div></div>
   </div>
 
-  ${(!isTemplate && ((!oc.dia18 && Number(m.recebimentos.dia18)===0) || (!oc.dia08 && Number(m.recebimentos.dia08)===0))) ? `<div class="receb-warning">⚠️ um dos recebimentos está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
+  ${(!isTemplate && !oc.dia08 && Number(m.recebimentos.dia08)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
 
-  ${(oc.dia18 || oc.dia08) ? `<div class="blocos-ocultos-bar">
-    ${oc.dia18 ? `<button class="block-restore" data-restore="dia18">+ mostrar bloco Dia 18</button>` : ''}
-    ${oc.dia08 ? `<button class="block-restore" data-restore="dia08">+ mostrar bloco Dia 08</button>` : ''}
+  ${oc.dia08 ? `<div class="blocos-ocultos-bar">
+    <button class="block-restore" data-restore="dia08">+ mostrar bloco Dia 08</button>
   </div>` : ''}
 
   `;
@@ -1566,10 +1610,11 @@ function attachMonthEvents(monthKey){
         addRow.querySelector('.add-desc').focus();
         return;
       }
+      const replicar = confirm(`Adicionar "${desc}" também nos meses seguintes (e no Modelo)?`);
       list.push({ desc, valor, pago:false });
       sortItemsByDesc(list);
       save(); renderContent();
-      if(confirm(`"${desc}" já foi adicionado neste mês. Quer adicionar também nos meses seguintes (e no Modelo)?`)){
+      if(replicar){
         let count = 0;
         mesesSeguintesETemplate(monthKey).forEach(mes=>{
           if(mes === m) return;
@@ -1651,10 +1696,11 @@ function attachMonthEvents(monthKey){
         addRow.querySelector('.add-desc').focus();
         return;
       }
+      const replicarDetail = confirm(`Adicionar "${desc}" também no detalhamento "${detail.titulo}" dos meses seguintes (e do Modelo)?`);
       detail.items.push({ desc, valor, pago:false });
       sortItemsByDesc(detail.items);
       save(); renderContent();
-      if(confirm(`"${desc}" já foi adicionado neste bloco neste mês. Quer adicionar também no detalhamento "${detail.titulo}" dos meses seguintes (e do Modelo)?`)){
+      if(replicarDetail){
         const tituloAlvo = detail.titulo.trim().toLowerCase();
         let count = 0;
         mesesSeguintesETemplate(monthKey).forEach(mes=>{
