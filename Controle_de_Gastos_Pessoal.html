@@ -219,6 +219,7 @@
     width:260px; max-width:60%; text-align:left; -webkit-appearance:none; appearance:none;
   }
   .receb-card .rlabel-input:focus{ outline:1px solid rgba(255,255,255,0.4); border-radius:4px; color:#fff; }
+  .receb-amount{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
   .receb-prefix{ font-size:15px; font-weight:700; color:#B7C49A; }
   .receb-card input{
     background: rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
@@ -320,6 +321,7 @@
 
   .section-total{
     display:flex; justify-content:space-between; margin-top:10px; padding-top:8px;
+    padding-right:34px;
     border-top: 2px solid var(--border); font-weight:800; font-size:14px;
   }
   .add-item-row{ display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap; }
@@ -494,7 +496,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-02.6</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-02.7</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1394,8 +1396,10 @@ function renderMonthView(monthKey){
   <div class="recebimentos-row">
     ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.dia08)===0 ? 'receb-zero' : ''}">
       <input type="text" class="rlabel-input" data-label-key="recebDia08" value="${escapeHtml(m.labels.recebDia08)}">
-      <span class="receb-prefix">R$</span>
-      <input type="text" inputmode="decimal" id="receb-dia08" value="${round2(m.recebimentos.dia08).toFixed(2)}">
+      <div class="receb-amount">
+        <span class="receb-prefix">R$</span>
+        <input type="text" inputmode="decimal" id="receb-dia08" value="${round2(m.recebimentos.dia08).toFixed(2)}">
+      </div>
     </div>` : ''}
   </div>
 
