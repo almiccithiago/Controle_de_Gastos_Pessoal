@@ -1314,7 +1314,8 @@ function detailSectionHtml(monthKey, detail, dIdx){
   const rows = detail.items.length
     ? detail.items.map((it,idx)=>itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
-  const cor = detail.cor || 'none';
+  const isPagarDia18 = /a\s*pagar.*dia\s*18/i.test(String(detail.titulo).trim());
+  const cor = isPagarDia18 ? 'red' : (detail.cor || 'none');
   const coresDisponiveis = [
     ['none','sem destaque'], ['red','vermelho'], ['orange','laranja'],
     ['amber','amarelo'], ['blue','azul'], ['purple','roxo']
@@ -1327,7 +1328,7 @@ function detailSectionHtml(monthKey, detail, dIdx){
       <input type="text" class="detail-title-input" value="${escapeHtml(detail.titulo)}">
       <div class="section-header-actions">
         <span class="pill" style="background:${corPillMap[cor] || 'var(--teal)'}">R$ ${fmt(total)}</span>
-        <select class="detail-cor-select" data-detail-cor="${dIdx}" title="Cor de destaque do bloco">${corOptions}</select>
+        ${isPagarDia18 ? '' : `<select class="detail-cor-select" data-detail-cor="${dIdx}" title="Cor de destaque do bloco">${corOptions}</select>`}
         <div class="move-btns">
           <button class="move-btn" data-move="up" data-detail-move="${dIdx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-detail-move="${dIdx}" title="Mover para baixo">▼</button>
