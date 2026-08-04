@@ -323,8 +323,8 @@
     display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 4px 0 4px;
     border-top: 2px solid var(--border); font-weight:800; font-size:14px;
   }
-  .section-total .total-label{ flex:1; min-width:0; }
-  .section-total .total-value{ width:95px; text-align:left; flex-shrink:0; }
+  .section-total .total-label{ flex:1; min-width:0; padding-left:2px; font-family:'Poppins', sans-serif; }
+  .section-total .total-value{ width:95px; text-align:left; flex-shrink:0; padding-left:2px; font-family:'Poppins', sans-serif; }
   .add-item-row{ display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap; }
   .add-item-row input{
     border:1px solid var(--border); border-radius:8px; padding:6px 8px; font-size:13px;
@@ -873,16 +873,6 @@ function migrateData(data){
     (m.detalhamentos||[]).forEach(d=>{ d.col = 1; });
     // o bloco "Dia 18" nunca mais fica oculto/restaurável — só existe o Dia 08 agora
     if(m.blocosOcultos) m.blocosOcultos.dia18 = false;
-  });
-
-  // migração: destaque em vermelho pro bloco "a pagar - dia 18" (pra chamar mais atenção)
-  allMonthObjs.forEach(m=>{
-    (m.detalhamentos||[]).forEach(d=>{
-      if(!d.cor){
-        const tituloNorm = d.titulo.trim().toLowerCase();
-        d.cor = /a\s*pagar.*dia\s*18/.test(tituloNorm) ? 'red' : 'none';
-      }
-    });
   });
 
   // migração: bloco "REVOLUT" removido de vez — inclusive do Modelo, pra não voltar em meses novos
