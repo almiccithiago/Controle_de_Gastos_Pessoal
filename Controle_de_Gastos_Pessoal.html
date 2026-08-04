@@ -333,16 +333,16 @@
     border:1px solid transparent; cursor:pointer; max-width:112px;
   }
   .item-row.paid .item-categoria{ opacity:0.5; }
-  .cat-alimentacao{ background:#FDECEA; color:#B5442E; }
-  .cat-transporte{ background:#EAF2FD; color:#2E5FB5; }
-  .cat-saude{ background:#EAFBEF; color:#2E8B57; }
-  .cat-moradia{ background:#FFF6E5; color:#B5762E; }
-  .cat-lazer{ background:#F6EAFD; color:#8A45B5; }
-  .cat-vestuario{ background:#FCEAF5; color:#A8607A; }
-  .cat-educacao{ background:#EAF6FD; color:#2E7FB5; }
-  .cat-outros{ background:#EDEDED; color:#6B6B6B; }
+  .cat-alimentacao{ background:#FDECEA; color:#B5442E; } /* vermelho */
+  .cat-transporte{ background:#EAF2FD; color:#2E5FB5; }  /* azul */
+  .cat-saude{ background:#EAFBEF; color:#2E8B57; }       /* verde */
+  .cat-moradia{ background:#FFF6E5; color:#B5762E; }     /* laranja/âmbar */
+  .cat-lazer{ background:#F6EAFD; color:#8A45B5; }       /* roxo */
+  .cat-vestuario{ background:#FDEAF3; color:#B5308A; }   /* magenta/rosa forte */
+  .cat-educacao{ background:#E4F5F5; color:#1F8A8A; }    /* teal/ciano */
+  .cat-outros{ background:#EDEDED; color:#6B6B6B; }      /* cinza */
   .cat-none{ background:#F0F2F5; color:var(--muted); border:1px dashed var(--border); }
-  .cat-custom{ background:#E7F0EA; color:#2E7D5B; }
+  .cat-custom{ background:#EEEAFD; color:#5B4EB5; }      /* índigo — categorias criadas por você */
 
   .cat-filtro-bar{
     display:flex; align-items:center; gap:10px; flex-wrap:wrap;
@@ -1156,9 +1156,28 @@ function categoriaListaCompleta(){
   nomes.sort((a,b)=>a.localeCompare(b, 'pt-BR', { sensitivity:'base' }));
   return ['', ...nomes];
 }
+// Paleta extra pra categorias criadas por você — cada uma pega uma cor diferente
+// da lista abaixo, na ordem em que foram criadas (repete só se passar de 8).
+const PALETA_CUSTOM = [
+  { bg:'#EEEAFD', fg:'#5B4EB5' }, // índigo
+  { bg:'#FDF3E0', fg:'#B5872E' }, // dourado
+  { bg:'#E0F7F2', fg:'#1F8A6B' }, // verde-água
+  { bg:'#FDE9E0', fg:'#B5562E' }, // terracota
+  { bg:'#E0EEFD', fg:'#2E6FB5' }, // azul-petróleo
+  { bg:'#F5E0FD', fg:'#9E2EB5' }, // violeta
+  { bg:'#E9FDE0', fg:'#5FA62E' }, // verde-lima
+  { bg:'#FDE0EE', fg:'#B52E6F' }, // framboesa
+];
 function classeCategoria(nome){
   if(!nome) return 'cat-none';
   return CATEGORIA_CLASSES[nome] || 'cat-custom';
+}
+function estiloInlineCategoria(nome){
+  if(!nome || CATEGORIA_CLASSES[nome]) return '';
+  const idx = categoriasCustom().indexOf(nome);
+  if(idx === -1) return '';
+  const cor = PALETA_CUSTOM[idx % PALETA_CUSTOM.length];
+  return ` style="background:${cor.bg}; color:${cor.fg};"`;
 }
 
 // Categoria "efetiva" de um item: se ele já tem categoria escolhida manualmente
@@ -1172,10 +1191,11 @@ function categoriaEfetiva(item){
 function itemCategoriaSelectHtml(item){
   const atual = categoriaEfetiva(item);
   const classe = classeCategoria(atual);
+  const estiloInline = estiloInlineCategoria(atual);
   const opcoes = categoriaListaCompleta().map(nome =>
     `<option value="${escapeHtml(nome)}" ${nome === atual ? 'selected' : ''}>${nome || 'Sem categoria'}</option>`
   ).join('') + `<option value="__nova__">+ Nova categoria…</option>`;
-  return `<select class="item-categoria ${classe}" title="Categoria (você pode trocar, ou criar uma nova)">${opcoes}</select>`;
+  return `<select class="item-categoria ${classe}"${estiloInline} title="Categoria (você pode trocar, ou criar uma nova)">${opcoes}</select>`;
 }
 
 // Cria (se preciso) e aplica uma categoria nova digitada pelo usuário direto no
@@ -1235,6 +1255,46 @@ function excluirCategoriaViaPrompt(){
   limparCategoriaDeTodosOsItens(encontrada);
   if(categoriaFiltro === encontrada) categoriaFiltro = '';
   save(); renderContent();
+}
+
+// Copia as categorias já configuradas manualmente no mês de Agosto pra todos os
+// outros meses e pro Modelo, casando por descrição do gasto (mesmo nome = mesma
+// categoria). Só mexe em itens que existem em Agosto com categoria explícita —
+// o resto fica como está.
+function aplicarCategoriasDeAgostoAosOutrosMeses(){
+  const chaveAgosto = DATA.monthOrder.find(k => normalizeTexto(String(k).split('/')[0]) === 'agosto');
+  if(!chaveAgosto){
+    alert('Não encontrei nenhum mês de Agosto nos seus dados.');
+    return;
+  }
+  const mAgosto = DATA.months[chaveAgosto];
+  const mapa = {};
+  todosItensDoMes(mAgosto).forEach(it => {
+    if(it.categoria !== undefined && it.categoria !== null){
+      mapa[normalizeTexto(it.desc)] = it.categoria;
+    }
+  });
+  if(Object.keys(mapa).length === 0){
+    alert(`Não encontrei nenhuma categoria configurada em ${chaveAgosto} ainda. Configure lá primeiro.`);
+    return;
+  }
+  if(!confirm(`Isso vai copiar as categorias de ${chaveAgosto} pros gastos com a MESMA descrição em todos os outros meses e no Modelo. Continuar?`)) return;
+
+  let contagem = 0;
+  const aplicarEm = (m) => {
+    todosItensDoMes(m).forEach(it => {
+      const chave = normalizeTexto(it.desc);
+      if(Object.prototype.hasOwnProperty.call(mapa, chave)){
+        it.categoria = mapa[chave];
+        contagem++;
+      }
+    });
+  };
+  Object.keys(DATA.months).forEach(k => { if(k !== chaveAgosto) aplicarEm(DATA.months[k]); });
+  aplicarEm(DATA.template);
+
+  save(); renderContent();
+  alert(`Pronto — categorias aplicadas em ${contagem} gasto(s) (contando repetições em cada mês), com base em ${chaveAgosto}.`);
 }
 
 function round2(v){
@@ -1430,6 +1490,7 @@ function filtroCategoriaBarHtml(){
     </select>
     ${categoriaFiltro ? `<button id="limpar-filtro-categoria" type="button">Limpar filtro</button>` : ''}
     <button id="excluir-categoria-btn" type="button" title="Excluir uma categoria da lista">🗑️ Excluir categoria</button>
+    <button id="aplicar-categorias-agosto-btn" type="button" title="Copia as categorias de Agosto pros gastos com mesma descrição nos outros meses e no Modelo">📋 Aplicar categorias de Agosto aos outros meses</button>
   </div>`;
 }
 
@@ -1710,6 +1771,10 @@ function attachMonthEvents(monthKey){
   const excluirCategoriaBtn = content.querySelector('#excluir-categoria-btn');
   if(excluirCategoriaBtn){
     excluirCategoriaBtn.addEventListener('click', excluirCategoriaViaPrompt);
+  }
+  const aplicarAgostoBtn = content.querySelector('#aplicar-categorias-agosto-btn');
+  if(aplicarAgostoBtn){
+    aplicarAgostoBtn.addEventListener('click', aplicarCategoriasDeAgostoAosOutrosMeses);
   }
 
   const titleInput = content.querySelector('#month-title-input');
