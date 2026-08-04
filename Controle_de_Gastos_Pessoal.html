@@ -244,7 +244,6 @@
     padding: 16px; display:flex; flex-direction:column;
   }
   .section-card.detail{ background: #FAFBFD; border-style:dashed; }
-  .section-card.detail.detail-alerta{ border: 2px solid var(--red); }
   .section-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .section-header h3{ font-size:14.5px; margin:0; font-weight:700; }
   .detail-title-input{
@@ -1251,7 +1250,6 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
       </div>
     </div>
     ${rows}
-    <div class="section-total"><input type="checkbox" style="visibility:hidden; width:20px; height:20px; flex-shrink:0;" tabindex="-1"><span class="total-label">total</span><span class="rs-prefix">R$</span><span class="total-value">${fmt(total)}</span><span class="item-remove" style="visibility:hidden;">×</span></div>
     <div class="meta-row" data-meta-for="${listKey}">
       <span class="meta-label">Meta</span>
       <span class="rs-prefix">R$</span>
@@ -1291,13 +1289,12 @@ function detailSectionHtml(monthKey, detail, dIdx){
   const rows = detail.items.length
     ? detail.items.map((it,idx)=>itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
-  const isPagarDia18 = /a\s*pagar.*dia\s*18/i.test(String(detail.titulo).trim());
   return `
-  <div class="section-card detail${isPagarDia18 ? ' detail-alerta' : ''}" data-detail="${dIdx}">
+  <div class="section-card detail" data-detail="${dIdx}">
     <div class="section-header">
       <input type="text" class="detail-title-input" value="${escapeHtml(detail.titulo)}">
       <div class="section-header-actions">
-        <span class="pill" style="background:${isPagarDia18 ? 'var(--red)' : 'var(--teal)'}">R$ ${fmt(total)}</span>
+        <span class="pill" style="background:var(--teal)">R$ ${fmt(total)}</span>
         <div class="move-btns">
           <button class="move-btn" data-move="up" data-detail-move="${dIdx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-detail-move="${dIdx}" title="Mover para baixo">▼</button>
@@ -1307,7 +1304,6 @@ function detailSectionHtml(monthKey, detail, dIdx){
     </div>
     <div class="detail-note">Bloco independente; não sincroniza com nenhum outro item.</div>
     ${rows}
-    <div class="section-total"><input type="checkbox" style="visibility:hidden; width:20px; height:20px; flex-shrink:0;" tabindex="-1"><span class="total-label">total</span><span class="rs-prefix">R$</span><span class="total-value">${fmt(total)}</span><span class="item-remove" style="visibility:hidden;">×</span></div>
     <div class="add-item-row" data-add-detail="${dIdx}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
