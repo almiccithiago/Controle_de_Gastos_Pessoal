@@ -130,6 +130,9 @@
   nav.tabs button#add-month-tab:hover{ color:#8FBF52; }
   nav.tabs button.tab-modelo{ font-style:italic; }
   nav.tabs button.tab-modelo::before{ content:"⚙ "; font-style:normal; }
+  nav.tabs button.tab-completo{ opacity:0.4; }
+  nav.tabs button.tab-completo:hover{ opacity:0.75; }
+  nav.tabs button.tab-completo.active{ opacity:0.8; }
 
   @media (max-width:480px){
     .topbar-inner{ padding:12px 12px 0 12px; }
@@ -640,11 +643,19 @@ function escapeHtml(str){
 
 // ============================= EXPORTAR / IMPORTAR =============================
 // ============================= TABS =============================
+function mesTotalmentePago(m){
+  const todosItens = [
+    ...m.recebimentos,
+    ...m.despesas.reduce((acc,c)=>acc.concat(c.items), [])
+  ];
+  return todosItens.length > 0 && todosItens.every(it=>it.pago);
+}
+
 function renderTabs(){
   const tabs = document.getElementById('tabs');
   const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual"];
   tabs.innerHTML = allTabs.map(t =>
-    `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''}" data-tab="${t}">${t}</button>`
+    `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${t}">${t}</button>`
   ).join('') + `<button id="add-month-tab" title="Criar novo mês a partir do Modelo">+ Novo Mês</button>`;
   tabs.querySelectorAll('button[data-tab]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ currentTab = btn.dataset.tab; renderTabs(); renderContent(); });
@@ -653,6 +664,7 @@ function renderTabs(){
 }
 
 function renderContent(){
+  renderTabs();
   const content = document.getElementById('content');
   if(currentTab === "Modelo"){
     content.innerHTML = renderMonthView("Modelo");
