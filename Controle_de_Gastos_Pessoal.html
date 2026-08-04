@@ -1270,9 +1270,10 @@ function aplicarCategoriasDeAgostoAosOutrosMeses(){
   const mAgosto = DATA.months[chaveAgosto];
   const mapa = {};
   todosItensDoMes(mAgosto).forEach(it => {
-    if(it.categoria !== undefined && it.categoria !== null){
-      mapa[normalizeTexto(it.desc)] = it.categoria;
-    }
+    // usa a categoria "efetiva" (a que aparece na tela) — inclui tanto a
+    // escolhida manualmente quanto a sugerida automaticamente pela descrição.
+    const efetiva = categoriaEfetiva(it);
+    if(efetiva) mapa[normalizeTexto(it.desc)] = efetiva;
   });
   if(Object.keys(mapa).length === 0){
     alert(`Não encontrei nenhuma categoria configurada em ${chaveAgosto} ainda. Configure lá primeiro.`);
