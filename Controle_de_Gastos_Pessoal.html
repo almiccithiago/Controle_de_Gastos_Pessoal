@@ -777,6 +777,17 @@ let currentTab = null;
 let dataReady = false;
 let currentPassword = '';
 let categoriaFiltro = ''; // '' = mostra todas as categorias; filtro é só visual, não altera dados
+const FILTRO_SEM_CATEGORIA = '__sem_categoria__'; // valor especial: filtra só os itens sem nenhuma categoria
+
+// Diz se um item deve aparecer com o filtro de categoria atual.
+function itemPassaNoFiltro(item){
+  if(!categoriaFiltro) return true;
+  if(categoriaFiltro === FILTRO_SEM_CATEGORIA) return categoriaEfetiva(item) === '';
+  return categoriaEfetiva(item) === categoriaFiltro;
+}
+function nomeExibicaoFiltro(){
+  return categoriaFiltro === FILTRO_SEM_CATEGORIA ? 'Sem categoria' : categoriaFiltro;
+}
 
 async function loadFromServer(){
   const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
@@ -1426,8 +1437,8 @@ function monthTotals(m){
 function todosItensDoMes(m){
   return [...m.dia18, ...m.dia08, ...(m.detalhamentos||[]).flatMap(d=>d.items)];
 }
-function monthTotalsFiltrados(m, categoria){
-  const itens = todosItensDoMes(m).filter(it => categoriaEfetiva(it) === categoria);
+function monthTotalsFiltrados(m){
+  const itens = todosItensDoMes(m).filter(itemPassaNoFiltro);
   const despesasTotal = round2(itens.reduce((s,x)=>s+Number(x.valor||0),0));
   const pago = round2(itens.filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0));
   const pendente = round2(despesasTotal - pago);
@@ -1446,6 +1457,7 @@ function filtroCategoriaBarHtml(){
     <label for="filtro-categoria">Filtrar por categoria:</label>
     <select id="filtro-categoria">
       <option value="" ${categoriaFiltro === '' ? 'selected' : ''}>Todas as categorias</option>
+      <option value="${FILTRO_SEM_CATEGORIA}" ${categoriaFiltro === FILTRO_SEM_CATEGORIA ? 'selected' : ''}>Sem categoria</option>
       ${opcoes}
     </select>
     ${categoriaFiltro ? `<button id="limpar-filtro-categoria" type="button">Limpar filtro</button>` : ''}
@@ -1480,13 +1492,13 @@ function metaBarraHtml(gasto, meta){
 }
 
 function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
-  const itemsVisiveis = categoriaFiltro ? items.filter(it => categoriaEfetiva(it) === categoriaFiltro) : items;
+  const itemsVisiveis = categoriaFiltro ? items.filter(itemPassaNoFiltro) : items;
   const total = round2(itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0));
   const rows = items.length
-    ? items.map((it,idx)=> categoriaFiltro && categoriaEfetiva(it) !== categoriaFiltro ? '' : itemRowHtml(monthKey, listKey, idx, it)).join('')
+    ? items.map((it,idx)=> categoriaFiltro && !itemPassaNoFiltro(it) ? '' : itemRowHtml(monthKey, listKey, idx, it)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
   const semItemNaCategoria = items.length > 0 && itemsVisiveis.length === 0
-    ? `<div class="empty-hint">Nenhum item de "${escapeHtml(categoriaFiltro)}" neste bloco.</div>` : '';
+    ? `<div class="empty-hint">Nenhum item de "${escapeHtml(nomeExibicaoFiltro())}" neste bloco.</div>` : '';
   return `
   <div class="section-card" data-section="${listKey}">
     <div class="section-header">
@@ -1533,13 +1545,13 @@ function moveDetalhamento(m, dIdx, direction){
 }
 
 function detailSectionHtml(monthKey, detail, dIdx){
-  const itemsVisiveis = categoriaFiltro ? detail.items.filter(it => categoriaEfetiva(it) === categoriaFiltro) : detail.items;
+  const itemsVisiveis = categoriaFiltro ? detail.items.filter(itemPassaNoFiltro) : detail.items;
   const total = round2(itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0));
   const rows = detail.items.length
-    ? detail.items.map((it,idx)=> categoriaFiltro && categoriaEfetiva(it) !== categoriaFiltro ? '' : itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
+    ? detail.items.map((it,idx)=> categoriaFiltro && !itemPassaNoFiltro(it) ? '' : itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
   const semItemNaCategoria = detail.items.length > 0 && itemsVisiveis.length === 0
-    ? `<div class="empty-hint">Nenhum item de "${escapeHtml(categoriaFiltro)}" neste bloco.</div>` : '';
+    ? `<div class="empty-hint">Nenhum item de "${escapeHtml(nomeExibicaoFiltro())}" neste bloco.</div>` : '';
   const isPagarDia18 = /a\s*pagar.*dia\s*18/i.test(String(detail.titulo).trim());
   const cardStyle = isPagarDia18 ? ' style="border-style:solid; border-color:var(--red); border-width:2px;"' : '';
   const tituloStyle = isPagarDia18 ? ' style="color:var(--red);"' : '';
@@ -1610,12 +1622,12 @@ function renderMonthView(monthKey){
   // quando um filtro de categoria está ativo, os cartões do topo (despesas,
   // saldo, pago, pendente) mostram só a soma daquela categoria — a renda
   // continua sendo a real, porque recebimentos não têm categoria.
-  const tf = categoriaFiltro ? monthTotalsFiltrados(m, categoriaFiltro) : null;
+  const tf = categoriaFiltro ? monthTotalsFiltrados(m) : null;
   const despesasExibida = tf ? tf.despesasTotal : t.despesasTotal;
   const pagoExibido = tf ? tf.pago : t.pago;
   const pendenteExibido = tf ? tf.pendente : t.pendente;
   const saldoExibido = tf ? round2(t.rendaTotal - tf.despesasTotal) : t.saldo;
-  const sufixoFiltro = tf ? ` (${categoriaFiltro})` : '';
+  const sufixoFiltro = tf ? ` (${nomeExibicaoFiltro()})` : '';
   const saldoClass = saldoExibido >= 0 ? 'positive' : 'negative';
   const bannerClass = t.saldo >= 0 ? 'pos' : 'neg';
   const oc = m.blocosOcultos;
