@@ -244,20 +244,6 @@
     padding: 16px; display:flex; flex-direction:column;
   }
   .section-card.detail{ background: #FAFBFD; border-style:dashed; }
-  .section-card.detail[data-cor="red"]{ border-style:solid; border-color:var(--red); border-width:2px; background:linear-gradient(180deg, rgba(163,64,45,0.07), #FAFBFD 60px); }
-  .section-card.detail[data-cor="red"] .detail-title-input{ color:var(--red); }
-  .section-card.detail[data-cor="orange"]{ border-style:solid; border-color:var(--orange); border-width:2px; background:linear-gradient(180deg, rgba(181,118,46,0.08), #FAFBFD 60px); }
-  .section-card.detail[data-cor="orange"] .detail-title-input{ color:var(--orange); }
-  .section-card.detail[data-cor="amber"]{ border-style:solid; border-color:var(--amber); border-width:2px; background:linear-gradient(180deg, rgba(198,138,46,0.08), #FAFBFD 60px); }
-  .section-card.detail[data-cor="amber"] .detail-title-input{ color:var(--amber); }
-  .section-card.detail[data-cor="blue"]{ border-style:solid; border-color:var(--blue); border-width:2px; background:linear-gradient(180deg, rgba(99,153,34,0.08), #FAFBFD 60px); }
-  .section-card.detail[data-cor="blue"] .detail-title-input{ color:var(--blue); }
-  .section-card.detail[data-cor="purple"]{ border-style:solid; border-color:var(--purple); border-width:2px; background:linear-gradient(180deg, rgba(138,106,69,0.08), #FAFBFD 60px); }
-  .section-card.detail[data-cor="purple"] .detail-title-input{ color:var(--purple); }
-  .detail-cor-select{
-    border:1px solid var(--border); border-radius:7px; padding:4px 6px; font-size:11px;
-    background:#fff; color:var(--text); font-family:inherit; cursor:pointer; flex-shrink:0;
-  }
   .section-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .section-header h3{ font-size:14.5px; margin:0; font-weight:700; }
   .detail-title-input{
@@ -1314,21 +1300,12 @@ function detailSectionHtml(monthKey, detail, dIdx){
   const rows = detail.items.length
     ? detail.items.map((it,idx)=>itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
-  const isPagarDia18 = /a\s*pagar.*dia\s*18/i.test(String(detail.titulo).trim());
-  const cor = isPagarDia18 ? 'red' : (detail.cor || 'none');
-  const coresDisponiveis = [
-    ['none','sem destaque'], ['red','vermelho'], ['orange','laranja'],
-    ['amber','amarelo'], ['blue','azul'], ['purple','roxo']
-  ];
-  const corOptions = coresDisponiveis.map(([v,label])=>`<option value="${v}" ${cor===v?'selected':''}>${label}</option>`).join('');
-  const corPillMap = { none:'var(--teal)', red:'var(--red)', orange:'var(--orange)', amber:'var(--amber)', blue:'var(--blue)', purple:'var(--purple)' };
   return `
-  <div class="section-card detail" data-detail="${dIdx}" data-cor="${cor}">
+  <div class="section-card detail" data-detail="${dIdx}">
     <div class="section-header">
       <input type="text" class="detail-title-input" value="${escapeHtml(detail.titulo)}">
       <div class="section-header-actions">
-        <span class="pill" style="background:${corPillMap[cor] || 'var(--teal)'}">R$ ${fmt(total)}</span>
-        ${isPagarDia18 ? '' : `<select class="detail-cor-select" data-detail-cor="${dIdx}" title="Cor de destaque do bloco">${corOptions}</select>`}
+        <span class="pill" style="background:var(--teal)">R$ ${fmt(total)}</span>
         <div class="move-btns">
           <button class="move-btn" data-move="up" data-detail-move="${dIdx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-detail-move="${dIdx}" title="Mover para baixo">▼</button>
@@ -1562,16 +1539,6 @@ function attachMonthEvents(monthKey){
       const titulo = m.detalhamentos[dIdx] ? m.detalhamentos[dIdx].titulo : 'este bloco';
       if(!confirmarExclusaoComNome('o bloco', titulo)) return;
       m.detalhamentos.splice(dIdx,1);
-      save(); renderContent();
-    });
-  });
-
-  // cor de destaque do bloco de detalhamento
-  content.querySelectorAll('.detail-cor-select[data-detail-cor]').forEach(sel=>{
-    const dIdx = parseInt(sel.dataset.detailCor,10);
-    sel.addEventListener('change', e=>{
-      if(!m.detalhamentos[dIdx]) return;
-      m.detalhamentos[dIdx].cor = e.target.value;
       save(); renderContent();
     });
   });
