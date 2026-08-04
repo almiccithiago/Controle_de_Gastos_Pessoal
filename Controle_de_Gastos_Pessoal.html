@@ -2129,7 +2129,8 @@ function escapeHtml(str){
 
 // ============================= EXPORTAR / IMPORTAR =============================
 // ============================= SENHA =============================
-const APP_PASSWORD = "238502";
+// A senha é validada só pelo servidor (header x-app-password em loadFromServer/save) —
+// não guardamos nem checamos a senha aqui no cliente, pra ela não ficar visível no código.
 function initLock(){
   const lockScreen = document.getElementById('lock-screen');
   const appRoot = document.getElementById('app-root');
@@ -2139,11 +2140,10 @@ function initLock(){
   const logoutBtn = document.getElementById('logout-btn');
 
   async function tryUnlock(){
-    if(input.value !== APP_PASSWORD){
-      errorMsg.textContent = 'Senha incorreta. Tente novamente.';
+    if(!input.value){
+      errorMsg.textContent = 'Digite a senha.';
       errorMsg.style.color = '';
       errorMsg.style.display = 'block';
-      input.value = '';
       input.focus();
       return;
     }
@@ -2158,7 +2158,7 @@ function initLock(){
     btn.disabled = false;
     if(!resultado.ok){
       if(resultado.erro === 'senha'){
-        errorMsg.textContent = 'Senha incorreta (o servidor recusou). Tente novamente.';
+        errorMsg.textContent = 'Senha incorreta. Tente novamente.';
       } else {
         errorMsg.textContent = 'Não foi possível conectar ao servidor. Se ele estiver "dormindo" (plano gratuito), aguarde uns 30 segundos e tente de novo.';
       }
