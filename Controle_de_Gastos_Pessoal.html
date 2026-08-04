@@ -1400,6 +1400,20 @@ function monthTotals(m){
   return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente };
 }
 
+// Totais só da categoria filtrada — usado apenas pra exibir os cartões do topo
+// quando o filtro por categoria está ativo. Não mexe nos totais "de verdade"
+// (monthTotals), que continuam sendo usados no Resumo Anual e comparativos.
+function todosItensDoMes(m){
+  return [...m.dia18, ...m.dia08, ...(m.detalhamentos||[]).flatMap(d=>d.items)];
+}
+function monthTotalsFiltrados(m, categoria){
+  const itens = todosItensDoMes(m).filter(it => categoriaEfetiva(it) === categoria);
+  const despesasTotal = round2(itens.reduce((s,x)=>s+Number(x.valor||0),0));
+  const pago = round2(itens.filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0));
+  const pendente = round2(despesasTotal - pago);
+  return { despesasTotal, pago, pendente };
+}
+
 // Barra de filtro por categoria — filtra só a exibição (quais itens aparecem e
 // o total de cada bloco); não altera nenhum dado salvo.
 function filtroCategoriaBarHtml(){
@@ -1573,7 +1587,16 @@ function renderMonthView(monthKey){
   const m = isTemplate ? DATA.template : DATA.months[monthKey];
   if(!m.blocosOcultos) m.blocosOcultos = { dia18:false, dia08:false };
   const t = monthTotals(m);
-  const saldoClass = t.saldo >= 0 ? 'positive' : 'negative';
+  // quando um filtro de categoria está ativo, os cartões do topo (despesas,
+  // saldo, pago, pendente) mostram só a soma daquela categoria — a renda
+  // continua sendo a real, porque recebimentos não têm categoria.
+  const tf = categoriaFiltro ? monthTotalsFiltrados(m, categoriaFiltro) : null;
+  const despesasExibida = tf ? tf.despesasTotal : t.despesasTotal;
+  const pagoExibido = tf ? tf.pago : t.pago;
+  const pendenteExibido = tf ? tf.pendente : t.pendente;
+  const saldoExibido = tf ? round2(t.rendaTotal - tf.despesasTotal) : t.saldo;
+  const sufixoFiltro = tf ? ` (${categoriaFiltro})` : '';
+  const saldoClass = saldoExibido >= 0 ? 'positive' : 'negative';
   const bannerClass = t.saldo >= 0 ? 'pos' : 'neg';
   const oc = m.blocosOcultos;
 
@@ -1604,10 +1627,10 @@ function renderMonthView(monthKey){
   </div>
   <div class="summary-grid">
     <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div>${compRenda}</div>
-    <div class="summary-card accent-red"><div class="label">Total Despesas</div><div class="value">R$ ${fmt(t.despesasTotal)}</div>${compDespesas}${compMedia}</div>
-    <div class="summary-card ${t.saldo>=0?'accent-green':'accent-red'}"><div class="label">Saldo do Mês</div><div class="value ${saldoClass}">R$ ${fmt(t.saldo)}</div></div>
-    <div class="summary-card accent-green"><div class="label">Pago</div><div class="value">R$ ${fmt(t.pago)}</div></div>
-    <div class="summary-card accent-amber"><div class="label">Pendente</div><div class="value">R$ ${fmt(t.pendente)}</div></div>
+    <div class="summary-card accent-red"><div class="label">Total Despesas${sufixoFiltro}</div><div class="value">R$ ${fmt(despesasExibida)}</div>${tf ? '' : compDespesas}${tf ? '' : compMedia}</div>
+    <div class="summary-card ${saldoExibido>=0?'accent-green':'accent-red'}"><div class="label">Saldo do Mês${sufixoFiltro}</div><div class="value ${saldoClass}">R$ ${fmt(saldoExibido)}</div></div>
+    <div class="summary-card accent-green"><div class="label">Pago${sufixoFiltro}</div><div class="value">R$ ${fmt(pagoExibido)}</div></div>
+    <div class="summary-card accent-amber"><div class="label">Pendente${sufixoFiltro}</div><div class="value">R$ ${fmt(pendenteExibido)}</div></div>
   </div>
 
   ${filtroCategoriaBarHtml()}
