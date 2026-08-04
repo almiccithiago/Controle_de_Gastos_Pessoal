@@ -244,20 +244,6 @@
     padding: 16px; display:flex; flex-direction:column;
   }
   .section-card.detail{ background: #FAFBFD; border-style:dashed; }
-  .section-card.detail[data-cor="red"]{ border-style:solid; border-color:var(--red); border-width:2px; background:linear-gradient(180deg, rgba(163,64,45,0.07), #FAFBFD 60px); }
-  .section-card.detail[data-cor="red"] .detail-title-input{ color:var(--red); }
-  .section-card.detail[data-cor="orange"]{ border-style:solid; border-color:var(--orange); border-width:2px; background:linear-gradient(180deg, rgba(181,118,46,0.08), #FAFBFD 60px); }
-  .section-card.detail[data-cor="orange"] .detail-title-input{ color:var(--orange); }
-  .section-card.detail[data-cor="amber"]{ border-style:solid; border-color:var(--amber); border-width:2px; background:linear-gradient(180deg, rgba(198,138,46,0.08), #FAFBFD 60px); }
-  .section-card.detail[data-cor="amber"] .detail-title-input{ color:var(--amber); }
-  .section-card.detail[data-cor="blue"]{ border-style:solid; border-color:var(--blue); border-width:2px; background:linear-gradient(180deg, rgba(99,153,34,0.08), #FAFBFD 60px); }
-  .section-card.detail[data-cor="blue"] .detail-title-input{ color:var(--blue); }
-  .section-card.detail[data-cor="purple"]{ border-style:solid; border-color:var(--purple); border-width:2px; background:linear-gradient(180deg, rgba(138,106,69,0.08), #FAFBFD 60px); }
-  .section-card.detail[data-cor="purple"] .detail-title-input{ color:var(--purple); }
-  .detail-cor-select{
-    border:1px solid var(--border); border-radius:7px; padding:4px 6px; font-size:11px;
-    background:#fff; color:var(--text); font-family:inherit; cursor:pointer; flex-shrink:0;
-  }
   .section-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .section-header h3{ font-size:14.5px; margin:0; font-weight:700; }
   .detail-title-input{
@@ -337,8 +323,8 @@
     display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 4px 0 4px;
     border-top: 2px solid var(--border); font-weight:800; font-size:14px;
   }
-  .section-total .total-label{ flex:1; min-width:0; }
-  .section-total .total-value{ width:95px; text-align:right; flex-shrink:0; }
+  .section-total .total-label{ flex:1; min-width:0; padding-left:2px; font-family:'Poppins', sans-serif; }
+  .section-total .total-value{ width:95px; text-align:right; flex-shrink:0; padding-right:2px; font-family:'Poppins', sans-serif; }
   .add-item-row{ display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:wrap; }
   .add-item-row input{
     border:1px solid var(--border); border-radius:8px; padding:6px 8px; font-size:13px;
@@ -889,16 +875,6 @@ function migrateData(data){
     if(m.blocosOcultos) m.blocosOcultos.dia18 = false;
   });
 
-  // migração: destaque em vermelho pro bloco "a pagar - dia 18" (pra chamar mais atenção)
-  allMonthObjs.forEach(m=>{
-    (m.detalhamentos||[]).forEach(d=>{
-      if(!d.cor){
-        const tituloNorm = d.titulo.trim().toLowerCase();
-        d.cor = /a\s*pagar.*dia\s*18/.test(tituloNorm) ? 'red' : 'none';
-      }
-    });
-  });
-
   // migração: bloco "REVOLUT" removido de vez — inclusive do Modelo, pra não voltar em meses novos
   allMonthObjs.forEach(m=>{
     if(Array.isArray(m.detalhamentos)){
@@ -1314,21 +1290,12 @@ function detailSectionHtml(monthKey, detail, dIdx){
   const rows = detail.items.length
     ? detail.items.map((it,idx)=>itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
-  const isPagarDia18 = /a\s*pagar.*dia\s*18/i.test(String(detail.titulo).trim());
-  const cor = isPagarDia18 ? 'red' : (detail.cor || 'none');
-  const coresDisponiveis = [
-    ['none','sem destaque'], ['red','vermelho'], ['orange','laranja'],
-    ['amber','amarelo'], ['blue','azul'], ['purple','roxo']
-  ];
-  const corOptions = coresDisponiveis.map(([v,label])=>`<option value="${v}" ${cor===v?'selected':''}>${label}</option>`).join('');
-  const corPillMap = { none:'var(--teal)', red:'var(--red)', orange:'var(--orange)', amber:'var(--amber)', blue:'var(--blue)', purple:'var(--purple)' };
   return `
-  <div class="section-card detail" data-detail="${dIdx}" data-cor="${cor}">
+  <div class="section-card detail" data-detail="${dIdx}">
     <div class="section-header">
       <input type="text" class="detail-title-input" value="${escapeHtml(detail.titulo)}">
       <div class="section-header-actions">
-        <span class="pill" style="background:${corPillMap[cor] || 'var(--teal)'}">R$ ${fmt(total)}</span>
-        ${isPagarDia18 ? '' : `<select class="detail-cor-select" data-detail-cor="${dIdx}" title="Cor de destaque do bloco">${corOptions}</select>`}
+        <span class="pill" style="background:var(--teal)">R$ ${fmt(total)}</span>
         <div class="move-btns">
           <button class="move-btn" data-move="up" data-detail-move="${dIdx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-detail-move="${dIdx}" title="Mover para baixo">▼</button>
@@ -1562,16 +1529,6 @@ function attachMonthEvents(monthKey){
       const titulo = m.detalhamentos[dIdx] ? m.detalhamentos[dIdx].titulo : 'este bloco';
       if(!confirmarExclusaoComNome('o bloco', titulo)) return;
       m.detalhamentos.splice(dIdx,1);
-      save(); renderContent();
-    });
-  });
-
-  // cor de destaque do bloco de detalhamento
-  content.querySelectorAll('.detail-cor-select[data-detail-cor]').forEach(sel=>{
-    const dIdx = parseInt(sel.dataset.detailCor,10);
-    sel.addEventListener('change', e=>{
-      if(!m.detalhamentos[dIdx]) return;
-      m.detalhamentos[dIdx].cor = e.target.value;
       save(); renderContent();
     });
   });
@@ -2129,7 +2086,8 @@ function escapeHtml(str){
 
 // ============================= EXPORTAR / IMPORTAR =============================
 // ============================= SENHA =============================
-const APP_PASSWORD = "238502";
+// A senha é validada só pelo servidor (header x-app-password em loadFromServer/save) —
+// não guardamos nem checamos a senha aqui no cliente, pra ela não ficar visível no código.
 function initLock(){
   const lockScreen = document.getElementById('lock-screen');
   const appRoot = document.getElementById('app-root');
@@ -2139,11 +2097,10 @@ function initLock(){
   const logoutBtn = document.getElementById('logout-btn');
 
   async function tryUnlock(){
-    if(input.value !== APP_PASSWORD){
-      errorMsg.textContent = 'Senha incorreta. Tente novamente.';
+    if(!input.value){
+      errorMsg.textContent = 'Digite a senha.';
       errorMsg.style.color = '';
       errorMsg.style.display = 'block';
-      input.value = '';
       input.focus();
       return;
     }
@@ -2158,7 +2115,7 @@ function initLock(){
     btn.disabled = false;
     if(!resultado.ok){
       if(resultado.erro === 'senha'){
-        errorMsg.textContent = 'Senha incorreta (o servidor recusou). Tente novamente.';
+        errorMsg.textContent = 'Senha incorreta. Tente novamente.';
       } else {
         errorMsg.textContent = 'Não foi possível conectar ao servidor. Se ele estiver "dormindo" (plano gratuito), aguarde uns 30 segundos e tente de novo.';
       }
