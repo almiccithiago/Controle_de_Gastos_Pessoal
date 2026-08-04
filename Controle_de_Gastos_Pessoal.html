@@ -342,6 +342,23 @@
   .cat-educacao{ background:#EAF6FD; color:#2E7FB5; }
   .cat-outros{ background:#EDEDED; color:#6B6B6B; }
   .cat-none{ background:#F0F2F5; color:var(--muted); border:1px dashed var(--border); }
+  .cat-custom{ background:#E7F0EA; color:#2E7D5B; }
+
+  .cat-filtro-bar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background: var(--card); border:1px solid var(--border); border-radius:10px;
+    padding:10px 14px; margin-bottom:16px;
+  }
+  .cat-filtro-bar label{ font-size:12.5px; font-weight:700; color:var(--muted); font-family:'Poppins', sans-serif; }
+  .cat-filtro-bar select{
+    font-size:13px; font-weight:600; padding:6px 10px; border-radius:8px; border:1px solid var(--border);
+    background:#fff; color:var(--text); font-family:'Poppins', sans-serif; cursor:pointer;
+  }
+  .cat-filtro-bar button{
+    font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; border:none;
+    background:#F0F2F5; color:var(--muted); cursor:pointer; font-family:'Poppins', sans-serif;
+  }
+  .cat-filtro-bar button:hover{ background:#E4E8EE; color:var(--text); }
 
   .section-total{
     display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 4px 0 4px;
@@ -759,6 +776,7 @@ let DATA = null;
 let currentTab = null;
 let dataReady = false;
 let currentPassword = '';
+let categoriaFiltro = ''; // '' = mostra todas as categorias; filtro é só visual, não altera dados
 
 async function loadFromServer(){
   const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
@@ -1111,10 +1129,23 @@ function categoriaTagHtml(desc){
   return `<span class="cat-tag ${cat.classe}" title="Categoria sugerida com base na descrição">${cat.nome}</span>`;
 }
 
-// Lista de categorias escolhíveis manualmente + classe visual de cada uma.
-const CATEGORIA_LISTA = ['', ...CATEGORIAS_DESC.map(c=>c.nome), 'Outros'];
+// Lista fixa de categorias (nome -> classe visual). As categorias criadas pelo
+// próprio usuário ficam guardadas em DATA.categoriasCustom e são somadas a essa
+// lista fixa na hora de montar o menu — assim elas passam a valer pra qualquer
+// gasto, em qualquer mês, sem precisar de nenhuma tela extra de cadastro.
 const CATEGORIA_CLASSES = { '': 'cat-none', 'Outros': 'cat-outros' };
 CATEGORIAS_DESC.forEach(c => CATEGORIA_CLASSES[c.nome] = c.classe);
+
+function categoriasCustom(){
+  return (DATA && Array.isArray(DATA.categoriasCustom)) ? DATA.categoriasCustom : [];
+}
+function categoriaListaCompleta(){
+  return ['', ...CATEGORIAS_DESC.map(c=>c.nome), ...categoriasCustom(), 'Outros'];
+}
+function classeCategoria(nome){
+  if(!nome) return 'cat-none';
+  return CATEGORIA_CLASSES[nome] || 'cat-custom';
+}
 
 // Categoria "efetiva" de um item: se ele já tem categoria escolhida manualmente
 // (mesmo que já tenha sido salva antes), usa ela. Senão, sugere automaticamente
@@ -1126,11 +1157,27 @@ function categoriaEfetiva(item){
 }
 function itemCategoriaSelectHtml(item){
   const atual = categoriaEfetiva(item);
-  const classe = CATEGORIA_CLASSES[atual] || 'cat-none';
-  const opcoes = CATEGORIA_LISTA.map(nome =>
+  const classe = classeCategoria(atual);
+  const opcoes = categoriaListaCompleta().map(nome =>
     `<option value="${escapeHtml(nome)}" ${nome === atual ? 'selected' : ''}>${nome || 'Sem categoria'}</option>`
-  ).join('');
-  return `<select class="item-categoria ${classe}" title="Categoria (você pode trocar)">${opcoes}</select>`;
+  ).join('') + `<option value="__nova__">+ Nova categoria…</option>`;
+  return `<select class="item-categoria ${classe}" title="Categoria (você pode trocar, ou criar uma nova)">${opcoes}</select>`;
+}
+
+// Cria (se preciso) e aplica uma categoria nova digitada pelo usuário direto no
+// menu do item. Devolve o nome final escolhido, ou null se o usuário cancelou.
+function criarCategoriaViaPrompt(){
+  const nome = prompt('Nome da nova categoria:');
+  const nomeLimpo = (nome || '').trim();
+  if(!nomeLimpo) return null;
+  const jaExiste = categoriaListaCompleta().some(c => c && normalizeTexto(c) === normalizeTexto(nomeLimpo));
+  if(jaExiste){
+    alert(`Já existe uma categoria chamada "${nomeLimpo}" (ou bem parecida). Escolha ela na lista.`);
+    return null;
+  }
+  if(!Array.isArray(DATA.categoriasCustom)) DATA.categoriasCustom = [];
+  DATA.categoriasCustom.push(nomeLimpo);
+  return nomeLimpo;
 }
 function round2(v){
   const n = Number(v);
@@ -1295,6 +1342,24 @@ function monthTotals(m){
   return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente };
 }
 
+// Barra de filtro por categoria — filtra só a exibição (quais itens aparecem e
+// o total de cada bloco); não altera nenhum dado salvo.
+function filtroCategoriaBarHtml(){
+  const opcoes = categoriaListaCompleta()
+    .filter(nome => nome !== '')
+    .map(nome => `<option value="${escapeHtml(nome)}" ${nome === categoriaFiltro ? 'selected' : ''}>${nome}</option>`)
+    .join('');
+  return `
+  <div class="cat-filtro-bar">
+    <label for="filtro-categoria">Filtrar por categoria:</label>
+    <select id="filtro-categoria">
+      <option value="" ${categoriaFiltro === '' ? 'selected' : ''}>Todas as categorias</option>
+      ${opcoes}
+    </select>
+    ${categoriaFiltro ? `<button id="limpar-filtro-categoria" type="button">Limpar filtro</button>` : ''}
+  </div>`;
+}
+
 function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   const listAttr = detailIdx===undefined ? listKey : `detail:${detailIdx}`;
   return `
@@ -1322,10 +1387,13 @@ function metaBarraHtml(gasto, meta){
 }
 
 function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
-  const total = round2(items.reduce((s,x)=>s+Number(x.valor||0),0));
+  const itemsVisiveis = categoriaFiltro ? items.filter(it => categoriaEfetiva(it) === categoriaFiltro) : items;
+  const total = round2(itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0));
   const rows = items.length
-    ? items.map((it,idx)=>itemRowHtml(monthKey, listKey, idx, it)).join('')
+    ? items.map((it,idx)=> categoriaFiltro && categoriaEfetiva(it) !== categoriaFiltro ? '' : itemRowHtml(monthKey, listKey, idx, it)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
+  const semItemNaCategoria = items.length > 0 && itemsVisiveis.length === 0
+    ? `<div class="empty-hint">Nenhum item de "${escapeHtml(categoriaFiltro)}" neste bloco.</div>` : '';
   return `
   <div class="section-card" data-section="${listKey}">
     <div class="section-header">
@@ -1336,6 +1404,7 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
       </div>
     </div>
     ${rows}
+    ${semItemNaCategoria}
     <div class="meta-row" data-meta-for="${listKey}">
       <span class="meta-label">Meta</span>
       <span class="rs-prefix">R$</span>
@@ -1371,10 +1440,13 @@ function moveDetalhamento(m, dIdx, direction){
 }
 
 function detailSectionHtml(monthKey, detail, dIdx){
-  const total = round2(detail.items.reduce((s,x)=>s+Number(x.valor||0),0));
+  const itemsVisiveis = categoriaFiltro ? detail.items.filter(it => categoriaEfetiva(it) === categoriaFiltro) : detail.items;
+  const total = round2(itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0));
   const rows = detail.items.length
-    ? detail.items.map((it,idx)=>itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
+    ? detail.items.map((it,idx)=> categoriaFiltro && categoriaEfetiva(it) !== categoriaFiltro ? '' : itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
+  const semItemNaCategoria = detail.items.length > 0 && itemsVisiveis.length === 0
+    ? `<div class="empty-hint">Nenhum item de "${escapeHtml(categoriaFiltro)}" neste bloco.</div>` : '';
   const isPagarDia18 = /a\s*pagar.*dia\s*18/i.test(String(detail.titulo).trim());
   const cardStyle = isPagarDia18 ? ' style="border-style:solid; border-color:var(--red); border-width:2px;"' : '';
   const tituloStyle = isPagarDia18 ? ' style="color:var(--red);"' : '';
@@ -1394,6 +1466,7 @@ function detailSectionHtml(monthKey, detail, dIdx){
     </div>
     <div class="detail-note">Bloco independente; não sincroniza com nenhum outro item.</div>
     ${rows}
+    ${semItemNaCategoria}
     <div class="add-item-row" data-add-detail="${dIdx}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
@@ -1478,6 +1551,8 @@ function renderMonthView(monthKey){
     <div class="summary-card accent-amber"><div class="label">Pendente</div><div class="value">R$ ${fmt(t.pendente)}</div></div>
   </div>
 
+  ${filtroCategoriaBarHtml()}
+
   ${(!isTemplate && !oc.dia08 && Number(m.recebimentos.dia08)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
 
   ${oc.dia08 ? `<div class="blocos-ocultos-bar">
@@ -1534,6 +1609,21 @@ function attachMonthEvents(monthKey){
   if(!isTemplate){
     const delBtn = content.querySelector('#delete-month-btn');
     if(delBtn) delBtn.addEventListener('click', ()=>deleteMonth(monthKey));
+  }
+
+  const filtroSelect = content.querySelector('#filtro-categoria');
+  if(filtroSelect){
+    filtroSelect.addEventListener('change', e=>{
+      categoriaFiltro = e.target.value;
+      renderContent();
+    });
+  }
+  const limparFiltroBtn = content.querySelector('#limpar-filtro-categoria');
+  if(limparFiltroBtn){
+    limparFiltroBtn.addEventListener('click', ()=>{
+      categoriaFiltro = '';
+      renderContent();
+    });
   }
 
   const titleInput = content.querySelector('#month-title-input');
@@ -1654,6 +1744,12 @@ function attachMonthEvents(monthKey){
         list[idx].pago = e.target.checked; save(); renderContent();
       });
       row.querySelector('.item-categoria').addEventListener('change', e=>{
+        if(e.target.value === '__nova__'){
+          const nome = criarCategoriaViaPrompt();
+          if(!nome){ e.target.value = categoriaEfetiva(list[idx]); return; }
+          list[idx].categoria = nome; save(); renderContent();
+          return;
+        }
         list[idx].categoria = e.target.value; save(); renderContent();
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
@@ -1742,6 +1838,12 @@ function attachMonthEvents(monthKey){
         detail.items[idx].pago = e.target.checked; save(); renderContent();
       });
       row.querySelector('.item-categoria').addEventListener('change', e=>{
+        if(e.target.value === '__nova__'){
+          const nome = criarCategoriaViaPrompt();
+          if(!nome){ e.target.value = categoriaEfetiva(detail.items[idx]); return; }
+          detail.items[idx].categoria = nome; save(); renderContent();
+          return;
+        }
         detail.items[idx].categoria = e.target.value; save(); renderContent();
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
