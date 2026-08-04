@@ -1289,12 +1289,16 @@ function detailSectionHtml(monthKey, detail, dIdx){
   const rows = detail.items.length
     ? detail.items.map((it,idx)=>itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
+  const isPagarDia18 = /a\s*pagar.*dia\s*18/i.test(String(detail.titulo).trim());
+  const cardStyle = isPagarDia18 ? ' style="border-style:solid; border-color:var(--red); border-width:2px;"' : '';
+  const tituloStyle = isPagarDia18 ? ' style="color:var(--red);"' : '';
+  const pillBg = isPagarDia18 ? 'var(--red)' : 'var(--teal)';
   return `
-  <div class="section-card detail" data-detail="${dIdx}">
+  <div class="section-card detail" data-detail="${dIdx}"${cardStyle}>
     <div class="section-header">
-      <input type="text" class="detail-title-input" value="${escapeHtml(detail.titulo)}">
+      <input type="text" class="detail-title-input"${tituloStyle} value="${escapeHtml(detail.titulo)}">
       <div class="section-header-actions">
-        <span class="pill" style="background:var(--teal)">R$ ${fmt(total)}</span>
+        <span class="pill" style="background:${pillBg}">R$ ${fmt(total)}</span>
         <div class="move-btns">
           <button class="move-btn" data-move="up" data-detail-move="${dIdx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-detail-move="${dIdx}" title="Mover para baixo">▼</button>
