@@ -1115,10 +1115,15 @@ const CATEGORIAS_DESC = [
 function normalizeTexto(s){
   return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
 }
+function categoriasExcluidas(){
+  return (DATA && Array.isArray(DATA.categoriasExcluidas)) ? DATA.categoriasExcluidas : [];
+}
 function detectCategoriaDesc(desc){
   const alvo = normalizeTexto(desc);
   if(!alvo) return null;
+  const excluidas = categoriasExcluidas();
   for(const cat of CATEGORIAS_DESC){
+    if(excluidas.includes(cat.nome)) continue;
     if(cat.palavras.some(p => alvo.includes(normalizeTexto(p)))) return cat;
   }
   return null;
@@ -1133,6 +1138,8 @@ function categoriaTagHtml(desc){
 // próprio usuário ficam guardadas em DATA.categoriasCustom e são somadas a essa
 // lista fixa na hora de montar o menu — assim elas passam a valer pra qualquer
 // gasto, em qualquer mês, sem precisar de nenhuma tela extra de cadastro.
+// Categorias fixas que o usuário decidiu excluir ficam em DATA.categoriasExcluidas
+// (não dá pra apagar do código, então só marcamos como "escondida").
 const CATEGORIA_CLASSES = { '': 'cat-none', 'Outros': 'cat-outros' };
 CATEGORIAS_DESC.forEach(c => CATEGORIA_CLASSES[c.nome] = c.classe);
 
@@ -1140,7 +1147,14 @@ function categoriasCustom(){
   return (DATA && Array.isArray(DATA.categoriasCustom)) ? DATA.categoriasCustom : [];
 }
 function categoriaListaCompleta(){
-  return ['', ...CATEGORIAS_DESC.map(c=>c.nome), ...categoriasCustom(), 'Outros'];
+  const excluidas = categoriasExcluidas();
+  const nomes = [
+    ...CATEGORIAS_DESC.map(c=>c.nome).filter(n => !excluidas.includes(n)),
+    ...categoriasCustom(),
+    ...(excluidas.includes('Outros') ? [] : ['Outros']),
+  ];
+  nomes.sort((a,b)=>a.localeCompare(b, 'pt-BR', { sensitivity:'base' }));
+  return ['', ...nomes];
 }
 function classeCategoria(nome){
   if(!nome) return 'cat-none';
@@ -1179,6 +1193,50 @@ function criarCategoriaViaPrompt(){
   DATA.categoriasCustom.push(nomeLimpo);
   return nomeLimpo;
 }
+
+// Tira uma categoria (nome) de todos os gastos que estavam usando ela, em todos
+// os meses e no Modelo — eles voltam pra "Sem categoria" (nunca ficam "perdidos").
+function limparCategoriaDeTodosOsItens(nome){
+  const limpa = lista => (lista || []).forEach(it => { if(it.categoria === nome) it.categoria = ''; });
+  limpa(DATA.template.dia18); limpa(DATA.template.dia08);
+  (DATA.template.detalhamentos || []).forEach(d => limpa(d.items));
+  Object.values(DATA.months || {}).forEach(m => {
+    limpa(m.dia18); limpa(m.dia08);
+    (m.detalhamentos || []).forEach(d => limpa(d.items));
+  });
+}
+
+// Pergunta qual categoria excluir (por nome, digitado) e remove ela da lista —
+// se for uma categoria criada pelo usuário, some de vez; se for uma das
+// categorias padrão do sistema, fica só "escondida" (guardado em
+// DATA.categoriasExcluidas), já que essa lista padrão vive no código.
+function excluirCategoriaViaPrompt(){
+  const disponiveis = categoriaListaCompleta().filter(nome => nome && nome !== 'Outros');
+  if(disponiveis.length === 0){
+    alert('Não há categorias pra excluir no momento.');
+    return;
+  }
+  const escolha = prompt(`Qual categoria excluir? Digite o nome exatamente como está na lista:\n\n${disponiveis.join('\n')}`);
+  const nomeLimpo = (escolha || '').trim();
+  if(!nomeLimpo) return;
+  const encontrada = disponiveis.find(n => normalizeTexto(n) === normalizeTexto(nomeLimpo));
+  if(!encontrada){
+    alert(`Não encontrei a categoria "${nomeLimpo}". Confira se digitou certinho.`);
+    return;
+  }
+  if(!confirm(`Excluir a categoria "${encontrada}"?\n\nOs gastos que estavam nela ficam sem categoria (você pode escolher outra depois).`)) return;
+
+  if(categoriasCustom().includes(encontrada)){
+    DATA.categoriasCustom = DATA.categoriasCustom.filter(n => n !== encontrada);
+  } else {
+    if(!Array.isArray(DATA.categoriasExcluidas)) DATA.categoriasExcluidas = [];
+    if(!DATA.categoriasExcluidas.includes(encontrada)) DATA.categoriasExcluidas.push(encontrada);
+  }
+  limparCategoriaDeTodosOsItens(encontrada);
+  if(categoriaFiltro === encontrada) categoriaFiltro = '';
+  save(); renderContent();
+}
+
 function round2(v){
   const n = Number(v);
   if(isNaN(n)) return 0;
@@ -1357,6 +1415,7 @@ function filtroCategoriaBarHtml(){
       ${opcoes}
     </select>
     ${categoriaFiltro ? `<button id="limpar-filtro-categoria" type="button">Limpar filtro</button>` : ''}
+    <button id="excluir-categoria-btn" type="button" title="Excluir uma categoria da lista">🗑️ Excluir categoria</button>
   </div>`;
 }
 
@@ -1624,6 +1683,10 @@ function attachMonthEvents(monthKey){
       categoriaFiltro = '';
       renderContent();
     });
+  }
+  const excluirCategoriaBtn = content.querySelector('#excluir-categoria-btn');
+  if(excluirCategoriaBtn){
+    excluirCategoriaBtn.addEventListener('click', excluirCategoriaViaPrompt);
   }
 
   const titleInput = content.querySelector('#month-title-input');
