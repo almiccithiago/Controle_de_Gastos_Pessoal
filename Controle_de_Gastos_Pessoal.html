@@ -327,6 +327,12 @@
     white-space:nowrap; flex-shrink:0; font-family:'Poppins', sans-serif;
   }
   .item-row.paid .cat-tag{ opacity:0.5; }
+  .item-categoria{
+    font-size:10px; font-weight:700; padding:3px 6px; border-radius:99px;
+    white-space:nowrap; flex-shrink:0; font-family:'Poppins', sans-serif;
+    border:1px solid transparent; cursor:pointer; max-width:112px;
+  }
+  .item-row.paid .item-categoria{ opacity:0.5; }
   .cat-alimentacao{ background:#FDECEA; color:#B5442E; }
   .cat-transporte{ background:#EAF2FD; color:#2E5FB5; }
   .cat-saude{ background:#EAFBEF; color:#2E8B57; }
@@ -334,6 +340,8 @@
   .cat-lazer{ background:#F6EAFD; color:#8A45B5; }
   .cat-vestuario{ background:#FCEAF5; color:#A8607A; }
   .cat-educacao{ background:#EAF6FD; color:#2E7FB5; }
+  .cat-outros{ background:#EDEDED; color:#6B6B6B; }
+  .cat-none{ background:#F0F2F5; color:var(--muted); border:1px dashed var(--border); }
 
   .section-total{
     display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 4px 0 4px;
@@ -1102,6 +1110,28 @@ function categoriaTagHtml(desc){
   if(!cat) return '';
   return `<span class="cat-tag ${cat.classe}" title="Categoria sugerida com base na descrição">${cat.nome}</span>`;
 }
+
+// Lista de categorias escolhíveis manualmente + classe visual de cada uma.
+const CATEGORIA_LISTA = ['', ...CATEGORIAS_DESC.map(c=>c.nome), 'Outros'];
+const CATEGORIA_CLASSES = { '': 'cat-none', 'Outros': 'cat-outros' };
+CATEGORIAS_DESC.forEach(c => CATEGORIA_CLASSES[c.nome] = c.classe);
+
+// Categoria "efetiva" de um item: se ele já tem categoria escolhida manualmente
+// (mesmo que já tenha sido salva antes), usa ela. Senão, sugere automaticamente
+// com base na descrição (sem gravar nada até o usuário mexer no seletor).
+function categoriaEfetiva(item){
+  if(item.categoria !== undefined && item.categoria !== null) return item.categoria;
+  const auto = detectCategoriaDesc(item.desc);
+  return auto ? auto.nome : '';
+}
+function itemCategoriaSelectHtml(item){
+  const atual = categoriaEfetiva(item);
+  const classe = CATEGORIA_CLASSES[atual] || 'cat-none';
+  const opcoes = CATEGORIA_LISTA.map(nome =>
+    `<option value="${escapeHtml(nome)}" ${nome === atual ? 'selected' : ''}>${nome || 'Sem categoria'}</option>`
+  ).join('');
+  return `<select class="item-categoria ${classe}" title="Categoria (você pode trocar)">${opcoes}</select>`;
+}
 function round2(v){
   const n = Number(v);
   if(isNaN(n)) return 0;
@@ -1271,7 +1301,7 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   <div class="item-row ${item.pago?'paid':''}" data-list="${listAttr}" data-idx="${idx}">
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
-    ${categoriaTagHtml(item.desc)}
+    ${itemCategoriaSelectHtml(item)}
     <span class="rs-prefix">R$</span>
     <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-remove" title="Remover item">×</button>
@@ -1623,6 +1653,9 @@ function attachMonthEvents(monthKey){
       row.querySelector('.chk-pago').addEventListener('change', e=>{
         list[idx].pago = e.target.checked; save(); renderContent();
       });
+      row.querySelector('.item-categoria').addEventListener('change', e=>{
+        list[idx].categoria = e.target.value; save(); renderContent();
+      });
       row.querySelector('.item-desc').addEventListener('change', e=>{
         const novoDesc = e.target.value.trim();
         if(nomeDuplicado(list, novoDesc, idx)){
@@ -1707,6 +1740,9 @@ function attachMonthEvents(monthKey){
       const idx = parseInt(row.dataset.idx,10);
       row.querySelector('.chk-pago').addEventListener('change', e=>{
         detail.items[idx].pago = e.target.checked; save(); renderContent();
+      });
+      row.querySelector('.item-categoria').addEventListener('change', e=>{
+        detail.items[idx].categoria = e.target.value; save(); renderContent();
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
         const novoDesc = e.target.value.trim();
