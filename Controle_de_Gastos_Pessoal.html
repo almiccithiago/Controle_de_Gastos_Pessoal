@@ -1257,47 +1257,6 @@ function excluirCategoriaViaPrompt(){
   save(); renderContent();
 }
 
-// Copia as categorias já configuradas manualmente no mês de Agosto pra todos os
-// outros meses e pro Modelo, casando por descrição do gasto (mesmo nome = mesma
-// categoria). Só mexe em itens que existem em Agosto com categoria explícita —
-// o resto fica como está.
-function aplicarCategoriasDeAgostoAosOutrosMeses(){
-  const chaveAgosto = DATA.monthOrder.find(k => normalizeTexto(String(k).split('/')[0]) === 'agosto');
-  if(!chaveAgosto){
-    alert('Não encontrei nenhum mês de Agosto nos seus dados.');
-    return;
-  }
-  const mAgosto = DATA.months[chaveAgosto];
-  const mapa = {};
-  todosItensDoMes(mAgosto).forEach(it => {
-    // usa a categoria "efetiva" (a que aparece na tela) — inclui tanto a
-    // escolhida manualmente quanto a sugerida automaticamente pela descrição.
-    const efetiva = categoriaEfetiva(it);
-    if(efetiva) mapa[normalizeTexto(it.desc)] = efetiva;
-  });
-  if(Object.keys(mapa).length === 0){
-    alert(`Não encontrei nenhuma categoria configurada em ${chaveAgosto} ainda. Configure lá primeiro.`);
-    return;
-  }
-  if(!confirm(`Isso vai copiar as categorias de ${chaveAgosto} pros gastos com a MESMA descrição em todos os outros meses e no Modelo. Continuar?`)) return;
-
-  let contagem = 0;
-  const aplicarEm = (m) => {
-    todosItensDoMes(m).forEach(it => {
-      const chave = normalizeTexto(it.desc);
-      if(Object.prototype.hasOwnProperty.call(mapa, chave)){
-        it.categoria = mapa[chave];
-        contagem++;
-      }
-    });
-  };
-  Object.keys(DATA.months).forEach(k => { if(k !== chaveAgosto) aplicarEm(DATA.months[k]); });
-  aplicarEm(DATA.template);
-
-  save(); renderContent();
-  alert(`Pronto — categorias aplicadas em ${contagem} gasto(s) (contando repetições em cada mês), com base em ${chaveAgosto}.`);
-}
-
 function round2(v){
   const n = Number(v);
   if(isNaN(n)) return 0;
@@ -1491,7 +1450,6 @@ function filtroCategoriaBarHtml(){
     </select>
     ${categoriaFiltro ? `<button id="limpar-filtro-categoria" type="button">Limpar filtro</button>` : ''}
     <button id="excluir-categoria-btn" type="button" title="Excluir uma categoria da lista">🗑️ Excluir categoria</button>
-    <button id="aplicar-categorias-agosto-btn" type="button" title="Copia as categorias de Agosto pros gastos com mesma descrição nos outros meses e no Modelo">📋 Aplicar categorias de Agosto aos outros meses</button>
   </div>`;
 }
 
@@ -1772,10 +1730,6 @@ function attachMonthEvents(monthKey){
   const excluirCategoriaBtn = content.querySelector('#excluir-categoria-btn');
   if(excluirCategoriaBtn){
     excluirCategoriaBtn.addEventListener('click', excluirCategoriaViaPrompt);
-  }
-  const aplicarAgostoBtn = content.querySelector('#aplicar-categorias-agosto-btn');
-  if(aplicarAgostoBtn){
-    aplicarAgostoBtn.addEventListener('click', aplicarCategoriasDeAgostoAosOutrosMeses);
   }
 
   const titleInput = content.querySelector('#month-title-input');
