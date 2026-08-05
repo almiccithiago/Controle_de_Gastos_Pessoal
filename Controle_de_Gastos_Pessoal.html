@@ -293,6 +293,10 @@
     .add-item-row{ gap:4px; }
     .add-item-row input.add-valor{ width:56px; }
     .add-item-row button{ padding:6px 8px; font-size:11.5px; }
+    .move-btns{ gap:0; }
+    .move-btn{ font-size:10px; padding:4px 3px; }
+    .block-remove{ padding:4px 4px; padding-left:8px; margin-left:3px; }
+    .section-header .pill{ font-size:10px; padding:3px 7px; }
   }
   .add-detail-row{ margin-top:16px; text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .add-block-btn{
@@ -1566,13 +1570,21 @@ function moveDetalhamento(m, dIdx, direction){
   if(!detail) return;
 
   // Os blocos são exibidos em 2 colunas alternando por posição (par/ímpar) na
-  // lista. Pra "▲/▼" moverem o bloco DENTRO da própria coluna (e não pularem
-  // pra coluna vizinha), o passo precisa ser de 2 em 2 posições no array plano.
-  const passo = 2;
-  if(direction === 'up' && dIdx - passo >= 0){
-    [detalhamentos[dIdx], detalhamentos[dIdx-passo]] = [detalhamentos[dIdx-passo], detalhamentos[dIdx]];
-  } else if(direction === 'down' && dIdx + passo <= detalhamentos.length-1){
-    [detalhamentos[dIdx], detalhamentos[dIdx+passo]] = [detalhamentos[dIdx+passo], detalhamentos[dIdx]];
+  // lista: índice par = coluna esquerda, índice ímpar = coluna direita, e o
+  // vizinho da mesma linha é sempre o índice adjacente (idx-1/idx+1).
+  const ultimo = detalhamentos.length - 1;
+  const emColunaEsquerda = dIdx % 2 === 0;
+  if(direction === 'up' && dIdx - 2 >= 0){
+    // "▲/▼" andam DENTRO da própria coluna, por isso pulam de 2 em 2.
+    [detalhamentos[dIdx], detalhamentos[dIdx-2]] = [detalhamentos[dIdx-2], detalhamentos[dIdx]];
+  } else if(direction === 'down' && dIdx + 2 <= ultimo){
+    [detalhamentos[dIdx], detalhamentos[dIdx+2]] = [detalhamentos[dIdx+2], detalhamentos[dIdx]];
+  } else if(direction === 'left' && !emColunaEsquerda && dIdx - 1 >= 0){
+    // "◀" troca com o vizinho da mesma linha na coluna da esquerda.
+    [detalhamentos[dIdx], detalhamentos[dIdx-1]] = [detalhamentos[dIdx-1], detalhamentos[dIdx]];
+  } else if(direction === 'right' && emColunaEsquerda && dIdx + 1 <= ultimo){
+    // "▶" troca com o vizinho da mesma linha na coluna da direita.
+    [detalhamentos[dIdx], detalhamentos[dIdx+1]] = [detalhamentos[dIdx+1], detalhamentos[dIdx]];
   } else {
     return;
   }
@@ -1598,8 +1610,10 @@ function detailSectionHtml(monthKey, detail, dIdx){
       <div class="section-header-actions">
         <span class="pill" style="background:${pillBg}">R$ ${fmt(total)}</span>
         <div class="move-btns">
+          <button class="move-btn" data-move="left" data-detail-move="${dIdx}" title="Mover para a coluna da esquerda">◀</button>
           <button class="move-btn" data-move="up" data-detail-move="${dIdx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-detail-move="${dIdx}" title="Mover para baixo">▼</button>
+          <button class="move-btn" data-move="right" data-detail-move="${dIdx}" title="Mover para a coluna da direita">▶</button>
         </div>
         <button class="block-remove" data-detail-idx="${dIdx}" title="Excluir este bloco do mês">×</button>
       </div>
