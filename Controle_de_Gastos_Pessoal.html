@@ -322,6 +322,21 @@
   }
   .item-remove:hover{ opacity:1; }
 
+  /* Em telas estreitas, checkbox+categoria+R$+valor+remover já ocupam quase toda
+     a largura, então o input de descrição (flex:1 min-width:0) acaba espremido a
+     poucos pixels — na prática invisível. Quebramos o item-row em duas linhas:
+     checkbox + descrição (largura cheia) na primeira, e categoria/valor/remover
+     na segunda, pra descrição sempre ter espaço legível. */
+  @media (max-width:600px){
+    .item-row{ flex-wrap:wrap; row-gap:4px; }
+    .item-row input[type=checkbox].chk-pago{ order:0; }
+    .item-row .item-desc{ order:1; flex:1 1 auto; min-width:80px; }
+    .item-row .item-categoria{ order:2; flex-basis:100%; margin-top:2px; }
+    .item-row .rs-prefix{ order:3; }
+    .item-row .item-valor{ order:4; width:80px; }
+    .item-row .item-remove{ order:5; margin-left:auto; }
+  }
+
   .cat-tag{
     font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px;
     white-space:nowrap; flex-shrink:0; font-family:'Poppins', sans-serif;
