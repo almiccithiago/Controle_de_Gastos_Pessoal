@@ -575,26 +575,16 @@
   .goal-field .cell-currency input{ font-size:13px; font-weight:700; text-align:right; }
   .goal-field input[type=date]{ border:1px solid var(--border); border-radius:8px; padding:5px 8px; font-size:12.5px; }
 
-  /* Exportação de relatório em PDF: usa o diálogo de impressão do navegador
-     ("Salvar como PDF"). Ao imprimir, tudo fica invisível exceto #print-area,
-     que é preenchido na hora com o conteúdo do relatório. */
-  .print-only{ display:none; }
-  @media print{
-    @page{ margin: 14mm 12mm; }
-    body *{ visibility:hidden; }
-    #print-area, #print-area *{ visibility:visible; -webkit-print-color-adjust:exact; print-color-adjust:exact; color-adjust:exact; }
-    /* .print-only sets display:none for the screen — precisa ser desfeito aqui,
-       senão a visibilidade acima não tem efeito nenhum (elemento display:none
-       não é pintado de jeito nenhum, mesmo "visível"). Foi isso que deixava o
-       relatório saindo em branco na impressão/PDF. */
-    #print-area{ display:block !important; position:absolute; left:0; top:0; width:100%; padding:0; }
-  }
+  /* Exportação de relatório em PDF: o botão "exportar relatório" abre o
+     relatório numa aba nova (função abrirRelatorioEmNovaAba), já com seu
+     próprio botão de imprimir/salvar PDF — não usa mais este documento
+     principal pra imprimir, então nenhuma regra especial de @media print
+     é necessária aqui. */
 </style>
 </head>
 <body>
-<div id="print-area" class="print-only"></div>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-06.9</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-06.10</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2392,6 +2382,12 @@ function metaEconomiaCardHtml(goal, idx){
       <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}">
       <div class="section-header-actions">
         <span class="pill" style="background:${corBarra}">${atingida ? 'concluída 🎉' : pct.toFixed(0)+'%'}</span>
+        <div class="move-btns">
+          <button class="move-btn" data-move="left" data-meta-move="${idx}" title="Mover para a esquerda">◀</button>
+          <button class="move-btn" data-move="up" data-meta-move="${idx}" title="Mover para cima">▲</button>
+          <button class="move-btn" data-move="down" data-meta-move="${idx}" title="Mover para baixo">▼</button>
+          <button class="move-btn" data-move="right" data-meta-move="${idx}" title="Mover para a direita">▶</button>
+        </div>
         <button class="block-remove goal-remove" title="Excluir esta meta">×</button>
       </div>
     </div>
@@ -2410,6 +2406,24 @@ function metaEconomiaCardHtml(goal, idx){
     <div class="meta-bar-text" style="color:${corBarra};">R$ ${fmt(atual)} de R$ ${fmt(alvo)}${!atingida ? ` · faltam R$ ${fmt(falta)}` : ''}</div>
     ${sugestaoHtml}
   </div>`;
+}
+
+// Move uma meta de economia dentro da lista (cima/baixo/esquerda/direita).
+// Como os cartões ficam numa grade responsiva (o número de colunas muda
+// conforme a largura da tela), as 4 setas fazem a mesma coisa na prática —
+// trocam com o vizinho anterior (cima/esquerda) ou seguinte (baixo/direita)
+// na ordem da lista — pra funcionar igual em qualquer tamanho de tela.
+function moveMetaEconomia(idx, direction){
+  const metas = DATA.metasEconomia;
+  const ultimo = metas.length - 1;
+  if((direction === 'up' || direction === 'left') && idx - 1 >= 0){
+    [metas[idx], metas[idx-1]] = [metas[idx-1], metas[idx]];
+  } else if((direction === 'down' || direction === 'right') && idx + 1 <= ultimo){
+    [metas[idx], metas[idx+1]] = [metas[idx+1], metas[idx]];
+  } else {
+    return;
+  }
+  save(); renderContent();
 }
 
 function renderMetasEconomiaHtml(){
@@ -2483,12 +2497,21 @@ function attachMetasEconomiaEvents(){
       save(); renderContent();
     });
   });
+
+  // mover meta de economia (cima/baixo/esquerda/direita)
+  content.querySelectorAll('.move-btn[data-meta-move]').forEach(btn=>{
+    const idx = parseInt(btn.dataset.metaMove, 10);
+    btn.addEventListener('click', ()=>{
+      moveMetaEconomia(idx, btn.dataset.move);
+    });
+  });
 }
 
 // ============================= RELATÓRIO (EXPORTAR PDF) =============================
 // Estilo compartilhado dos relatórios (mês e ano) — usa as mesmas cores da marca
-// do app. Fica dentro do próprio HTML injetado no #print-area; como esse bloco
-// só existe visível durante a impressão/PDF, não vaza pro resto do app.
+// do app. Vai dentro do documento HTML independente aberto numa aba nova
+// (veja relatorioPaginaHtml/abrirRelatorioEmNovaAba), então não vaza pro
+// resto do app.
 function relatorioEstiloHtml(){
   return `
   <style>
@@ -2584,10 +2607,9 @@ function relatorioMesHtml(monthKey){
   </div>`;
 }
 
-// Monta uma página HTML completa e independente pro relatório (usada tanto
-// pra abrir em nova aba quanto, se a nova aba for bloqueada, como fallback
-// via print-area). Tem um botão fixo de imprimir/salvar PDF que some na
-// impressão de verdade (@media print).
+// Monta uma página HTML completa e independente pro relatório, aberta numa
+// aba nova (abrirRelatorioEmNovaAba). Tem um botão fixo de imprimir/salvar
+// PDF que some na impressão de verdade (@media print).
 function relatorioPaginaHtml(titulo, conteudoHtml){
   return `<!DOCTYPE html>
 <html lang="pt-BR">
