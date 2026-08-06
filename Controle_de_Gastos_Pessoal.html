@@ -594,7 +594,7 @@
 <body>
 <div id="print-area" class="print-only"></div>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-06.5</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-06.7</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2387,7 +2387,7 @@ function metaEconomiaCardHtml(goal, idx){
   }
   const corBarra = atingida ? 'var(--green)' : 'var(--purple)';
   return `
-  <div class="section-card" data-goal="${idx}" style="margin-bottom:12px;">
+  <div class="section-card" data-goal="${idx}">
     <div class="section-header">
       <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}">
       <div class="section-header-actions">
@@ -2421,7 +2421,7 @@ function renderMetasEconomiaHtml(){
       <button id="add-meta-economia-btn" class="add-block-btn" style="padding:6px 14px; font-size:12px;">+ nova meta</button>
     </div>
     ${metas.length
-      ? metas.map((g,idx)=>metaEconomiaCardHtml(g,idx)).join('')
+      ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; align-items:start;">${metas.map((g,idx)=>metaEconomiaCardHtml(g,idx)).join('')}</div>`
       : `<div class="empty-hint">Nenhuma meta cadastrada ainda — crie uma pra juntar dinheiro pra algo específico (viagem, reserva de emergência, etc).</div>`}
   </div>`;
 }
@@ -2563,9 +2563,10 @@ function relatorioMesHtml(monthKey){
     </div>`;
   }
 
-  const blocos = [tabelaItens(m.labels.secaoDia08, m.dia08)]
-    .concat((m.detalhamentos || []).map(d => tabelaItens(d.titulo, d.items)))
-    .join('');
+  const secoes = [{ titulo: m.labels.secaoDia08, items: m.dia08 }]
+    .concat(m.detalhamentos || [])
+    .sort((a,b) => (a.titulo||'').localeCompare(b.titulo||'', 'pt-BR', { sensitivity:'base' }));
+  const blocos = secoes.map(sec => tabelaItens(sec.titulo, sec.items)).join('');
 
   return `
   ${relatorioEstiloHtml()}
