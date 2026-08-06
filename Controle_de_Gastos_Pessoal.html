@@ -569,11 +569,27 @@
     padding:2px 4px; font-family:inherit; max-width:340px;
   }
   .month-title-input:focus{ outline:1px solid var(--blue); border-radius:4px; }
+
+  .goal-field{ font-size:11.5px; color:var(--muted); font-weight:700; text-transform:lowercase; }
+  .goal-field .cell-currency{ background:#F4F6F9; border:1px solid var(--border); border-radius:8px; padding:5px 8px; }
+  .goal-field .cell-currency input{ font-size:13px; font-weight:700; text-align:right; }
+  .goal-field input[type=date]{ border:1px solid var(--border); border-radius:8px; padding:5px 8px; font-size:12.5px; }
+
+  /* Exportação de relatório em PDF: usa o diálogo de impressão do navegador
+     ("Salvar como PDF"). Ao imprimir, tudo fica invisível exceto #print-area,
+     que é preenchido na hora com o conteúdo do relatório. */
+  .print-only{ display:none; }
+  @media print{
+    body *{ visibility:hidden; }
+    #print-area, #print-area *{ visibility:visible; }
+    #print-area{ position:absolute; left:0; top:0; width:100%; padding:16px; }
+  }
 </style>
 </head>
 <body>
+<div id="print-area" class="print-only"></div>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-04.11</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-06.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -969,6 +985,9 @@ function migrateData(data){
       m.detalhamentos = m.detalhamentos.filter(d=>d.titulo.trim().toLowerCase() !== 'revolut');
     }
   });
+
+  // migração: metas de economia (viagem, reserva, etc.) — lista nova, começa vazia
+  if(!Array.isArray(data.metasEconomia)) data.metasEconomia = [];
 
   // garante que os itens fiquem sempre em ordem alfabética, mesmo os que já existiam antes
   allMonthObjs.forEach(m=>{
@@ -1432,6 +1451,7 @@ function renderContent(){
     attachEmprestimosEvents();
   } else if(currentTab === "Resumo Anual"){
     content.innerHTML = renderResumoAnualView();
+    attachResumoAnualEvents();
   }
 }
 
@@ -1702,6 +1722,7 @@ function renderMonthView(monthKey){
       : `<input type="text" class="month-title-input" id="month-title-input" value="${escapeHtml(monthKey)}" title="Clique para renomear este mês">`
     }
     <div class="month-title-actions">
+      ${!isTemplate ? `<button id="export-pdf-btn" class="toggle-all-btn" title="Gera um relatório deste mês pra salvar como PDF ou imprimir">🖨️ Exportar relatório</button>` : ''}
       ${!isTemplate ? `<button id="delete-month-btn" title="Excluir este mês">Excluir mês</button>` : ''}
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
     </div>
@@ -1775,6 +1796,8 @@ function attachMonthEvents(monthKey){
   if(!isTemplate){
     const delBtn = content.querySelector('#delete-month-btn');
     if(delBtn) delBtn.addEventListener('click', ()=>deleteMonth(monthKey));
+    const exportBtn = content.querySelector('#export-pdf-btn');
+    if(exportBtn) exportBtn.addEventListener('click', ()=>exportarRelatorioMes(monthKey));
   }
 
   const filtroSelect = content.querySelector('#filtro-categoria');
@@ -2274,7 +2297,7 @@ function projecaoSaldoFuturoHtml(){
   const pontos = ordenados.map(o=>{
     const t = monthTotals(DATA.months[o.key]);
     acumulado = round2(acumulado + t.saldo);
-    return { label: o.key.split('/')[0].slice(0,3), acumulado, saldoMes: t.saldo, idx:o.idx, ano:o.ano };
+    return { label: o.key.split('/')[0].slice(0,3)+'/'+String(o.ano).slice(-2), acumulado, saldoMes: t.saldo, idx:o.idx, ano:o.ano };
   });
 
   const ultimos = pontos.slice(-3);
@@ -2283,29 +2306,281 @@ function projecaoSaldoFuturoHtml(){
   let idx = pontos[pontos.length-1].idx, ano = pontos[pontos.length-1].ano;
   let acumProj = pontos[pontos.length-1].acumulado;
   const projPontos = [];
-  for(let i=0;i<2;i++){
+  const MESES_PROJETADOS = 6; // fluxo de caixa: olha 6 meses à frente, não só 2
+  for(let i=0;i<MESES_PROJETADOS;i++){
     idx++; if(idx>11){ idx=0; ano++; }
     acumProj = round2(acumProj + mediaSaldo);
-    projPontos.push({ label: NOMES_MESES[idx].slice(0,3), acumulado: acumProj, projetado:true });
+    projPontos.push({ label: NOMES_MESES[idx].slice(0,3)+'/'+String(ano).slice(-2), acumulado: acumProj, projetado:true });
   }
 
   const reaisVisiveis = pontos.map(p=>({...p, projetado:false}));
   const todosPontos = [...reaisVisiveis, ...projPontos];
   const grafico = renderLinhaSaldoFuturo(todosPontos);
 
+  // Alerta: primeiro mês (real já lançado ou projetado) em que o saldo ACUMULADO fica negativo —
+  // isso é o "fluxo de caixa" de verdade: mostra quando o dinheiro acaba, não só o saldo isolado do mês.
+  const primeiroNegativo = todosPontos.find(p=>p.acumulado < 0);
+  const alertaHtml = primeiroNegativo
+    ? `<div class="receb-warning" style="margin-bottom:14px;">
+        ⚠️ no ritmo atual (média dos últimos ${ultimos.length} meses), seu saldo acumulado
+        ${primeiroNegativo.projetado ? 'fica' : 'ficou'} negativo em
+        <b>${escapeHtml(primeiroNegativo.label)}</b> (R$ ${fmt(primeiroNegativo.acumulado)}).
+      </div>`
+    : `<div class="saldo-banner pos" style="margin-bottom:14px; padding:10px 16px; font-size:12.5px;">
+        ✓ no ritmo atual, seu saldo acumulado se mantém positivo nos próximos ${MESES_PROJETADOS} meses projetados.
+      </div>`;
+
   return `
+  ${alertaHtml}
   <div class="section-card" style="margin-bottom:20px;">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;">
-      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">projeção de saldo futuro</span>
-      <span style="font-size:10.5px; color:var(--muted);">baseado na média dos últimos ${ultimos.length} meses</span>
+      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">projeção de fluxo de caixa</span>
+      <span style="font-size:10.5px; color:var(--muted);">baseado na média dos últimos ${ultimos.length} meses · ${MESES_PROJETADOS} meses à frente</span>
     </div>
     ${grafico}
     <div style="display:flex; align-items:center; gap:14px; margin-top:6px; font-size:11px; color:var(--muted);">
       <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px;height:10px;border-radius:99px;background:var(--teal);display:inline-block;"></span>saldo realizado (acumulado)</span>
       <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px;height:10px;border-radius:99px;background:var(--amber);display:inline-block;"></span>projeção</span>
     </div>
-    <div style="margin-top:10px; font-size:11px; color:var(--muted); font-style:italic;">acumulado começando em ${escapeHtml(ordenados[0].key)} · estimativa com base no saldo médio mensal de R$ ${fmt(mediaSaldo)} nos últimos ${ultimos.length} meses lançados.</div>
+    <div style="margin-top:10px; font-size:11px; color:var(--muted); font-style:italic;">acumulado começando em ${escapeHtml(ordenados[0].key)} · estimativa com base no saldo médio mensal de R$ ${fmt(mediaSaldo)} nos últimos ${ultimos.length} meses lançados. Não considera parcelas de empréstimo/obrigações ainda não lançadas como item de algum mês.</div>
   </div>`;
+}
+
+// ============================= METAS DE ECONOMIA =============================
+function formatarDataBR(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('pt-BR');
+}
+function diasRestantes(dataAlvo){
+  if(!dataAlvo) return null;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const alvo = new Date(dataAlvo+'T00:00:00');
+  if(isNaN(alvo.getTime())) return null;
+  return Math.round((alvo - hoje) / (1000*60*60*24));
+}
+
+function metaEconomiaCardHtml(goal, idx){
+  const alvo = round2(Number(goal.valorAlvo)||0);
+  const atual = round2(Number(goal.valorAtual)||0);
+  const falta = round2(Math.max(0, alvo - atual));
+  const pct = alvo > 0 ? Math.min(100, round2((atual/alvo)*100)) : 0;
+  const atingida = alvo > 0 && atual >= alvo;
+  const dias = diasRestantes(goal.dataAlvo);
+  let sugestaoHtml = '';
+  if(!atingida && goal.dataAlvo){
+    if(dias === null){
+      // data inválida — não mostra sugestão
+    } else if(dias > 0){
+      const meses = Math.max(1, dias/30.44);
+      const porMes = round2(falta/meses);
+      sugestaoHtml = `<div style="font-size:11.5px;color:var(--muted);margin-top:8px;">pra chegar lá até ${formatarDataBR(goal.dataAlvo)} (${dias} dias), guarde cerca de <b>R$ ${fmt(porMes)}/mês</b></div>`;
+    } else {
+      sugestaoHtml = `<div style="font-size:11.5px;color:var(--red);margin-top:8px;font-weight:700;">prazo (${formatarDataBR(goal.dataAlvo)}) já passou</div>`;
+    }
+  }
+  const corBarra = atingida ? 'var(--green)' : 'var(--purple)';
+  return `
+  <div class="section-card" data-goal="${idx}" style="margin-bottom:12px;">
+    <div class="section-header">
+      <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}">
+      <div class="section-header-actions">
+        <span class="pill" style="background:${corBarra}">${atingida ? 'concluída 🎉' : pct.toFixed(0)+'%'}</span>
+        <button class="block-remove goal-remove" title="Excluir esta meta">×</button>
+      </div>
+    </div>
+    <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px;">
+      <label class="goal-field">valor alvo
+        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-alvo" value="${alvo.toFixed(2)}" style="width:110px;"></div>
+      </label>
+      <label class="goal-field">já guardado
+        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-atual" value="${atual.toFixed(2)}" style="width:110px;"></div>
+      </label>
+      <label class="goal-field">data alvo (opcional)
+        <div style="margin-top:4px;"><input type="date" class="goal-data" value="${goal.dataAlvo || ''}"></div>
+      </label>
+    </div>
+    <div class="meta-bar-track"><div class="meta-bar-fill" style="width:${pct}%; background:${corBarra};"></div></div>
+    <div class="meta-bar-text" style="color:${corBarra};">R$ ${fmt(atual)} de R$ ${fmt(alvo)}${!atingida ? ` · faltam R$ ${fmt(falta)}` : ''}</div>
+    ${sugestaoHtml}
+  </div>`;
+}
+
+function renderMetasEconomiaHtml(){
+  const metas = DATA.metasEconomia || [];
+  return `
+  <div class="section-card" style="margin-bottom:20px;">
+    <div class="section-header">
+      <h3>metas de economia</h3>
+      <button id="add-meta-economia-btn" class="add-block-btn" style="padding:6px 14px; font-size:12px;">+ nova meta</button>
+    </div>
+    ${metas.length
+      ? metas.map((g,idx)=>metaEconomiaCardHtml(g,idx)).join('')
+      : `<div class="empty-hint">Nenhuma meta cadastrada ainda — crie uma pra juntar dinheiro pra algo específico (viagem, reserva de emergência, etc).</div>`}
+  </div>`;
+}
+
+function attachMetasEconomiaEvents(){
+  const content = document.getElementById('content');
+  const addBtn = content.querySelector('#add-meta-economia-btn');
+  if(addBtn){
+    addBtn.addEventListener('click', ()=>{
+      const nome = window.prompt('Nome da meta (ex: "Viagem pra praia"):');
+      const nomeLimpo = (nome || '').trim();
+      if(!nomeLimpo) return;
+      const valorStr = window.prompt('Valor alvo (R$):');
+      if(valorStr === null) return;
+      const valorNum = parseValorBR(valorStr);
+      if(isNaN(valorNum) || valorNum <= 0){
+        alert('Valor inválido — a meta não foi criada.');
+        return;
+      }
+      if(!Array.isArray(DATA.metasEconomia)) DATA.metasEconomia = [];
+      DATA.metasEconomia.push({ titulo: nomeLimpo, valorAlvo: round2(valorNum), valorAtual: 0, dataAlvo: null });
+      save(); renderContent();
+    });
+  }
+  content.querySelectorAll('[data-goal]').forEach(card=>{
+    const idx = parseInt(card.dataset.goal, 10);
+    const goal = DATA.metasEconomia[idx];
+    if(!goal) return;
+    card.querySelector('.goal-titulo').addEventListener('change', e=>{
+      const novoTitulo = e.target.value.trim();
+      goal.titulo = novoTitulo || goal.titulo;
+      save(); renderContent();
+    });
+    card.querySelector('.goal-alvo').addEventListener('change', e=>{
+      const v = parseValorBR(e.target.value);
+      if(isNaN(v) || v < 0){
+        alert('Valor inválido — mantendo o valor anterior.');
+        e.target.value = round2(goal.valorAlvo).toFixed(2);
+        return;
+      }
+      goal.valorAlvo = round2(v); save(); renderContent();
+    });
+    card.querySelector('.goal-atual').addEventListener('change', e=>{
+      const v = parseValorBR(e.target.value);
+      if(isNaN(v) || v < 0){
+        alert('Valor inválido — mantendo o valor anterior.');
+        e.target.value = round2(goal.valorAtual).toFixed(2);
+        return;
+      }
+      goal.valorAtual = round2(v); save(); renderContent();
+    });
+    card.querySelector('.goal-data').addEventListener('change', e=>{
+      goal.dataAlvo = e.target.value || null;
+      save(); renderContent();
+    });
+    card.querySelector('.goal-remove').addEventListener('click', ()=>{
+      if(!confirmarExclusaoComNome('a meta', goal.titulo)) return;
+      DATA.metasEconomia.splice(idx, 1);
+      save(); renderContent();
+    });
+  });
+}
+
+// ============================= RELATÓRIO (EXPORTAR PDF) =============================
+function relatorioMesHtml(monthKey){
+  const m = DATA.months[monthKey];
+  const t = monthTotals(m);
+  const dataGeracao = new Date().toLocaleString('pt-BR');
+
+  function tabelaItens(titulo, items){
+    if(!items || !items.length) return '';
+    const linhas = items.map(it=>`
+      <tr>
+        <td style="padding:4px 6px;">${escapeHtml(it.desc)}</td>
+        <td style="padding:4px 6px;">${escapeHtml(categoriaEfetiva(it) || '—')}</td>
+        <td style="padding:4px 6px; text-align:right;">R$ ${fmt(it.valor)}</td>
+        <td style="padding:4px 6px; text-align:center;">${it.pago ? 'Pago' : 'Pendente'}</td>
+      </tr>`).join('');
+    const subtotal = round2(items.reduce((s,x)=>s+Number(x.valor||0),0));
+    return `
+    <h3 style="margin:16px 0 6px 0; font-size:13.5px;">${escapeHtml(titulo)}</h3>
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+      <thead><tr style="border-bottom:2px solid #ccc; text-align:left;">
+        <th style="padding:4px 6px;">descrição</th><th style="padding:4px 6px;">categoria</th>
+        <th style="padding:4px 6px; text-align:right;">valor</th><th style="padding:4px 6px; text-align:center;">status</th>
+      </tr></thead>
+      <tbody>${linhas}</tbody>
+      <tfoot><tr style="border-top:2px solid #ccc; font-weight:700;">
+        <td style="padding:4px 6px;" colspan="2">subtotal</td>
+        <td style="padding:4px 6px; text-align:right;">R$ ${fmt(subtotal)}</td><td></td>
+      </tr></tfoot>
+    </table>`;
+  }
+
+  const blocos = [tabelaItens(m.labels.secaoDia08, m.dia08)]
+    .concat((m.detalhamentos || []).map(d => tabelaItens(d.titulo, d.items)))
+    .join('');
+
+  return `
+  <div style="font-family: Arial, Helvetica, sans-serif; color:#222;">
+    <h1 style="font-size:19px; margin:0 0 2px 0;">Controle de Gastos Pessoal</h1>
+    <div style="font-size:12.5px; color:#666; margin-bottom:16px;">relatório de ${escapeHtml(monthKey)} · gerado em ${dataGeracao}</div>
+    <table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom:6px;">
+      <tr><td style="padding:3px 0;">renda total</td><td style="padding:3px 0; text-align:right; font-weight:700;">R$ ${fmt(t.rendaTotal)}</td></tr>
+      <tr><td style="padding:3px 0;">despesas totais</td><td style="padding:3px 0; text-align:right; font-weight:700;">R$ ${fmt(t.despesasTotal)}</td></tr>
+      <tr><td style="padding:3px 0;">pago</td><td style="padding:3px 0; text-align:right;">R$ ${fmt(t.pago)}</td></tr>
+      <tr><td style="padding:3px 0;">pendente</td><td style="padding:3px 0; text-align:right;">R$ ${fmt(t.pendente)}</td></tr>
+      <tr><td style="padding:3px 0; font-weight:700;">saldo do mês</td><td style="padding:3px 0; text-align:right; font-weight:700; color:${t.saldo>=0?'#157a3f':'#b23337'};">R$ ${fmt(t.saldo)}</td></tr>
+    </table>
+    ${blocos}
+  </div>`;
+}
+
+function exportarRelatorioMes(monthKey){
+  const area = document.getElementById('print-area');
+  area.innerHTML = relatorioMesHtml(monthKey);
+  window.print();
+}
+
+function relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalSaldo){
+  const dataGeracao = new Date().toLocaleString('pt-BR');
+  const linhas = meses.map(x=>`
+    <tr>
+      <td style="padding:4px 6px;">${escapeHtml(x.mes)}</td>
+      <td style="padding:4px 6px; text-align:right;">R$ ${fmt(x.t.rendaTotal)}</td>
+      <td style="padding:4px 6px; text-align:right;">R$ ${fmt(x.t.despesasTotal)}</td>
+      <td style="padding:4px 6px; text-align:right; color:${x.t.saldo>=0?'#157a3f':'#b23337'};">R$ ${fmt(x.t.saldo)}</td>
+    </tr>`).join('');
+  return `
+  <div style="font-family: Arial, Helvetica, sans-serif; color:#222;">
+    <h1 style="font-size:19px; margin:0 0 2px 0;">Controle de Gastos Pessoal</h1>
+    <div style="font-size:12.5px; color:#666; margin-bottom:16px;">resumo anual · ${escapeHtml(ano)} · gerado em ${dataGeracao}</div>
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <thead><tr style="border-bottom:2px solid #ccc; text-align:left;">
+        <th style="padding:4px 6px;">mês</th><th style="padding:4px 6px; text-align:right;">renda</th>
+        <th style="padding:4px 6px; text-align:right;">despesas</th><th style="padding:4px 6px; text-align:right;">saldo</th>
+      </tr></thead>
+      <tbody>${linhas}</tbody>
+      <tfoot><tr style="border-top:2px solid #ccc; font-weight:700;">
+        <td style="padding:4px 6px;">total</td>
+        <td style="padding:4px 6px; text-align:right;">R$ ${fmt(totalRenda)}</td>
+        <td style="padding:4px 6px; text-align:right;">R$ ${fmt(totalDespesas)}</td>
+        <td style="padding:4px 6px; text-align:right; color:${totalSaldo>=0?'#157a3f':'#b23337'};">R$ ${fmt(totalSaldo)}</td>
+      </tr></tfoot>
+    </table>
+  </div>`;
+}
+
+function exportarRelatorioAnual(ano){
+  const meses = DATA.monthOrder
+    .map(key=>{
+      const m = DATA.months[key];
+      if(!m) return null;
+      const partes = key.split('/');
+      if(partes[1] !== ano) return null;
+      return { key, mes: partes[0], t: monthTotals(m) };
+    })
+    .filter(Boolean);
+  const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
+  const totalDespesas = round2(meses.reduce((s,x)=>s+x.t.despesasTotal,0));
+  const totalSaldo = round2(totalRenda - totalDespesas);
+  const area = document.getElementById('print-area');
+  area.innerHTML = relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalSaldo);
+  window.print();
 }
 
 function renderResumoAnualView(){
@@ -2322,9 +2597,9 @@ function renderResumoAnualView(){
   });
 
   const anos = Object.keys(grupos).sort();
-  if(anos.length === 0) return `<div class="empty-hint">Nenhum mês cadastrado ainda.</div>`;
+  if(anos.length === 0) return renderMetasEconomiaHtml() + `<div class="empty-hint">Nenhum mês cadastrado ainda.</div>`;
 
-  let html = projecaoSaldoFuturoHtml();
+  let html = renderMetasEconomiaHtml() + projecaoSaldoFuturoHtml();
   anos.forEach(ano=>{
     const meses = grupos[ano];
     const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
@@ -2343,7 +2618,10 @@ function renderResumoAnualView(){
 
     html += `
     <div class="section-card annual-card">
-      <div class="section-header"><h3>ano ${ano}</h3></div>
+      <div class="section-header">
+        <h3>ano ${escapeHtml(ano)}</h3>
+        <button class="toggle-all-btn export-anual-btn" data-export-ano="${escapeHtml(ano)}" style="padding:6px 12px; font-size:12px;">🖨️ exportar relatório</button>
+      </div>
       <div class="annual-chart-wrap">${chart}</div>
       <table class="annual-table">
         <thead><tr><th>mês</th><th class="num">renda</th><th class="num">despesas</th><th class="num">saldo</th></tr></thead>
@@ -2358,6 +2636,14 @@ function renderResumoAnualView(){
     </div>`;
   });
   return html;
+}
+
+function attachResumoAnualEvents(){
+  attachMetasEconomiaEvents();
+  const content = document.getElementById('content');
+  content.querySelectorAll('.export-anual-btn[data-export-ano]').forEach(btn=>{
+    btn.addEventListener('click', ()=>exportarRelatorioAnual(btn.dataset.exportAno));
+  });
 }
 
 function attachEmprestimosEvents(){
