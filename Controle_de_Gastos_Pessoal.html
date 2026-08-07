@@ -143,6 +143,10 @@
     color: var(--teal); font-weight:800; margin-left:4px;
   }
   nav.tabs button#add-month-tab:hover{ color:#8FBF52; }
+  nav.tabs button#delete-month-tab{
+    color: #D9764A; font-weight:600; margin-left:2px;
+  }
+  nav.tabs button#delete-month-tab:hover{ color:#EE9468; text-decoration:underline; }
   nav.tabs button.tab-modelo{ font-style:italic; }
   nav.tabs button.tab-modelo::before{ content:"⚙ "; font-style:normal; }
   nav.tabs button.tab-completo{ opacity:0.4; }
@@ -163,6 +167,7 @@
     nav.tabs button{ padding:7px 10px; font-size:11.5px; border-radius:6px; background:rgba(255,255,255,0.06); border-bottom:none !important; }
     nav.tabs button.active{ background:rgba(255,255,255,0.18); }
     nav.tabs button#add-month-tab{ padding:7px 10px; }
+    nav.tabs button#delete-month-tab{ padding:7px 10px; }
     #version-badge{ top:auto !important; bottom:6px !important; right:6px !important; }
     .receb-card{ padding:14px 16px; gap:10px; }
     .receb-card .rlabel-input{ font-size:12.5px; width:150px; }
@@ -599,7 +604,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.8</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -631,29 +636,6 @@
 <main id="content"></main>
 
 <div class="footer-note">Controle de Gastos Pessoal · dados sincronizados com seu servidor privado</div>
-
-<div id="add-month-modal" class="modal-overlay">
-  <div class="modal-card">
-    <h3>Novo mês</h3>
-    <label class="modal-field">
-      <span>Mês</span>
-      <select id="add-month-select">
-        <option>Janeiro</option><option>Fevereiro</option><option>Março</option><option>Abril</option>
-        <option>Maio</option><option>Junho</option><option>Julho</option><option>Agosto</option>
-        <option>Setembro</option><option>Outubro</option><option>Novembro</option><option>Dezembro</option>
-      </select>
-    </label>
-    <label class="modal-field">
-      <span>Ano</span>
-      <input type="number" id="add-month-year" step="1">
-    </label>
-    <div class="modal-error" id="add-month-error"></div>
-    <div class="modal-actions">
-      <button id="add-month-cancel" class="modal-btn-secondary">Cancelar</button>
-      <button id="add-month-confirm" class="modal-btn-primary">Criar mês</button>
-    </div>
-  </div>
-</div>
 
 <div id="history-modal" class="modal-overlay">
   <div class="modal-card" style="width:380px;">
@@ -1116,40 +1098,17 @@ function cloneMonthFromModelo(){
 
 const NOMES_MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
+// Cria direto o próximo mês (seguinte ao último já lançado), clonando do
+// Modelo — sem modal pra escolher mês/ano, igual ao esquema da aba Cartões.
 function addMonth(){
-  const modal = document.getElementById('add-month-modal');
-  const yearInput = document.getElementById('add-month-year');
-  yearInput.value = new Date().getFullYear();
-  document.getElementById('add-month-error').style.display = 'none';
-  modal.style.display = 'flex';
-  document.getElementById('add-month-select').focus();
-}
-
-function closeAddMonthModal(){
-  document.getElementById('add-month-modal').style.display = 'none';
-}
-
-function confirmAddMonth(){
-  const mesNome = document.getElementById('add-month-select').value;
-  const ano = parseInt(document.getElementById('add-month-year').value, 10);
-  const errorEl = document.getElementById('add-month-error');
-  if(!ano || ano < 2000 || ano > 2100){
-    errorEl.textContent = 'Digite um ano válido.';
-    errorEl.style.display = 'block';
-    return;
-  }
-  const nomeCompleto = `${mesNome}/${ano}`;
+  const ultimo = DATA.monthOrder[DATA.monthOrder.length-1];
+  const nomeCompleto = nomeMesSeguinte(ultimo);
   const jaExiste = Object.keys(DATA.months).some(k => k.trim().toLowerCase() === nomeCompleto.toLowerCase());
-  if(jaExiste){
-    errorEl.textContent = 'Já existe um mês com esse nome.';
-    errorEl.style.display = 'block';
-    return;
-  }
+  if(jaExiste){ alert(`Já existe um mês chamado "${nomeCompleto}".`); return; }
   DATA.months[nomeCompleto] = cloneMonthFromModelo();
   DATA.monthOrder.push(nomeCompleto);
   save();
   currentTab = nomeCompleto;
-  closeAddMonthModal();
   renderTabs();
   renderContent();
 }
@@ -1474,13 +1433,18 @@ function mesTotalmentePago(m){
 function renderTabs(){
   const tabs = document.getElementById('tabs');
   const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações", "Cartões"];
+  const podeExcluirAtual = DATA.monthOrder.includes(currentTab);
   tabs.innerHTML = allTabs.map(t =>
     `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${t}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${t}</button>`
-  ).join('') + `<button id="add-month-tab" title="Criar novo mês a partir do Modelo">+ Novo Mês</button>`;
+  ).join('')
+    + `<button id="add-month-tab" title="Criar o próximo mês a partir do Modelo">+ Novo Mês</button>`
+    + (podeExcluirAtual ? `<button id="delete-month-tab" title="Excluir o mês selecionado (${escapeHtml(currentTab)})">excluir mês</button>` : '');
   tabs.querySelectorAll('button[data-tab]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ currentTab = btn.dataset.tab; renderTabs(); renderContent(); });
   });
   tabs.querySelector('#add-month-tab').addEventListener('click', addMonth);
+  const delBtn = tabs.querySelector('#delete-month-tab');
+  if(delBtn) delBtn.addEventListener('click', ()=>deleteMonth(currentTab));
   initTabDragReorder(tabs);
 }
 
@@ -2310,16 +2274,33 @@ function renderEmprestimosView(){
 // ============================= CARTÕES DE CRÉDITO =============================
 // Quantos dias faltam pro próximo fechamento (dia fixo todo mês). Se o dia já
 // passou neste mês, calcula pro mês seguinte.
+// Último dia válido de um mês (ex: fevereiro tem 28 ou 29, não 31) — usado
+// pra "grudar" o fechamento/vencimento no fim do mês em vez de vazar pro mês
+// seguinte quando o dia configurado (ex: 31) não existe naquele mês.
+function ultimoDiaDoMes(ano, mesIdx){
+  return new Date(ano, mesIdx+1, 0).getDate();
+}
+function diaClampado(ano, mesIdx, dia){
+  return Math.min(dia, ultimoDiaDoMes(ano, mesIdx));
+}
 function diasAteFechamento(diaFechamento){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  let alvo = new Date(hoje.getFullYear(), hoje.getMonth(), diaFechamento);
-  if(alvo < hoje) alvo = new Date(hoje.getFullYear(), hoje.getMonth()+1, diaFechamento);
+  let ano = hoje.getFullYear(), mesIdx = hoje.getMonth();
+  let alvo = new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaFechamento));
+  if(alvo < hoje){
+    mesIdx++; if(mesIdx>11){ mesIdx=0; ano++; }
+    alvo = new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaFechamento));
+  }
   return Math.round((alvo - hoje) / (1000*60*60*24));
 }
 function proximoVencimentoCartao(diaVencimento){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  let alvo = new Date(hoje.getFullYear(), hoje.getMonth(), diaVencimento);
-  if(alvo < hoje) alvo = new Date(hoje.getFullYear(), hoje.getMonth()+1, diaVencimento);
+  let ano = hoje.getFullYear(), mesIdx = hoje.getMonth();
+  let alvo = new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaVencimento));
+  if(alvo < hoje){
+    mesIdx++; if(mesIdx>11){ mesIdx=0; ano++; }
+    alvo = new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaVencimento));
+  }
   return alvo;
 }
 // Nome do mês seguinte a uma chave "Mês/Ano" existente — usado pro botão
@@ -2359,7 +2340,7 @@ function addMesCartao(){
 // Exclui um mês de TODOS os cartões ao mesmo tempo (sempre mantém pelo menos um).
 function deleteMesCartao(mesKey){
   if(DATA.cartaoMeses.length <= 1){ alert('Precisa manter pelo menos um mês cadastrado.'); return; }
-  if(!confirm(`Excluir o mês "${mesKey}" de todos os cartões? Isso remove a fatura desse mês em cada um deles.`)) return;
+  if(!confirmarExclusaoComNome('o mês', mesKey)) return;
   Object.values(DATA.cartoes).forEach(cartao=>{ delete cartao.faturas[mesKey]; });
   DATA.cartaoMeses = DATA.cartaoMeses.filter(m=>m!==mesKey);
   if(currentCartaoMes === mesKey) currentCartaoMes = DATA.cartaoMeses[DATA.cartaoMeses.length-1];
@@ -2449,15 +2430,9 @@ function moveCartao(key, direction){
   DATA.cartoes = novoCartoes;
   save(); renderContent();
 }
-// Cria um novo bloco de cartão — pede pra digitar "CARTÃO" antes, como trava
-// contra clique acidental (é uma ação que fica guardada pra sempre no arquivo).
+// Cria um novo bloco de cartão, retroativo em todos os meses já existentes na
+// barra (fatura zerada em cada um). Sem confirmação extra — a trava fica na exclusão.
 function criarNovoCartao(){
-  const digitado = window.prompt('Pra criar um novo bloco de cartão, digite CARTÃO pra confirmar:');
-  if(digitado === null) return;
-  if(digitado.trim().toUpperCase() !== 'CARTÃO'){
-    alert('Não confere — nenhum cartão foi criado.');
-    return;
-  }
   currentCartaoMesKey();
   const key = 'cartao' + Date.now();
   const faturas = {};
@@ -2518,7 +2493,13 @@ function attachCartoesEvents(){
   content.querySelectorAll('[data-cartao-remove]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const key = btn.dataset.cartaoRemove;
-      if(!confirm(`Excluir o cartão "${DATA.cartoes[key].titulo}"? Isso apaga o histórico de faturas dele em todos os meses.`)) return;
+      const titulo = DATA.cartoes[key].titulo;
+      const digitado = window.prompt(`Isso vai excluir o cartão "${titulo}" e o histórico de faturas dele em TODOS os meses — não pode ser desfeito.\n\nPra confirmar, digite CARTÃO:`);
+      if(digitado === null) return;
+      if(digitado.trim().toUpperCase() !== 'CARTÃO'){
+        alert('Não confere — o cartão não foi excluído.');
+        return;
+      }
       delete DATA.cartoes[key];
       save(); renderContent();
     });
@@ -2600,6 +2581,7 @@ function graficoCategoriaHtml(m){
 }
 
 function parseMonthKey(key){
+  if(!key) return null;
   const partes = key.split('/');
   const idx = NOMES_MESES.indexOf(partes[0]);
   const ano = parseInt(partes[1],10);
@@ -3324,15 +3306,6 @@ function initLock(){
 }
 
 // ============================= INIT =============================
-function initAddMonthModal(){
-  document.getElementById('add-month-cancel').addEventListener('click', closeAddMonthModal);
-  document.getElementById('add-month-confirm').addEventListener('click', confirmAddMonth);
-  document.getElementById('add-month-year').addEventListener('keydown', e=>{ if(e.key === 'Enter') confirmAddMonth(); });
-  document.getElementById('add-month-modal').addEventListener('click', e=>{
-    if(e.target.id === 'add-month-modal') closeAddMonthModal();
-  });
-}
-
 function formatarDataHistorico(iso){
   const d = new Date(iso.replace(' ', 'T') + 'Z');
   if(isNaN(d.getTime())) return iso;
@@ -3404,7 +3377,6 @@ function initHistory(){
 }
 
 initLock();
-initAddMonthModal();
 initHistory();
 </script>
 
