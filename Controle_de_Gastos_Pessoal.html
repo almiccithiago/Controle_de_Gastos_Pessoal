@@ -604,7 +604,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.8</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.9</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1270,13 +1270,6 @@ function corCategoriaHex(nome){
   const idx = categoriasCustom().indexOf(nome);
   if(idx > -1) return PALETA_CUSTOM[idx % PALETA_CUSTOM.length].fg;
   return '#837F6E';
-}
-// Classifica cada categoria como "essencial" ou "supérfluo" pra regra 50/30/20
-// (indicador de saúde financeira). Categorias criadas por você entram como
-// supérfluo por padrão — dá pra ajustar essa lista se fizer sentido depois.
-const CATEGORIAS_ESSENCIAIS = ['Alimentação','Transporte','Saúde','Moradia','Educação'];
-function tipoSaudeCategoria(nome){
-  return CATEGORIAS_ESSENCIAIS.includes(nome) ? 'essencial' : 'superfluo';
 }
 function estiloInlineCategoria(nome){
   if(!nome || CATEGORIA_CLASSES[nome]) return '';
@@ -3057,42 +3050,6 @@ function exportarRelatorioAnual(ano){
   abrirRelatorioEmNovaAba('Resumo anual · ' + ano, relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalSaldo));
 }
 
-// Indicador de saúde financeira: pega o mês mais recente lançado e classifica
-// os gastos em essencial vs supérfluo, comparando com a regra 50/30/20
-// (até 50% essencial, até 30% supérfluo, ao menos 20% guardado/sobrando).
-function saudeFinanceiraHtml(){
-  if(!DATA.monthOrder || DATA.monthOrder.length === 0) return '';
-  const key = DATA.monthOrder[DATA.monthOrder.length-1];
-  const m = DATA.months[key];
-  if(!m) return '';
-  const t = monthTotals(m);
-  if(t.rendaTotal <= 0) return '';
-  let essencial = 0, superfluo = 0;
-  todosItensDoMes(m).forEach(item=>{
-    const valor = Number(item.valor||0);
-    if(tipoSaudeCategoria(categoriaEfetiva(item)) === 'essencial') essencial += valor;
-    else superfluo += valor;
-  });
-  essencial = round2(essencial); superfluo = round2(superfluo);
-  const pctEssencial = Math.round(essencial/t.rendaTotal*100);
-  const pctSuperfluo = Math.round(superfluo/t.rendaTotal*100);
-  const pctPoupanca = 100 - pctEssencial - pctSuperfluo;
-  const dentroDaMeta = pctEssencial <= 55 && pctPoupanca >= 15;
-  return `
-  <div class="section-card" style="margin-bottom:20px;">
-    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">saúde financeira · ${escapeHtml(key)}</span>
-      <span style="font-size:11px; padding:3px 10px; border-radius:99px; background:${dentroDaMeta?'#EAF3DE':'#FFF6E5'}; color:${dentroDaMeta?'#27500A':'#854F0B'};">${dentroDaMeta?'dentro da meta':'fora da meta'}</span>
-    </div>
-    <div class="summary-grid" style="margin-bottom:4px;">
-      <div class="summary-card accent-blue"><div class="label">Essenciais</div><div class="value">${pctEssencial}%</div></div>
-      <div class="summary-card accent-amber"><div class="label">Supérfluos</div><div class="value">${pctSuperfluo}%</div></div>
-      <div class="summary-card ${pctPoupanca>=0?'accent-green':'accent-red'}"><div class="label">Poupança</div><div class="value">${pctPoupanca}%</div></div>
-    </div>
-    <div style="font-size:11px; color:var(--muted); font-style:italic;">referência: regra 50/30/20 (até 50% em essenciais, até 30% em supérfluos, pelo menos 20% sobrando/guardado). Baseado no mês mais recente lançado — as categorias custom entram como supérfluo.</div>
-  </div>`;
-}
-
 function renderResumoAnualView(){
   const grupos = {};
   DATA.monthOrder.forEach(key=>{
@@ -3109,7 +3066,7 @@ function renderResumoAnualView(){
   const anos = Object.keys(grupos).sort();
   if(anos.length === 0) return renderMetasEconomiaHtml() + `<div class="empty-hint">Nenhum mês cadastrado ainda.</div>`;
 
-  let html = renderMetasEconomiaHtml() + saudeFinanceiraHtml() + projecaoSaldoFuturoHtml();
+  let html = renderMetasEconomiaHtml() + projecaoSaldoFuturoHtml();
   anos.forEach(ano=>{
     const meses = grupos[ano];
     const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
