@@ -584,7 +584,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-06.10</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -810,7 +810,8 @@ function defaultData(){
           l("Parcela 12 · Ago/27",null,null)
         ]
       }
-    }
+    },
+    cartoes: {}
   };
 
   function i(desc, valor){ return { desc, valor, pago:false }; }
@@ -983,6 +984,9 @@ function migrateData(data){
 
   // migração: metas de economia (viagem, reserva, etc.) — lista nova, começa vazia
   if(!Array.isArray(data.metasEconomia)) data.metasEconomia = [];
+
+  // migração: cartões de crédito (fatura, limite, fechamento/vencimento) — lista nova, começa vazia
+  if(!data.cartoes || typeof data.cartoes !== 'object') data.cartoes = {};
 
   // garante que os itens fiquem sempre em ordem alfabética, mesmo os que já existiam antes
   allMonthObjs.forEach(m=>{
@@ -1232,6 +1236,25 @@ function classeCategoria(nome){
   if(!nome) return 'cat-none';
   return CATEGORIA_CLASSES[nome] || 'cat-custom';
 }
+// Mesmas cores usadas nas tags de categoria (ver CSS .cat-*), só que em hex —
+// usado pra desenhar o gráfico de pizza em SVG (que não lê classes CSS).
+const CATEGORIA_HEX = {
+  'Alimentação':'#B5442E', 'Transporte':'#2E5FB5', 'Saúde':'#2E8B57', 'Moradia':'#B5762E',
+  'Lazer':'#8A45B5', 'Vestuário':'#B5308A', 'Educação':'#1F8A8A', 'Outros':'#6B6B6B', '':'#837F6E'
+};
+function corCategoriaHex(nome){
+  if(CATEGORIA_HEX[nome]) return CATEGORIA_HEX[nome];
+  const idx = categoriasCustom().indexOf(nome);
+  if(idx > -1) return PALETA_CUSTOM[idx % PALETA_CUSTOM.length].fg;
+  return '#837F6E';
+}
+// Classifica cada categoria como "essencial" ou "supérfluo" pra regra 50/30/20
+// (indicador de saúde financeira). Categorias criadas por você entram como
+// supérfluo por padrão — dá pra ajustar essa lista se fizer sentido depois.
+const CATEGORIAS_ESSENCIAIS = ['Alimentação','Transporte','Saúde','Moradia','Educação'];
+function tipoSaudeCategoria(nome){
+  return CATEGORIAS_ESSENCIAIS.includes(nome) ? 'essencial' : 'superfluo';
+}
 function estiloInlineCategoria(nome){
   if(!nome || CATEGORIA_CLASSES[nome]) return '';
   const idx = categoriasCustom().indexOf(nome);
@@ -1386,7 +1409,7 @@ function mesTotalmentePago(m){
 
 function renderTabs(){
   const tabs = document.getElementById('tabs');
-  const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações"];
+  const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações", "Cartões"];
   tabs.innerHTML = allTabs.map(t =>
     `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${t}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${t}</button>`
   ).join('') + `<button id="add-month-tab" title="Criar novo mês a partir do Modelo">+ Novo Mês</button>`;
@@ -1447,6 +1470,9 @@ function renderContent(){
   } else if(currentTab === "Resumo Anual"){
     content.innerHTML = renderResumoAnualView();
     attachResumoAnualEvents();
+  } else if(currentTab === "Cartões"){
+    content.innerHTML = renderCartoesView();
+    attachCartoesEvents();
   }
 }
 
@@ -1773,6 +1799,7 @@ function renderMonthView(monthKey){
   `;
 
   if(!isTemplate){
+    html += graficoCategoriaHtml(m);
     html += `
     <div class="saldo-banner ${bannerClass}">
       <span>${t.saldo>=0 ? 'Sobrou no mês' : 'Gastos maiores que a renda'}</span>
@@ -2216,6 +2243,111 @@ function renderEmprestimosView(){
   </div>`;
 }
 
+// ============================= CARTÕES DE CRÉDITO =============================
+// Quantos dias faltam pro próximo fechamento (dia fixo todo mês). Se o dia já
+// passou neste mês, calcula pro mês seguinte.
+function diasAteFechamento(diaFechamento){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let alvo = new Date(hoje.getFullYear(), hoje.getMonth(), diaFechamento);
+  if(alvo < hoje) alvo = new Date(hoje.getFullYear(), hoje.getMonth()+1, diaFechamento);
+  return Math.round((alvo - hoje) / (1000*60*60*24));
+}
+function proximoVencimentoCartao(diaVencimento){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let alvo = new Date(hoje.getFullYear(), hoje.getMonth(), diaVencimento);
+  if(alvo < hoje) alvo = new Date(hoje.getFullYear(), hoje.getMonth()+1, diaVencimento);
+  return alvo;
+}
+function cartaoCardHtml(key, cartao){
+  const limite = round2(Number(cartao.limite)||0);
+  const fatura = round2(Number(cartao.valorFaturaAtual)||0);
+  const pct = limite > 0 ? Math.min(100, Math.round(fatura/limite*100)) : 0;
+  const diaFechamento = Math.min(31, Math.max(1, Number(cartao.diaFechamento)||1));
+  const diaVencimento = Math.min(31, Math.max(1, Number(cartao.diaVencimento)||10));
+  const dias = diasAteFechamento(diaFechamento);
+  const venc = proximoVencimentoCartao(diaVencimento);
+  const corBarra = pct >= 90 ? 'var(--red)' : (pct >= 70 ? 'var(--amber)' : 'var(--blue)');
+  return `
+  <div class="loan-card" data-cartao="${key}">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <input type="text" class="cartao-title-input" value="${escapeHtml(cartao.titulo)}" style="flex:1; min-width:0;">
+      <button class="block-remove" data-cartao-remove="${key}" title="Excluir este cartão">×</button>
+    </div>
+    <div class="loan-sub">Fatura de cartão de crédito</div>
+    <label class="loan-inicial-row">
+      <span>Valor da fatura atual</span>
+      <span class="loan-inicial-valor-group">
+        <span class="rs-prefix-dark">R$</span>
+        <input type="text" inputmode="decimal" class="cartao-fatura" value="${fatura.toFixed(2)}">
+      </span>
+    </label>
+    <div style="height:8px; background:var(--bg); border-radius:4px; overflow:hidden; margin-bottom:8px;">
+      <div style="width:${pct}%; height:100%; background:${corBarra};"></div>
+    </div>
+    <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-bottom:14px;">
+      <span>${pct}% do limite usado</span>
+      <span>limite R$ ${fmt(limite)}</span>
+    </div>
+    <div class="loan-inicial-row" style="margin-bottom:10px;">
+      <span>Fecha em</span>
+      <span class="rs-prefix-dark">${dias<=0 ? 'hoje' : `${dias} dia${dias===1?'':'s'}`}</span>
+    </div>
+    <div class="loan-inicial-row" style="margin-bottom:14px;">
+      <span>Próximo vencimento</span>
+      <span class="rs-prefix-dark">${venc.toLocaleDateString('pt-BR')}</span>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <label style="flex:1; min-width:110px; font-size:11.5px; color:var(--muted);">Limite
+        <span class="cell-currency" style="display:flex; margin-top:4px;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="cartao-limite" value="${limite.toFixed(2)}"></span>
+      </label>
+      <label style="width:90px; font-size:11.5px; color:var(--muted);">Fecha dia
+        <input type="number" min="1" max="31" class="cartao-fechamento" value="${diaFechamento}" style="width:100%; margin-top:4px;">
+      </label>
+      <label style="width:90px; font-size:11.5px; color:var(--muted);">Vence dia
+        <input type="number" min="1" max="31" class="cartao-vencimento" value="${diaVencimento}" style="width:100%; margin-top:4px;">
+      </label>
+    </div>
+  </div>`;
+}
+function renderCartoesView(){
+  if(!DATA.cartoes) DATA.cartoes = {};
+  const chaves = Object.keys(DATA.cartoes);
+  return `
+  <div class="emprestimos-grid">
+    ${chaves.map(k => cartaoCardHtml(k, DATA.cartoes[k])).join('')}
+  </div>
+  ${chaves.length===0 ? `<div class="empty-hint">Nenhum cartão cadastrado ainda.</div>` : ''}
+  <div style="margin-top:16px;">
+    <button id="add-cartao-btn" class="loan-add-btn">+ Novo cartão</button>
+  </div>`;
+}
+function attachCartoesEvents(){
+  const content = document.getElementById('content');
+  content.querySelectorAll('.loan-card[data-cartao]').forEach(card=>{
+    const key = card.dataset.cartao;
+    const cartao = DATA.cartoes[key];
+    card.querySelector('.cartao-title-input').addEventListener('change', e=>{ cartao.titulo = e.target.value.trim() || 'Cartão'; save(); });
+    card.querySelector('.cartao-fatura').addEventListener('change', e=>{ cartao.valorFaturaAtual = round2(parseValorBR(e.target.value)); save(); renderContent(); });
+    card.querySelector('.cartao-limite').addEventListener('change', e=>{ cartao.limite = round2(parseValorBR(e.target.value)); save(); renderContent(); });
+    card.querySelector('.cartao-fechamento').addEventListener('change', e=>{ cartao.diaFechamento = Math.min(31, Math.max(1, parseInt(e.target.value,10)||1)); save(); renderContent(); });
+    card.querySelector('.cartao-vencimento').addEventListener('change', e=>{ cartao.diaVencimento = Math.min(31, Math.max(1, parseInt(e.target.value,10)||10)); save(); renderContent(); });
+  });
+  content.querySelectorAll('[data-cartao-remove]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.dataset.cartaoRemove;
+      if(!confirm(`Excluir o cartão "${DATA.cartoes[key].titulo}"?`)) return;
+      delete DATA.cartoes[key];
+      save(); renderContent();
+    });
+  });
+  const addBtn = content.querySelector('#add-cartao-btn');
+  if(addBtn) addBtn.addEventListener('click', ()=>{
+    const key = 'cartao' + Date.now();
+    DATA.cartoes[key] = { titulo:'Novo cartão', limite:0, diaFechamento:1, diaVencimento:10, valorFaturaAtual:0 };
+    save(); renderContent();
+  });
+}
+
 // ============================= RESUMO ANUAL =============================
 function renderBarChart(items, chartId){
   const w = 700, h = 220, padding = 30;
@@ -2238,6 +2370,54 @@ function renderBarChart(items, chartId){
     <line x1="${padding}" y1="${h-40}" x2="${w-padding}" y2="${h-40}" stroke="#E4E8EE" stroke-width="1"/>
     ${bars}
   </svg>`;
+}
+
+// Soma o valor de todos os itens do mês agrupado por categoria efetiva —
+// usado só pra montar o gráfico de pizza (não altera nenhum dado salvo).
+function gastosPorCategoriaLista(m){
+  const mapa = {};
+  todosItensDoMes(m).forEach(item=>{
+    const nome = categoriaEfetiva(item) || '';
+    mapa[nome] = (mapa[nome]||0) + Number(item.valor||0);
+  });
+  return Object.keys(mapa)
+    .map(nome=>({ nome, valor: round2(mapa[nome]), cor: corCategoriaHex(nome) }))
+    .filter(f=>f.valor > 0)
+    .sort((a,b)=>b.valor-a.valor);
+}
+// Desenha um donut chart em SVG puro (sem lib externa) a partir de fatias
+// {nome, valor, cor}. Cada fatia vira um arco via stroke-dasharray/offset.
+function renderPizzaCategorias(fatias){
+  const total = fatias.reduce((s,f)=>s+f.valor,0);
+  if(total <= 0) return '';
+  const r = 52, cx = 62, cy = 62, circ = 2*Math.PI*r;
+  let acumulado = 0;
+  const arcos = fatias.map(f=>{
+    const dash = (f.valor/total) * circ;
+    const offset = -acumulado;
+    acumulado += dash;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${f.cor}" stroke-width="22" stroke-dasharray="${dash.toFixed(2)} ${(circ-dash).toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"></circle>`;
+  }).join('');
+  return `<svg viewBox="0 0 124 124" width="124" height="124" style="transform:rotate(-90deg); flex-shrink:0;">${arcos}</svg>`;
+}
+function graficoCategoriaHtml(m){
+  const fatias = gastosPorCategoriaLista(m);
+  if(fatias.length === 0) return '';
+  const total = fatias.reduce((s,f)=>s+f.valor,0);
+  const legenda = fatias.map(f=>`
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+      <span style="width:10px;height:10px;border-radius:50%;background:${f.cor};flex-shrink:0;"></span>
+      <span style="font-size:12.5px; flex:1; min-width:0;">${escapeHtml(f.nome || 'Sem categoria')}</span>
+      <span style="font-size:12.5px; font-weight:700;">${Math.round(f.valor/total*100)}%</span>
+    </div>`).join('');
+  return `
+  <div class="section-card" style="margin-bottom:20px;">
+    <div style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px; margin-bottom:14px;">gasto por categoria</div>
+    <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+      ${renderPizzaCategorias(fatias)}
+      <div style="flex:1; min-width:160px;">${legenda}</div>
+    </div>
+  </div>`;
 }
 
 function parseMonthKey(key){
@@ -2716,6 +2896,42 @@ function exportarRelatorioAnual(ano){
   abrirRelatorioEmNovaAba('Resumo anual · ' + ano, relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalSaldo));
 }
 
+// Indicador de saúde financeira: pega o mês mais recente lançado e classifica
+// os gastos em essencial vs supérfluo, comparando com a regra 50/30/20
+// (até 50% essencial, até 30% supérfluo, ao menos 20% guardado/sobrando).
+function saudeFinanceiraHtml(){
+  if(!DATA.monthOrder || DATA.monthOrder.length === 0) return '';
+  const key = DATA.monthOrder[DATA.monthOrder.length-1];
+  const m = DATA.months[key];
+  if(!m) return '';
+  const t = monthTotals(m);
+  if(t.rendaTotal <= 0) return '';
+  let essencial = 0, superfluo = 0;
+  todosItensDoMes(m).forEach(item=>{
+    const valor = Number(item.valor||0);
+    if(tipoSaudeCategoria(categoriaEfetiva(item)) === 'essencial') essencial += valor;
+    else superfluo += valor;
+  });
+  essencial = round2(essencial); superfluo = round2(superfluo);
+  const pctEssencial = Math.round(essencial/t.rendaTotal*100);
+  const pctSuperfluo = Math.round(superfluo/t.rendaTotal*100);
+  const pctPoupanca = 100 - pctEssencial - pctSuperfluo;
+  const dentroDaMeta = pctEssencial <= 55 && pctPoupanca >= 15;
+  return `
+  <div class="section-card" style="margin-bottom:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">saúde financeira · ${escapeHtml(key)}</span>
+      <span style="font-size:11px; padding:3px 10px; border-radius:99px; background:${dentroDaMeta?'#EAF3DE':'#FFF6E5'}; color:${dentroDaMeta?'#27500A':'#854F0B'};">${dentroDaMeta?'dentro da meta':'fora da meta'}</span>
+    </div>
+    <div class="summary-grid" style="margin-bottom:4px;">
+      <div class="summary-card accent-blue"><div class="label">Essenciais</div><div class="value">${pctEssencial}%</div></div>
+      <div class="summary-card accent-amber"><div class="label">Supérfluos</div><div class="value">${pctSuperfluo}%</div></div>
+      <div class="summary-card ${pctPoupanca>=0?'accent-green':'accent-red'}"><div class="label">Poupança</div><div class="value">${pctPoupanca}%</div></div>
+    </div>
+    <div style="font-size:11px; color:var(--muted); font-style:italic;">referência: regra 50/30/20 (até 50% em essenciais, até 30% em supérfluos, pelo menos 20% sobrando/guardado). Baseado no mês mais recente lançado — as categorias custom entram como supérfluo.</div>
+  </div>`;
+}
+
 function renderResumoAnualView(){
   const grupos = {};
   DATA.monthOrder.forEach(key=>{
@@ -2732,7 +2948,7 @@ function renderResumoAnualView(){
   const anos = Object.keys(grupos).sort();
   if(anos.length === 0) return renderMetasEconomiaHtml() + `<div class="empty-hint">Nenhum mês cadastrado ainda.</div>`;
 
-  let html = renderMetasEconomiaHtml() + projecaoSaldoFuturoHtml();
+  let html = renderMetasEconomiaHtml() + saudeFinanceiraHtml() + projecaoSaldoFuturoHtml();
   anos.forEach(ano=>{
     const meses = grupos[ano];
     const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
