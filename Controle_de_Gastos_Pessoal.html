@@ -599,7 +599,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.3</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.4</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -826,7 +826,8 @@ function defaultData(){
         ]
       }
     },
-    cartoes: {}
+    cartoes: {},
+    cartaoMeses: []
   };
 
   function i(desc, valor){ return { desc, valor, pago:false }; }
@@ -839,7 +840,7 @@ let currentTab = null;
 let dataReady = false;
 let currentPassword = '';
 let categoriaFiltro = ''; // '' = mostra todas as categorias; filtro é só visual, não altera dados
-let currentCartaoFatura = {}; // qual mês/fatura está selecionado em cada cartão (chave do cartão -> nome da fatura)
+let currentCartaoMes = null; // mês selecionado na aba Cartões — compartilhado por todos os cartões
 const FILTRO_SEM_CATEGORIA = '__sem_categoria__'; // valor especial: filtra só os itens sem nenhuma categoria
 
 // Diz se um item deve aparecer com o filtro de categoria atual.
@@ -1020,6 +1021,35 @@ function migrateData(data){
       }};
       delete cartao.valorFaturaAtual; delete cartao.limite; delete cartao.diaFechamento; delete cartao.diaVencimento;
     }
+  });
+  // migração: os meses de cartão agora são compartilhados por todos os cartões
+  // (uma barra de mês só na aba, em vez de uma barra por cartão). Junta todos os
+  // meses que qualquer cartão já tinha numa lista única ordenada, e garante que
+  // todo cartão tenha fatura em todo mês dessa lista (mês que faltar entra
+  // zerado, copiando limite/fechamento/vencimento de alguma fatura já existente
+  // daquele mesmo cartão).
+  if(!Array.isArray(data.cartaoMeses)) data.cartaoMeses = [];
+  const conjuntoMeses = new Set(data.cartaoMeses);
+  Object.values(data.cartoes).forEach(cartao=>{
+    if(Array.isArray(cartao.faturaOrder)) cartao.faturaOrder.forEach(mk=>conjuntoMeses.add(mk));
+  });
+  data.cartaoMeses = Array.from(conjuntoMeses).sort((a,b)=>{
+    const pa = parseMonthKey(a), pb = parseMonthKey(b);
+    if(!pa || !pb) return 0;
+    return (pa.ano - pb.ano) || (pa.idx - pb.idx);
+  });
+  Object.values(data.cartoes).forEach(cartao=>{
+    if(!cartao.faturas) cartao.faturas = {};
+    delete cartao.faturaOrder;
+    const existente = Object.values(cartao.faturas)[0];
+    const base = existente
+      ? { limite: existente.limite, diaFechamento: existente.diaFechamento, diaVencimento: existente.diaVencimento }
+      : { limite: 0, diaFechamento: 1, diaVencimento: 10 };
+    data.cartaoMeses.forEach(mk=>{
+      if(!cartao.faturas[mk]){
+        cartao.faturas[mk] = { valor:0, paga:false, limite: base.limite, diaFechamento: base.diaFechamento, diaVencimento: base.diaVencimento };
+      }
+    });
   });
 
   // garante que os itens fiquem sempre em ordem alfabética, mesmo os que já existiam antes
@@ -2301,50 +2331,46 @@ function nomeMesSeguinte(chave){
   if(idx > 11){ idx = 0; ano++; }
   return `${NOMES_MESES[idx]}/${ano}`;
 }
-// Cria a próxima fatura do cartão copiando limite/fechamento/vencimento da
-// última fatura lançada, só zerando o valor e o status de paga.
-function addFaturaCartao(key){
-  const cartao = DATA.cartoes[key];
-  const ultima = cartao.faturaOrder[cartao.faturaOrder.length-1];
-  const base = ultima ? cartao.faturas[ultima] : { limite:0, diaFechamento:1, diaVencimento:10 };
-  const novaChave = ultima ? nomeMesSeguinte(ultima) : nomeMesSeguinte(null);
-  if(cartao.faturas[novaChave]){ alert('Esse mês já existe pra este cartão.'); return; }
-  cartao.faturas[novaChave] = {
-    valor: 0, paga: false,
-    limite: base.limite, diaFechamento: base.diaFechamento, diaVencimento: base.diaVencimento
-  };
-  cartao.faturaOrder.push(novaChave);
-  currentCartaoFatura[key] = novaChave;
+// Garante que existe um mês selecionado válido na barra compartilhada de
+// cartões (a mesma barra vale pra todos os cartões, não uma por cartão).
+function currentCartaoMesKey(){
+  if(!DATA.cartaoMeses) DATA.cartaoMeses = [];
+  if(DATA.cartaoMeses.length === 0) DATA.cartaoMeses = [nomeMesSeguinte(null)];
+  if(!currentCartaoMes || !DATA.cartaoMeses.includes(currentCartaoMes)){
+    currentCartaoMes = DATA.cartaoMeses[DATA.cartaoMeses.length-1];
+  }
+  return currentCartaoMes;
+}
+// Cria o mês seguinte pra TODOS os cartões de uma vez, copiando limite/
+// fechamento/vencimento de cada cartão no mês anterior e zerando valor/pago.
+function addMesCartao(){
+  currentCartaoMesKey();
+  const ultimoMes = DATA.cartaoMeses[DATA.cartaoMeses.length-1];
+  const novoMes = nomeMesSeguinte(ultimoMes);
+  if(DATA.cartaoMeses.includes(novoMes)){ alert('Esse mês já existe.'); return; }
+  Object.values(DATA.cartoes).forEach(cartao=>{
+    const base = cartao.faturas[ultimoMes] || { limite:0, diaFechamento:1, diaVencimento:10 };
+    cartao.faturas[novoMes] = { valor:0, paga:false, limite:base.limite, diaFechamento:base.diaFechamento, diaVencimento:base.diaVencimento };
+  });
+  DATA.cartaoMeses.push(novoMes);
+  currentCartaoMes = novoMes;
   save(); renderContent();
 }
-function deleteFaturaCartao(key, faturaKey){
-  const cartao = DATA.cartoes[key];
-  if(cartao.faturaOrder.length <= 1){ alert('Precisa manter pelo menos um mês cadastrado neste cartão.'); return; }
-  if(!confirm(`Excluir a fatura de ${faturaKey} deste cartão?`)) return;
-  delete cartao.faturas[faturaKey];
-  cartao.faturaOrder = cartao.faturaOrder.filter(k=>k!==faturaKey);
-  if(currentCartaoFatura[key] === faturaKey) currentCartaoFatura[key] = cartao.faturaOrder[cartao.faturaOrder.length-1];
+// Exclui um mês de TODOS os cartões ao mesmo tempo (sempre mantém pelo menos um).
+function deleteMesCartao(mesKey){
+  if(DATA.cartaoMeses.length <= 1){ alert('Precisa manter pelo menos um mês cadastrado.'); return; }
+  if(!confirm(`Excluir o mês "${mesKey}" de todos os cartões? Isso remove a fatura desse mês em cada um deles.`)) return;
+  Object.values(DATA.cartoes).forEach(cartao=>{ delete cartao.faturas[mesKey]; });
+  DATA.cartaoMeses = DATA.cartaoMeses.filter(m=>m!==mesKey);
+  if(currentCartaoMes === mesKey) currentCartaoMes = DATA.cartaoMeses[DATA.cartaoMeses.length-1];
   save(); renderContent();
 }
 function cartaoCardHtml(key, cartao){
-  if(!cartao.faturaOrder || cartao.faturaOrder.length === 0){
-    const nomeMes = nomeMesSeguinte(null);
-    cartao.faturaOrder = [nomeMes];
-    cartao.faturas = { [nomeMes]: { valor:0, paga:false, limite:0, diaFechamento:1, diaVencimento:10 } };
+  const mesAtual = currentCartaoMesKey();
+  if(!cartao.faturas[mesAtual]){
+    cartao.faturas[mesAtual] = { valor:0, paga:false, limite:0, diaFechamento:1, diaVencimento:10 };
   }
-  if(!currentCartaoFatura[key] || !cartao.faturas[currentCartaoFatura[key]]){
-    currentCartaoFatura[key] = cartao.faturaOrder[cartao.faturaOrder.length-1];
-  }
-  const faturaAtualKey = currentCartaoFatura[key];
-  const fat = cartao.faturas[faturaAtualKey];
-
-  const abasHtml = cartao.faturaOrder.map(fk=>{
-    const f = cartao.faturas[fk];
-    const partes = fk.split('/');
-    const label = `${partes[0].slice(0,3)}/${String(partes[1]).slice(-2)}`;
-    return `<button class="cartao-fatura-tab ${fk===faturaAtualKey?'active':''} ${f.paga?'tab-completo':''}" data-cartao-fatura-tab="${key}::${fk}" title="${escapeHtml(fk)}${f.paga?' · paga':''}">${label}</button>`;
-  }).join('');
-
+  const fat = cartao.faturas[mesAtual];
   const limite = round2(Number(fat.limite)||0);
   const valor = round2(Number(fat.valor)||0);
   const pct = limite > 0 ? Math.min(100, Math.round(valor/limite*100)) : 0;
@@ -2366,13 +2392,8 @@ function cartaoCardHtml(key, cartao){
       <button class="block-remove" data-cartao-remove="${key}" title="Excluir este cartão">×</button>
     </div>
     <div class="loan-sub">Fatura de cartão de crédito</div>
-    <div class="cartao-fatura-tabs" style="display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 14px;">
-      ${abasHtml}
-      <button class="cartao-fatura-add" data-cartao-fatura-add="${key}" title="Cria a fatura do mês seguinte, copiando limite/fechamento/vencimento e zerando o valor">+ novo mês</button>
-      ${cartao.faturaOrder.length > 1 ? `<button class="cartao-fatura-del" data-cartao-fatura-del="${key}::${faturaAtualKey}" title="Excluir a fatura deste mês">excluir mês</button>` : ''}
-    </div>
-    <label class="loan-inicial-row" style="cursor:pointer;">
-      <span>Fatura paga (${escapeHtml(faturaAtualKey)})</span>
+    <label class="loan-inicial-row" style="cursor:pointer; margin-top:12px;">
+      <span>Fatura de ${escapeHtml(mesAtual)} paga</span>
       <input type="checkbox" class="cartao-paga" ${fat.paga ? 'checked' : ''} style="width:16px; height:16px; margin:0;">
     </label>
     <label class="loan-inicial-row">
@@ -2428,10 +2449,38 @@ function moveCartao(key, direction){
   DATA.cartoes = novoCartoes;
   save(); renderContent();
 }
+// Cria um novo bloco de cartão — pede pra digitar "CARTÃO" antes, como trava
+// contra clique acidental (é uma ação que fica guardada pra sempre no arquivo).
+function criarNovoCartao(){
+  const digitado = window.prompt('Pra criar um novo bloco de cartão, digite CARTÃO pra confirmar:');
+  if(digitado === null) return;
+  if(digitado.trim().toUpperCase() !== 'CARTÃO'){
+    alert('Não confere — nenhum cartão foi criado.');
+    return;
+  }
+  currentCartaoMesKey();
+  const key = 'cartao' + Date.now();
+  const faturas = {};
+  DATA.cartaoMeses.forEach(mk=>{ faturas[mk] = { valor:0, paga:false, limite:0, diaFechamento:1, diaVencimento:10 }; });
+  DATA.cartoes[key] = { titulo:'Novo cartão', faturas };
+  save(); renderContent();
+}
 function renderCartoesView(){
   if(!DATA.cartoes) DATA.cartoes = {};
+  const mesAtual = currentCartaoMesKey();
   const chaves = Object.keys(DATA.cartoes);
+  const abasHtml = DATA.cartaoMeses.map(mk=>{
+    const partes = mk.split('/');
+    const label = `${partes[0].slice(0,3)}/${String(partes[1]).slice(-2)}`;
+    const todasPagas = chaves.length > 0 && chaves.every(k => DATA.cartoes[k].faturas[mk] && DATA.cartoes[k].faturas[mk].paga);
+    return `<button class="cartao-fatura-tab ${mk===mesAtual?'active':''} ${todasPagas?'tab-completo':''}" data-cartao-mes-tab="${mk}" title="${escapeHtml(mk)}">${label}</button>`;
+  }).join('');
   return `
+  <div class="cartao-fatura-tabs" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px;">
+    ${abasHtml}
+    <button class="cartao-fatura-add" id="add-mes-cartao-btn" title="Cria o mês seguinte pra todos os cartões, copiando limite/fechamento/vencimento e zerando o valor">+ novo mês</button>
+    ${DATA.cartaoMeses.length > 1 ? `<button class="cartao-fatura-del" id="del-mes-cartao-btn" title="Excluir este mês de todos os cartões">excluir mês</button>` : ''}
+  </div>
   <div class="emprestimos-grid">
     ${chaves.map(k => cartaoCardHtml(k, DATA.cartoes[k])).join('')}
   </div>
@@ -2442,32 +2491,24 @@ function renderCartoesView(){
 }
 function attachCartoesEvents(){
   const content = document.getElementById('content');
+  content.querySelectorAll('[data-cartao-mes-tab]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ currentCartaoMes = btn.dataset.cartaoMesTab; renderContent(); });
+  });
+  const addMesBtn = content.querySelector('#add-mes-cartao-btn');
+  if(addMesBtn) addMesBtn.addEventListener('click', addMesCartao);
+  const delMesBtn = content.querySelector('#del-mes-cartao-btn');
+  if(delMesBtn) delMesBtn.addEventListener('click', ()=>deleteMesCartao(currentCartaoMesKey()));
+
   content.querySelectorAll('.loan-card[data-cartao]').forEach(card=>{
     const key = card.dataset.cartao;
     const cartao = DATA.cartoes[key];
-    const fat = cartao.faturas[currentCartaoFatura[key]];
+    const fat = cartao.faturas[currentCartaoMesKey()];
     card.querySelector('.cartao-title-input').addEventListener('change', e=>{ cartao.titulo = e.target.value.trim() || 'Cartão'; save(); });
     card.querySelector('.cartao-paga').addEventListener('change', e=>{ fat.paga = e.target.checked; save(); renderContent(); });
     card.querySelector('.cartao-fatura-valor').addEventListener('change', e=>{ fat.valor = round2(parseValorBR(e.target.value)); save(); renderContent(); });
     card.querySelector('.cartao-limite').addEventListener('change', e=>{ fat.limite = round2(parseValorBR(e.target.value)); save(); renderContent(); });
     card.querySelector('.cartao-fechamento').addEventListener('change', e=>{ fat.diaFechamento = Math.min(31, Math.max(1, parseInt(e.target.value,10)||1)); save(); renderContent(); });
     card.querySelector('.cartao-vencimento').addEventListener('change', e=>{ fat.diaVencimento = Math.min(31, Math.max(1, parseInt(e.target.value,10)||10)); save(); renderContent(); });
-  });
-  content.querySelectorAll('[data-cartao-fatura-tab]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const [key, fk] = btn.dataset.cartaoFaturaTab.split('::');
-      currentCartaoFatura[key] = fk;
-      renderContent();
-    });
-  });
-  content.querySelectorAll('[data-cartao-fatura-add]').forEach(btn=>{
-    btn.addEventListener('click', ()=>addFaturaCartao(btn.dataset.cartaoFaturaAdd));
-  });
-  content.querySelectorAll('[data-cartao-fatura-del]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const [key, fk] = btn.dataset.cartaoFaturaDel.split('::');
-      deleteFaturaCartao(key, fk);
-    });
   });
   content.querySelectorAll('[data-cartao-move]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -2477,20 +2518,13 @@ function attachCartoesEvents(){
   content.querySelectorAll('[data-cartao-remove]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const key = btn.dataset.cartaoRemove;
-      if(!confirm(`Excluir o cartão "${DATA.cartoes[key].titulo}"?`)) return;
+      if(!confirm(`Excluir o cartão "${DATA.cartoes[key].titulo}"? Isso apaga o histórico de faturas dele em todos os meses.`)) return;
       delete DATA.cartoes[key];
-      delete currentCartaoFatura[key];
       save(); renderContent();
     });
   });
   const addBtn = content.querySelector('#add-cartao-btn');
-  if(addBtn) addBtn.addEventListener('click', ()=>{
-    const key = 'cartao' + Date.now();
-    const nomeMes = nomeMesSeguinte(null);
-    DATA.cartoes[key] = { titulo:'Novo cartão', faturaOrder:[nomeMes], faturas:{ [nomeMes]: { valor:0, paga:false, limite:0, diaFechamento:1, diaVencimento:10 } } };
-    currentCartaoFatura[key] = nomeMes;
-    save(); renderContent();
-  });
+  if(addBtn) addBtn.addEventListener('click', criarNovoCartao);
 }
 
 // ============================= RESUMO ANUAL =============================
