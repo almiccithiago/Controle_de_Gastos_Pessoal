@@ -584,7 +584,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2271,6 +2271,12 @@ function cartaoCardHtml(key, cartao){
   <div class="loan-card" data-cartao="${key}">
     <div style="display:flex; align-items:center; gap:8px;">
       <input type="text" class="cartao-title-input" value="${escapeHtml(cartao.titulo)}" style="flex:1; min-width:0;">
+      <div class="move-btns">
+        <button class="move-btn" data-move="left" data-cartao-move="${key}" title="Mover para trás">◀</button>
+        <button class="move-btn" data-move="up" data-cartao-move="${key}" title="Mover para cima">▲</button>
+        <button class="move-btn" data-move="down" data-cartao-move="${key}" title="Mover para baixo">▼</button>
+        <button class="move-btn" data-move="right" data-cartao-move="${key}" title="Mover para frente">▶</button>
+      </div>
       <button class="block-remove" data-cartao-remove="${key}" title="Excluir este cartão">×</button>
     </div>
     <div class="loan-sub">Fatura de cartão de crédito</div>
@@ -2309,6 +2315,24 @@ function cartaoCardHtml(key, cartao){
     </div>
   </div>`;
 }
+// Reordena os cartões trocando de posição com o vizinho (up/left andam pra
+// trás, down/right andam pra frente) — como DATA.cartoes é um objeto (não
+// array), a ordem é redefinida reconstruindo o objeto na nova ordem de chaves.
+function moveCartao(key, direction){
+  const chaves = Object.keys(DATA.cartoes);
+  const idx = chaves.indexOf(key);
+  if(idx === -1) return;
+  let novoIdx;
+  if(direction === 'up' || direction === 'left') novoIdx = idx - 1;
+  else if(direction === 'down' || direction === 'right') novoIdx = idx + 1;
+  else return;
+  if(novoIdx < 0 || novoIdx >= chaves.length) return;
+  [chaves[idx], chaves[novoIdx]] = [chaves[novoIdx], chaves[idx]];
+  const novoCartoes = {};
+  chaves.forEach(k => { novoCartoes[k] = DATA.cartoes[k]; });
+  DATA.cartoes = novoCartoes;
+  save(); renderContent();
+}
 function renderCartoesView(){
   if(!DATA.cartoes) DATA.cartoes = {};
   const chaves = Object.keys(DATA.cartoes);
@@ -2331,6 +2355,11 @@ function attachCartoesEvents(){
     card.querySelector('.cartao-limite').addEventListener('change', e=>{ cartao.limite = round2(parseValorBR(e.target.value)); save(); renderContent(); });
     card.querySelector('.cartao-fechamento').addEventListener('change', e=>{ cartao.diaFechamento = Math.min(31, Math.max(1, parseInt(e.target.value,10)||1)); save(); renderContent(); });
     card.querySelector('.cartao-vencimento').addEventListener('change', e=>{ cartao.diaVencimento = Math.min(31, Math.max(1, parseInt(e.target.value,10)||10)); save(); renderContent(); });
+  });
+  content.querySelectorAll('[data-cartao-move]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      moveCartao(btn.dataset.cartaoMove, btn.dataset.move);
+    });
   });
   content.querySelectorAll('[data-cartao-remove]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
