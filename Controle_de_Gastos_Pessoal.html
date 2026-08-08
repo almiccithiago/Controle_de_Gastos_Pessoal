@@ -209,7 +209,7 @@
   }
   #delete-month-btn:hover{ background:var(--red); color:#fff; }
   .summary-grid{
-    display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; margin-bottom: 20px;
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom: 20px;
   }
   @media (max-width: 900px){ .summary-grid{ grid-template-columns: repeat(2,1fr);} }
   .summary-card{
@@ -1279,11 +1279,49 @@ function estiloInlineCategoria(nome){
   return ` style="background:${cor.bg}; color:${cor.fg};"`;
 }
 
+// Aprendizado por histórico: olha pra todos os itens já categorizados (em
+// qualquer mês) e monta um mapa palavra -> {categoria: quantas vezes}. Não
+// grava nada em disco, é recalculado na hora a partir do que já existe.
+function categoriaAprendidaMapa(){
+  const mapa = {};
+  Object.values(DATA.months || {}).forEach(m=>{
+    todosItensDoMes(m).forEach(it=>{
+      if(!it.categoria) return;
+      normalizeTexto(it.desc).split(/[^a-z0-9]+/).filter(Boolean).forEach(palavra=>{
+        if(!mapa[palavra]) mapa[palavra] = {};
+        mapa[palavra][it.categoria] = (mapa[palavra][it.categoria] || 0) + 1;
+      });
+    });
+  });
+  return mapa;
+}
+// Sugere uma categoria pra uma descrição nova com base nas palavras que mais
+// vezes já caíram nessa categoria no histórico do usuário. Só sugere se o
+// sinal for forte o bastante (pelo menos 2 ocorrências), pra não "aprender"
+// com um único lançamento avulso.
+function categoriaAprendidaPorDesc(desc){
+  const palavras = normalizeTexto(desc).split(/[^a-z0-9]+/).filter(Boolean);
+  if(!palavras.length) return null;
+  const mapa = categoriaAprendidaMapa();
+  const pontuacao = {};
+  palavras.forEach(palavra=>{
+    const contagens = mapa[palavra];
+    if(!contagens) return;
+    Object.entries(contagens).forEach(([cat,n])=>{ pontuacao[cat] = (pontuacao[cat]||0) + n; });
+  });
+  let melhorCat = null, melhorScore = 0;
+  Object.entries(pontuacao).forEach(([cat,score])=>{
+    if(score > melhorScore){ melhorCat = cat; melhorScore = score; }
+  });
+  return melhorScore >= 2 ? melhorCat : null;
+}
 // Categoria "efetiva" de um item: se ele já tem categoria escolhida manualmente
-// (mesmo que já tenha sido salva antes), usa ela. Senão, sugere automaticamente
-// com base na descrição (sem gravar nada até o usuário mexer no seletor).
+// (mesmo que já tenha sido salva antes), usa ela. Senão, tenta o aprendizado
+// por histórico; se não houver sinal suficiente, cai pra regra por palavra-chave.
 function categoriaEfetiva(item){
   if(item.categoria !== undefined && item.categoria !== null) return item.categoria;
+  const aprendida = categoriaAprendidaPorDesc(item.desc);
+  if(aprendida) return aprendida;
   const auto = detectCategoriaDesc(item.desc);
   return auto ? auto.nome : '';
 }
@@ -1743,6 +1781,20 @@ function renderMonthView(monthKey){
   const bannerClass = t.saldo >= 0 ? 'pos' : 'neg';
   const oc = m.blocosOcultos;
 
+  // "Disponível por dia": divide o saldo do mês (que já desconta todas as
+  // despesas, pagas ou não) pelos dias que faltam no mês-calendário real.
+  // Só mostra na aba do mês mais recente, tratado como o mês corrente —
+  // não faz sentido calcular "dias restantes" pra um mês já fechado.
+  let disponivelPorDiaHtml = '';
+  if(!isTemplate && !tf && monthKey === DATA.monthOrder[DATA.monthOrder.length-1]){
+    const hoje = new Date();
+    const diasNoMesReal = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+    const diasRestantesReal = Math.max(1, diasNoMesReal - hoje.getDate() + 1);
+    const disponivelPorDia = round2(saldoExibido / diasRestantesReal);
+    const corDisponivel = disponivelPorDia >= 0 ? 'accent-green' : 'accent-red';
+    disponivelPorDiaHtml = `<div class="summary-card ${corDisponivel}" title="Saldo do mês dividido pelos dias restantes no mês corrente"><div class="label">Disponível/dia</div><div class="value ${disponivelPorDia>=0?'positive':'negative'}">R$ ${fmt(disponivelPorDia)}</div><div class="comparativo" style="color:var(--muted);">${diasRestantesReal} dias restantes</div></div>`;
+  }
+
   let compRenda = '', compDespesas = '', compMedia = '';
   if(!isTemplate){
     const idx = DATA.monthOrder.indexOf(monthKey);
@@ -1775,6 +1827,7 @@ function renderMonthView(monthKey){
     <div class="summary-card ${saldoExibido>=0?'accent-green':'accent-red'}"><div class="label">Saldo do Mês${sufixoFiltro}</div><div class="value ${saldoClass}">R$ ${fmt(saldoExibido)}</div></div>
     <div class="summary-card accent-green"><div class="label">Pago${sufixoFiltro}</div><div class="value">R$ ${fmt(pagoExibido)}</div></div>
     <div class="summary-card accent-amber"><div class="label">Pendente${sufixoFiltro}</div><div class="value">R$ ${fmt(pendenteExibido)}</div></div>
+    ${disponivelPorDiaHtml}
   </div>
 
   ${filtroCategoriaBarHtml()}
@@ -1801,16 +1854,16 @@ function renderMonthView(monthKey){
     </div>` : ''}
   </div>
 
-  <div class="sections-grid">
-    ${!oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : ''}
-  </div>
   `;
 
+  // dia08 entra sempre como primeiro bloco da coluna esquerda, junto com os
+  // detalhamentos extras (ex: "a pagar"), em vez de ocupar uma linha inteira sozinho.
+  const dia08Html = !oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : '';
   const detsColA = detsComIdx.filter((o,pos)=> pos % 2 === 0);
   const detsColB = detsComIdx.filter((o,pos)=> pos % 2 === 1);
   html += `
   <div class="detalhamentos-grid">
-    <div class="detalhamentos-col" data-col="0">${detsColA.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
+    <div class="detalhamentos-col" data-col="0">${dia08Html}${detsColA.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
     <div class="detalhamentos-col" data-col="1">${detsColB.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
   </div>
 
@@ -2690,6 +2743,22 @@ function diasRestantes(dataAlvo){
   return Math.round((alvo - hoje) / (1000*60*60*24));
 }
 
+// Gamificação leve: cada vez que "já guardado" é atualizado, guardamos um
+// retrato do valor no mês-calendário real (YYYY-MM) em goal.historicoMensal.
+// O streak conta quantos meses seguidos (mais recentes) o valor guardado
+// aumentou em relação ao mês anterior.
+function calcularStreakMeta(goal){
+  const hist = goal.historicoMensal;
+  if(!hist) return 0;
+  const chaves = Object.keys(hist).sort();
+  if(chaves.length < 2) return chaves.length ? 1 : 0;
+  let streak = 1;
+  for(let i = chaves.length - 1; i > 0; i--){
+    if(hist[chaves[i]] > hist[chaves[i-1]]) streak++;
+    else break;
+  }
+  return streak;
+}
 function metaEconomiaCardHtml(goal, idx){
   const alvo = round2(Number(goal.valorAlvo)||0);
   const atual = round2(Number(goal.valorAtual)||0);
@@ -2710,11 +2779,16 @@ function metaEconomiaCardHtml(goal, idx){
     }
   }
   const corBarra = atingida ? 'var(--green)' : 'var(--purple)';
+  const streak = calcularStreakMeta(goal);
+  const streakHtml = streak >= 2
+    ? `<span class="pill" style="background:var(--amber);" title="Meses seguidos guardando mais do que no mês anterior">🔥 ${streak} meses seguidos</span>`
+    : '';
   return `
   <div class="section-card" data-goal="${idx}">
     <div class="section-header">
       <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}">
       <div class="section-header-actions">
+        ${streakHtml}
         <span class="pill" style="background:${corBarra}">${atingida ? 'concluída 🎉' : pct.toFixed(0)+'%'}</span>
         <div class="move-btns">
           <button class="move-btn" data-move="left" data-meta-move="${idx}" title="Mover para a esquerda">◀</button>
@@ -2819,7 +2893,11 @@ function attachMetasEconomiaEvents(){
         e.target.value = round2(goal.valorAtual).toFixed(2);
         return;
       }
-      goal.valorAtual = round2(v); save(); renderContent();
+      goal.valorAtual = round2(v);
+      const mesCalendario = new Date().toISOString().slice(0,7);
+      if(!goal.historicoMensal) goal.historicoMensal = {};
+      goal.historicoMensal[mesCalendario] = goal.valorAtual;
+      save(); renderContent();
     });
     card.querySelector('.goal-data').addEventListener('blur', e=>{
       goal.dataAlvo = e.target.value || null;
