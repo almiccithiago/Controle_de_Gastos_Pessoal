@@ -212,6 +212,15 @@
     display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom: 20px;
   }
   @media (max-width: 900px){ .summary-grid{ grid-template-columns: repeat(2,1fr);} }
+  .insights-bar{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+  .insight-card{
+    display:flex; align-items:flex-start; gap:10px; border:1px solid; border-radius:12px;
+    padding:10px 14px; font-size:13px; line-height:1.4;
+  }
+  .insight-icon{ flex-shrink:0; font-size:15px; }
+  .insight-text{ flex:1; }
+  .insight-dismiss{ cursor:pointer; opacity:0.55; font-size:14px; flex-shrink:0; }
+  .insight-dismiss:hover{ opacity:1; }
   .summary-card{
     background: var(--card); border-radius: var(--radius); padding: 14px 16px;
     border: 1px solid var(--border);
@@ -1149,6 +1158,7 @@ function setSaveStatus(state){
 }
 
 async function save(){
+  _categoriaAprendidaCache = null;
   pendingSaves++;
   setSaveStatus('saving');
   try{
@@ -1282,7 +1292,9 @@ function estiloInlineCategoria(nome){
 // Aprendizado por histórico: olha pra todos os itens já categorizados (em
 // qualquer mês) e monta um mapa palavra -> {categoria: quantas vezes}. Não
 // grava nada em disco, é recalculado na hora a partir do que já existe.
+let _categoriaAprendidaCache = null;
 function categoriaAprendidaMapa(){
+  if(_categoriaAprendidaCache) return _categoriaAprendidaCache;
   const mapa = {};
   Object.values(DATA.months || {}).forEach(m=>{
     todosItensDoMes(m).forEach(it=>{
@@ -1293,6 +1305,7 @@ function categoriaAprendidaMapa(){
       });
     });
   });
+  _categoriaAprendidaCache = mapa;
   return mapa;
 }
 // Sugere uma categoria pra uma descrição nova com base nas palavras que mais
@@ -1640,7 +1653,7 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
       <input type="text" class="detail-title-input section-title-input" data-label-key="${listKey === 'dia18' ? 'secaoDia18' : 'secaoDia08'}" value="${escapeHtml(title)}">
       <div class="section-header-actions">
         <span class="pill" style="background:${pillColor}">R$ ${fmt(total)}</span>
-        <button class="block-remove" data-block="${listKey}" title="Excluir este bloco do mês">×</button>
+        ${listKey === 'dia08' ? '' : `<button class="block-remove" data-block="${listKey}" title="Excluir este bloco do mês">×</button>`}
       </div>
     </div>
     ${rows}
@@ -1763,6 +1776,107 @@ function comparativoMediaTexto(atual, media){
   return `<div class="comparativo" style="color:${cor};">${seta} ${Math.abs(pct).toFixed(0)}% vs média (R$ ${fmt(media)})</div>`;
 }
 
+// ============================= INSIGHTS AUTOMÁTICOS =============================
+// Compara o mês atual com o histórico e gera observações automáticas: alerta
+// (categoria subiu muito), elogio (categoria caiu bem) ou atenção (um item
+// específico veio bem mais caro que o normal pra ele). Não grava nada em
+// disco — os dispensados ficam só na memória da sessão atual.
+const insightsDispensados = new Set();
+
+function despesasPorCategoria(m){
+  const mapa = {};
+  todosItensDoMes(m).forEach(it=>{
+    const cat = categoriaEfetiva(it) || 'Sem categoria';
+    mapa[cat] = round2((mapa[cat]||0) + Number(it.valor||0));
+  });
+  return mapa;
+}
+
+function mediaCategoriaAnteriores(monthKey, qtd, categoria){
+  const idx = DATA.monthOrder.indexOf(monthKey);
+  if(idx <= 0) return null;
+  const inicio = Math.max(0, idx-qtd);
+  const chaves = DATA.monthOrder.slice(inicio, idx);
+  if(!chaves.length) return null;
+  const valores = chaves.map(k=>despesasPorCategoria(DATA.months[k])[categoria] || 0);
+  return round2(valores.reduce((s,v)=>s+v,0)/valores.length);
+}
+
+function gerarInsightsMes(monthKey){
+  const m = DATA.months[monthKey];
+  if(!m) return [];
+  const insights = [];
+
+  const porCategoria = despesasPorCategoria(m);
+  Object.entries(porCategoria).forEach(([categoria, valorAtual])=>{
+    if(!valorAtual) return;
+    const media = mediaCategoriaAnteriores(monthKey, 3, categoria);
+    if(!media || media === 0) return;
+    const variacao = ((valorAtual - media) / media) * 100;
+    const id = `cat_${monthKey}_${categoria}`;
+    if(insightsDispensados.has(id)) return;
+    if(variacao >= 25){
+      insights.push({ id, tipo:'alerta', score: variacao,
+        html: `gasto em <b>${escapeHtml(categoria.toLowerCase())}</b> subiu <b>${variacao.toFixed(0)}%</b> vs a média dos últimos meses (R$ ${fmt(media)} → R$ ${fmt(valorAtual)})` });
+    } else if(variacao <= -20){
+      insights.push({ id, tipo:'elogio', score: Math.abs(variacao),
+        html: `gasto em <b>${escapeHtml(categoria.toLowerCase())}</b> ficou <b>${Math.abs(variacao).toFixed(0)}% abaixo</b> da média — parabéns pela economia` });
+    }
+  });
+
+  // item individual muito fora do padrão de gasto dele mesmo no histórico —
+  // olha só pros meses ANTERIORES a este (senão comparar com meses futuros
+  // faria um insight de um mês antigo depender de dados que "ainda não existiam").
+  const idxAtual = DATA.monthOrder.indexOf(monthKey);
+  const mesesAnteriores = idxAtual > 0 ? DATA.monthOrder.slice(0, idxAtual) : [];
+  const historicoItem = {};
+  mesesAnteriores.forEach(k=>{
+    const mm = DATA.months[k];
+    if(!mm) return;
+    todosItensDoMes(mm).forEach(it=>{
+      const chave = normalizeTexto(it.desc);
+      if(!chave) return;
+      if(!historicoItem[chave]) historicoItem[chave] = [];
+      historicoItem[chave].push(Number(it.valor||0));
+    });
+  });
+  todosItensDoMes(m).forEach(it=>{
+    const chave = normalizeTexto(it.desc);
+    const valoresAnteriores = historicoItem[chave];
+    if(!valoresAnteriores || valoresAnteriores.length < 2) return;
+    const mediaItem = valoresAnteriores.reduce((s,v)=>s+v,0)/valoresAnteriores.length;
+    if(mediaItem <= 0) return;
+    const diff = Number(it.valor||0) - mediaItem;
+    const id = `item_${monthKey}_${chave}`;
+    if(insightsDispensados.has(id)) return;
+    if((diff/mediaItem) >= 0.4 && diff >= 20){
+      insights.push({ id, tipo:'atencao', score: diff,
+        html: `<b>${escapeHtml(it.desc)}</b> veio R$ ${fmt(round2(diff))} mais caro que o normal pra esse item — vale conferir` });
+    }
+  });
+
+  insights.sort((a,b)=>b.score-a.score);
+  return insights.slice(0,3);
+}
+
+const INSIGHT_ESTILO = {
+  alerta:  { bg:'#FCEBEB', border:'#F09595', text:'#501313', icone:'&#9888;' },
+  elogio:  { bg:'#EAF3DE', border:'#97C459', text:'#173404', icone:'&#128077;' },
+  atencao: { bg:'#FAEEDA', border:'#EF9F27', text:'#412402', icone:'&#128161;' }
+};
+function insightsHtml(monthKey){
+  const insights = gerarInsightsMes(monthKey);
+  if(!insights.length) return '';
+  return `<div class="insights-bar">${insights.map(ins=>{
+    const c = INSIGHT_ESTILO[ins.tipo];
+    return `<div class="insight-card" style="background:${c.bg}; border-color:${c.border};">
+      <span class="insight-icon">${c.icone}</span>
+      <span class="insight-text" style="color:${c.text};">${ins.html}</span>
+      <span class="insight-dismiss" data-dismiss="${escapeHtml(ins.id)}" title="Dispensar">×</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
 function renderMonthView(monthKey){
   const isTemplate = monthKey === "Modelo";
   const m = isTemplate ? DATA.template : DATA.months[monthKey];
@@ -1821,6 +1935,7 @@ function renderMonthView(monthKey){
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
     </div>
   </div>
+  ${!isTemplate ? insightsHtml(monthKey) : ''}
   <div class="summary-grid">
     <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div>${compRenda}</div>
     <div class="summary-card accent-red"><div class="label">Total Despesas${sufixoFiltro}</div><div class="value">R$ ${fmt(despesasExibida)}</div>${tf ? '' : compDespesas}${tf ? '' : compMedia}</div>
@@ -1829,7 +1944,6 @@ function renderMonthView(monthKey){
     <div class="summary-card accent-amber"><div class="label">Pendente${sufixoFiltro}</div><div class="value">R$ ${fmt(pendenteExibido)}</div></div>
     ${disponivelPorDiaHtml}
   </div>
-
   ${filtroCategoriaBarHtml()}
 
   ${(!isTemplate && !oc.dia08 && Number(m.recebimentos.dia08)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
@@ -1894,6 +2008,12 @@ function attachMonthEvents(monthKey){
     if(delBtn) delBtn.addEventListener('click', ()=>deleteMonth(monthKey));
     const exportBtn = content.querySelector('#export-pdf-btn');
     if(exportBtn) exportBtn.addEventListener('click', ()=>exportarRelatorioMes(monthKey));
+    content.querySelectorAll('.insight-dismiss').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        insightsDispensados.add(btn.dataset.dismiss);
+        btn.closest('.insight-card').remove();
+      });
+    });
   }
 
   const filtroSelect = content.querySelector('#filtro-categoria');
@@ -2751,10 +2871,15 @@ function calcularStreakMeta(goal){
   const hist = goal.historicoMensal;
   if(!hist) return 0;
   const chaves = Object.keys(hist).sort();
-  if(chaves.length < 2) return chaves.length ? 1 : 0;
+  if(!chaves.length) return 0;
   let streak = 1;
   for(let i = chaves.length - 1; i > 0; i--){
-    if(hist[chaves[i]] > hist[chaves[i-1]]) streak++;
+    const [anoAtual, mesAtual] = chaves[i].split('-').map(Number);
+    const [anoAnterior, mesAnterior] = chaves[i-1].split('-').map(Number);
+    const mesesEntre = (anoAtual - anoAnterior) * 12 + (mesAtual - mesAnterior);
+    // só conta como "seguido" se for o mês-calendário imediatamente anterior
+    // (um mês pulado quebra o streak, mesmo que o valor tenha subido depois)
+    if(mesesEntre === 1 && hist[chaves[i]] > hist[chaves[i-1]]) streak++;
     else break;
   }
   return streak;
