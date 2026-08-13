@@ -203,7 +203,7 @@ Responda SOMENTE com JSON válido, sem markdown, no formato:
 Dados do mês:
 ${JSON.stringify(req.body)}`;
 
-    const modelo = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const modelo = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
     const resp = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`,
       {
