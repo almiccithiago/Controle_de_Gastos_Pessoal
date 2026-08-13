@@ -184,6 +184,69 @@ app.get('/api/history/:appId/:snapshotId', requirePassword, async (req, res) => 
   }
 });
 
+// ---- Resumo em texto gerado por IA (chama a API do Gemini, free tier) ----
+// Recebe um payload compacto (categorias com variação vs média, saldo, metas)
+// já calculado no front-end e pede pro modelo escrever uma leitura curta do
+// mês em português, mais 1-3 tags de destaque. Exige a variável de ambiente
+// GEMINI_API_KEY configurada no Render (gerada gratuitamente em
+// aistudio.google.com/apikey — não precisa de cartão).
+app.post('/api/resumo-ia/:appId', requirePassword, async (req, res) => {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ erro: 'GEMINI_API_KEY não configurada no servidor.' });
+    }
+    const prompt = `Você recebe dados de um mês de controle financeiro pessoal em JSON. Escreva um resumo curto (3 a 4 frases, português do Brasil, tom direto e sem jargão) comentando o que mais chamou atenção (categorias que subiram ou caíram muito vs a média, saldo do mês, progresso de metas de economia). Depois, gere no máximo 3 tags curtas (poucas palavras cada) destacando os pontos principais, cada uma com tipo "alta" (algo subiu/preocupante), "baixa" (algo caiu/bom sinal) ou "neutra" (informativo).
+
+Responda SOMENTE com JSON válido, sem markdown, no formato:
+{"texto": "...", "tags": [{"tipo": "alta", "texto": "..."}]}
+
+Dados do mês:
+${JSON.stringify(req.body)}`;
+
+    const modelo = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': process.env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        }),
+      }
+    );
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error('Erro na API do Gemini:', resp.status, errText);
+      return res.status(502).json({ erro: 'Não foi possível gerar o resumo agora.' });
+    }
+
+    const data = await resp.json();
+    const textoBruto = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textoBruto) {
+      console.error('Resposta inesperada do Gemini:', JSON.stringify(data));
+      return res.status(502).json({ erro: 'Resposta inesperada do modelo.' });
+    }
+
+    const limpo = textoBruto.replace(/```json|```/g, '').trim();
+    let parsed;
+    try {
+      parsed = JSON.parse(limpo);
+    } catch (e) {
+      console.error('Não foi possível interpretar o JSON do modelo:', limpo);
+      return res.status(502).json({ erro: 'Resposta do modelo em formato inesperado.' });
+    }
+
+    res.json({ texto: parsed.texto || '', tags: Array.isArray(parsed.tags) ? parsed.tags : [] });
+  } catch (e) {
+    console.error('Erro ao gerar resumo IA:', e);
+    res.status(500).json({ erro: 'Erro ao gerar o resumo.' });
+  }
+});
+
 // ---------------------- Start ----------------------
 initSchema()
   .then(() => {
