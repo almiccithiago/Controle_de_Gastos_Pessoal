@@ -221,6 +221,37 @@
   .insight-text{ flex:1; }
   .insight-dismiss{ cursor:pointer; opacity:0.55; font-size:14px; flex-shrink:0; }
   .insight-dismiss:hover{ opacity:1; }
+  .resumo-ia-card{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:14px 16px; margin-bottom:16px;
+  }
+  .resumo-ia-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; }
+  .resumo-ia-titulo{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; color:var(--text); }
+  .resumo-ia-icon{
+    width:24px; height:24px; border-radius:7px; flex-shrink:0;
+    background:linear-gradient(135deg, var(--teal), var(--blue));
+    display:flex; align-items:center; justify-content:center; font-size:12px;
+  }
+  .resumo-ia-data{ font-size:11px; color:var(--muted); flex-shrink:0; }
+  .resumo-ia-texto{ font-size:13.5px; line-height:1.6; color:var(--text); margin:0 0 12px 0; }
+  .resumo-ia-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .resumo-ia-tag{ font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; }
+  .resumo-ia-tag.alta{ background:#FAECE7; color:#4A1B0C; }
+  .resumo-ia-tag.baixa{ background:#EAF3DE; color:#173404; }
+  .resumo-ia-tag.neutra{ background:#F1EFE8; color:#444441; }
+  .resumo-ia-footer{
+    border-top:1px solid var(--border); padding-top:10px; display:flex;
+    justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .resumo-ia-fonte{ font-size:11px; color:var(--muted); }
+  .resumo-ia-btn{
+    background:transparent; border:1px solid var(--border); color:var(--teal);
+    font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer;
+  }
+  .resumo-ia-btn:hover{ background:var(--teal); color:#fff; }
+  .resumo-ia-btn:disabled{ opacity:0.5; cursor:default; }
+  .resumo-ia-btn:disabled:hover{ background:transparent; color:var(--teal); }
+  .resumo-ia-erro{ font-size:12px; color:var(--red); margin-top:8px; }
   .summary-card{
     background: var(--card); border-radius: var(--radius); padding: 14px 16px;
     border: 1px solid var(--border);
@@ -1877,6 +1908,86 @@ function insightsHtml(monthKey){
   }).join('')}</div>`;
 }
 
+// ============================= RESUMO EM TEXTO GERADO POR IA =============================
+// Reaproveita os mesmos dados que já alimentam os insights (categoria vs média
+// de 3 meses) e as metas de economia, monta um payload compacto e pede pro
+// backend gerar uma leitura em texto corrido do mês. O texto fica guardado em
+// m.resumoIA (junto com o resto dos dados do mês, salvo no servidor) até o
+// usuário clicar em "Atualizar" de novo — não é gerado a cada render pra não
+// gastar chamada de API sem necessidade.
+function montarPayloadResumoIA(monthKey){
+  const m = DATA.months[monthKey];
+  const t = monthTotals(m);
+  const porCategoria = despesasPorCategoria(m);
+  const categorias = Object.entries(porCategoria)
+    .filter(([,valor])=>valor)
+    .map(([categoria, valorAtual])=>{
+      const media = mediaCategoriaAnteriores(monthKey, 3, categoria);
+      const variacaoPct = media ? round2(((valorAtual-media)/media)*100) : null;
+      return { categoria, valorAtual, mediaAnterior: media, variacaoPct };
+    })
+    .sort((a,b)=> Math.abs(b.variacaoPct||0) - Math.abs(a.variacaoPct||0))
+    .slice(0,6);
+  const metas = (DATA.metasEconomia||[]).map(g=>({
+    titulo: g.titulo,
+    pct: g.valorAlvo>0 ? round2((Number(g.valorAtual)||0)/Number(g.valorAlvo)*100) : 0,
+    streak: calcularStreakMeta(g)
+  }));
+  return {
+    mes: monthKey,
+    rendaTotal: t.rendaTotal, despesasTotal: t.despesasTotal, saldo: t.saldo,
+    categorias, metas
+  };
+}
+
+async function gerarResumoIA(monthKey){
+  const m = DATA.months[monthKey];
+  const btn = document.getElementById('resumo-ia-btn');
+  const erroEl = document.getElementById('resumo-ia-erro');
+  if(btn){ btn.disabled = true; btn.textContent = 'Gerando...'; }
+  if(erroEl) erroEl.style.display = 'none';
+  try{
+    const resp = await fetch(`${API_BASE}/api/resumo-ia/${APP_ID}`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-app-password': currentPassword },
+      body: JSON.stringify(montarPayloadResumoIA(monthKey))
+    });
+    if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
+    const json = await resp.json();
+    m.resumoIA = { texto: json.texto, tags: json.tags||[], geradoEm: new Date().toISOString() };
+    await save();
+    renderContent();
+  }catch(e){
+    console.error('Erro ao gerar resumo IA', e);
+    if(btn){ btn.disabled = false; btn.textContent = 'Atualizar'; }
+    if(erroEl){ erroEl.textContent = 'Não foi possível gerar o resumo agora. Tente de novo em alguns segundos.'; erroEl.style.display = 'block'; }
+  }
+}
+
+function resumoIaHtml(monthKey){
+  const m = DATA.months[monthKey];
+  const r = m.resumoIA;
+  const dataFmt = r ? new Date(r.geradoEm).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) : '';
+  const tagsHtml = r && r.tags && r.tags.length
+    ? `<div class="resumo-ia-tags">${r.tags.map(tg=>`<span class="resumo-ia-tag ${escapeHtml(tg.tipo||'neutra')}">${escapeHtml(tg.texto)}</span>`).join('')}</div>`
+    : '';
+  return `
+  <div class="resumo-ia-card">
+    <div class="resumo-ia-head">
+      <div class="resumo-ia-titulo"><span class="resumo-ia-icon">✦</span>sua leitura do mês</div>
+      ${r ? `<span class="resumo-ia-data">gerado ${dataFmt}</span>` : ''}
+    </div>
+    ${r
+      ? `<p class="resumo-ia-texto">${escapeHtml(r.texto)}</p>${tagsHtml}`
+      : `<p class="resumo-ia-texto" style="color:var(--muted);">Ainda não gerado pra este mês. Clique em "Gerar resumo" pra ter uma leitura em texto do que aconteceu com seus gastos.</p>`}
+    <div class="resumo-ia-footer">
+      <span class="resumo-ia-fonte">Baseado nos lançamentos deste mês</span>
+      <button id="resumo-ia-btn" class="resumo-ia-btn">${r ? 'Atualizar' : 'Gerar resumo'}</button>
+    </div>
+    <div id="resumo-ia-erro" class="resumo-ia-erro" style="display:none;"></div>
+  </div>`;
+}
+
 function renderMonthView(monthKey){
   const isTemplate = monthKey === "Modelo";
   const m = isTemplate ? DATA.template : DATA.months[monthKey];
@@ -1935,6 +2046,7 @@ function renderMonthView(monthKey){
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
     </div>
   </div>
+  ${!isTemplate ? resumoIaHtml(monthKey) : ''}
   ${!isTemplate ? insightsHtml(monthKey) : ''}
   <div class="summary-grid">
     <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div>${compRenda}</div>
@@ -2014,6 +2126,8 @@ function attachMonthEvents(monthKey){
         btn.closest('.insight-card').remove();
       });
     });
+    const resumoIaBtn = content.querySelector('#resumo-ia-btn');
+    if(resumoIaBtn) resumoIaBtn.addEventListener('click', ()=>gerarResumoIA(monthKey));
   }
 
   const filtroSelect = content.querySelector('#filtro-categoria');
