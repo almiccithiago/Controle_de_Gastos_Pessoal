@@ -2573,15 +2573,15 @@ function diasAteFechamento(diaFechamento){
   }
   return Math.round((alvo - hoje) / (1000*60*60*24));
 }
-function proximoVencimentoCartao(diaVencimento){
+function proximoVencimentoCartao(diaVencimento, mesKey){
+  // Vencimento é sempre dentro do mês da própria fatura (mesKey), não
+  // calculado relativo a hoje — cada fatura já sabe a que mês pertence.
+  const p = parseMonthKey(mesKey);
+  if(p) return new Date(p.ano, p.idx, diaClampado(p.ano, p.idx, diaVencimento));
+  // Fallback (mesKey inválido/ausente): usa o mês atual do calendário.
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  let ano = hoje.getFullYear(), mesIdx = hoje.getMonth();
-  let alvo = new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaVencimento));
-  if(alvo < hoje){
-    mesIdx++; if(mesIdx>11){ mesIdx=0; ano++; }
-    alvo = new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaVencimento));
-  }
-  return alvo;
+  const ano = hoje.getFullYear(), mesIdx = hoje.getMonth();
+  return new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaVencimento));
 }
 // Nome do mês seguinte a uma chave "Mês/Ano" existente — usado pro botão
 // "+ novo mês" dentro de um cartão (mesmo padrão de nome usado nas abas principais).
@@ -2598,7 +2598,7 @@ function currentCartaoMesKey(){
   if(!DATA.cartaoMeses) DATA.cartaoMeses = [];
   if(DATA.cartaoMeses.length === 0) DATA.cartaoMeses = [nomeMesSeguinte(null)];
   if(!currentCartaoMes || !DATA.cartaoMeses.includes(currentCartaoMes)){
-    currentCartaoMes = DATA.cartaoMeses[DATA.cartaoMeses.length-1];
+    currentCartaoMes = DATA.cartaoMeses[0];
   }
   return currentCartaoMes;
 }
@@ -2623,7 +2623,7 @@ function deleteMesCartao(mesKey){
   if(!confirmarExclusaoComNome('o mês', mesKey)) return;
   Object.values(DATA.cartoes).forEach(cartao=>{ delete cartao.faturas[mesKey]; });
   DATA.cartaoMeses = DATA.cartaoMeses.filter(m=>m!==mesKey);
-  if(currentCartaoMes === mesKey) currentCartaoMes = DATA.cartaoMeses[DATA.cartaoMeses.length-1];
+  if(currentCartaoMes === mesKey) currentCartaoMes = DATA.cartaoMeses[0];
   save(); renderContent();
 }
 function cartaoCardHtml(key, cartao){
@@ -2638,7 +2638,7 @@ function cartaoCardHtml(key, cartao){
   const diaFechamento = Math.min(31, Math.max(1, Number(fat.diaFechamento)||1));
   const diaVencimento = Math.min(31, Math.max(1, Number(fat.diaVencimento)||10));
   const dias = diasAteFechamento(diaFechamento);
-  const venc = proximoVencimentoCartao(diaVencimento);
+  const venc = proximoVencimentoCartao(diaVencimento, mesAtual);
   const corBarra = pct >= 90 ? 'var(--red)' : (pct >= 70 ? 'var(--amber)' : 'var(--blue)');
   return `
   <div class="loan-card ${fat.paga?'cartao-paga-card':''}" data-cartao="${key}">
