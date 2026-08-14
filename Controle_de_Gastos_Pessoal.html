@@ -177,21 +177,7 @@
   nav.tabs button.drag-over{ box-shadow: inset 0 -3px 0 var(--orange); background: rgba(255,138,61,0.12); }
   main{ max-width: 1180px; margin: 0 auto; padding: 22px 24px 80px 24px; }
 
-  .cartao-fatura-tabs{ background:var(--navy); border-radius:10px; padding:8px; }
-  .cartao-fatura-tab{
-    background:rgba(255,255,255,0.08); border:none; color:#B7C49A; border-radius:6px;
-    padding:6px 11px; font-size:11.5px; font-weight:600; cursor:pointer; transition:all .15s ease;
-  }
-  .cartao-fatura-tab:hover{ color:#fff; }
-  .cartao-fatura-tab.active{ background:rgba(255,255,255,0.22); color:#fff; }
-  .cartao-fatura-tab.tab-completo{ opacity:0.45; }
-  .cartao-fatura-tab.tab-completo:hover{ opacity:0.8; }
-  .cartao-fatura-add{ background:transparent; border:none; color:var(--teal); font-weight:800; font-size:11.5px; cursor:pointer; padding:6px 8px; }
-  .cartao-fatura-add:hover{ color:#8FBF52; }
-  .cartao-fatura-del{ background:transparent; border:none; color:var(--red); font-size:11px; cursor:pointer; padding:6px 8px; }
-  .cartao-fatura-del:hover{ text-decoration:underline; }
-  .loan-card.cartao-paga-card{ opacity:0.75; }
-
+  
   .month-title-bar{
     display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px;
   }
@@ -644,7 +630,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-14.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-14.4</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -847,9 +833,7 @@ function defaultData(){
           l("Parcela 12 · Ago/27",null,null)
         ]
       }
-    },
-    cartoes: {},
-    cartaoMeses: []
+    }
   };
 
   function i(desc, valor){ return { desc, valor, pago:false }; }
@@ -862,7 +846,6 @@ let currentTab = null;
 let dataReady = false;
 let currentPassword = '';
 let categoriaFiltro = ''; // '' = mostra todas as categorias; filtro é só visual, não altera dados
-let currentCartaoMes = null; // mês selecionado na aba Cartões — compartilhado por todos os cartões
 const FILTRO_SEM_CATEGORIA = '__sem_categoria__'; // valor especial: filtra só os itens sem nenhuma categoria
 
 // Diz se um item deve aparecer com o filtro de categoria atual.
@@ -919,32 +902,6 @@ function migrateData(data){
           ? loan.parcelas[0].saldo : 0;
       }
       (loan.parcelas||[]).forEach(p=>{ delete p.saldo; });
-    });
-  }
-
-  // migração: faturas de cartão criadas automaticamente (antes desse fix) caíam
-  // sempre no padrão fixo fechamento=1/vencimento=10, ignorando o dia real já
-  // configurado em outros meses do mesmo cartão. Se a fatura bate exatamente
-  // nesse padrão "suspeito" e existe outro mês do mesmo cartão com valor
-  // diferente, assume que o outro mês é o correto e corrige aqui, uma única vez.
-  if(data.cartoes && data.cartaoMeses){
-    Object.values(data.cartoes).forEach(cartao=>{
-      if(!cartao.faturas) return;
-      data.cartaoMeses.forEach(mesAtual=>{
-        const fat = cartao.faturas[mesAtual];
-        if(!fat) return;
-        const pareceDefaultAntigo = Number(fat.diaFechamento) === 1 && Number(fat.diaVencimento) === 10;
-        if(!pareceDefaultAntigo) return;
-        for(const mk of data.cartaoMeses){
-          if(mk === mesAtual) continue;
-          const outro = cartao.faturas[mk];
-          if(outro && !(Number(outro.diaFechamento) === 1 && Number(outro.diaVencimento) === 10)){
-            fat.diaFechamento = outro.diaFechamento;
-            fat.diaVencimento = outro.diaVencimento;
-            break;
-          }
-        }
-      });
     });
   }
 
@@ -1050,55 +1007,10 @@ function migrateData(data){
   // migração: metas de economia (viagem, reserva, etc.) — lista nova, começa vazia
   if(!Array.isArray(data.metasEconomia)) data.metasEconomia = [];
 
-  // migração: cartões de crédito (fatura, limite, fechamento/vencimento) — lista nova, começa vazia
-  if(!data.cartoes || typeof data.cartoes !== 'object') data.cartoes = {};
-  // migração: cada cartão agora tem uma fatura por mês (igual às abas principais),
-  // em vez de um único valor de fatura fixo. Cartões salvos na versão antiga (um
-  // valor só) viram uma primeira fatura no mês atual, com o valor que já tinha.
-  Object.values(data.cartoes).forEach(cartao=>{
-    if(!cartao.faturaOrder || !cartao.faturas){
-      const hoje = new Date();
-      const nomeMes = `${NOMES_MESES[hoje.getMonth()]}/${hoje.getFullYear()}`;
-      cartao.faturaOrder = [nomeMes];
-      cartao.faturas = { [nomeMes]: {
-        valor: round2(Number(cartao.valorFaturaAtual)||0),
-        paga: false,
-        limite: round2(Number(cartao.limite)||0),
-        diaFechamento: Math.min(31, Math.max(1, Number(cartao.diaFechamento)||1)),
-        diaVencimento: Math.min(31, Math.max(1, Number(cartao.diaVencimento)||10))
-      }};
-      delete cartao.valorFaturaAtual; delete cartao.limite; delete cartao.diaFechamento; delete cartao.diaVencimento;
-    }
-  });
-  // migração: os meses de cartão agora são compartilhados por todos os cartões
-  // (uma barra de mês só na aba, em vez de uma barra por cartão). Junta todos os
-  // meses que qualquer cartão já tinha numa lista única ordenada, e garante que
-  // todo cartão tenha fatura em todo mês dessa lista (mês que faltar entra
-  // zerado, copiando limite/fechamento/vencimento de alguma fatura já existente
-  // daquele mesmo cartão).
-  if(!Array.isArray(data.cartaoMeses)) data.cartaoMeses = [];
-  const conjuntoMeses = new Set(data.cartaoMeses);
-  Object.values(data.cartoes).forEach(cartao=>{
-    if(Array.isArray(cartao.faturaOrder)) cartao.faturaOrder.forEach(mk=>conjuntoMeses.add(mk));
-  });
-  data.cartaoMeses = Array.from(conjuntoMeses).sort((a,b)=>{
-    const pa = parseMonthKey(a), pb = parseMonthKey(b);
-    if(!pa || !pb) return 0;
-    return (pa.ano - pb.ano) || (pa.idx - pb.idx);
-  });
-  Object.values(data.cartoes).forEach(cartao=>{
-    if(!cartao.faturas) cartao.faturas = {};
-    delete cartao.faturaOrder;
-    const existente = Object.values(cartao.faturas)[0];
-    const base = existente
-      ? { limite: existente.limite, diaFechamento: existente.diaFechamento, diaVencimento: existente.diaVencimento }
-      : { limite: 0, diaFechamento: 1, diaVencimento: 10 };
-    data.cartaoMeses.forEach(mk=>{
-      if(!cartao.faturas[mk]){
-        cartao.faturas[mk] = { valor:0, paga:false, limite: base.limite, diaFechamento: base.diaFechamento, diaVencimento: base.diaVencimento };
-      }
-    });
-  });
+  // migração: a aba Cartões foi removida — limpa qualquer dado antigo que
+  // ainda esteja salvo dessa feature, pra não ficar lixo de dados no servidor.
+  delete data.cartoes;
+  delete data.cartaoMeses;
 
   // garante que os itens fiquem sempre em ordem alfabética, mesmo os que já existiam antes
   allMonthObjs.forEach(m=>{
@@ -1165,7 +1077,7 @@ function cloneMonthFromModelo(){
 const NOMES_MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 // Cria direto o próximo mês (seguinte ao último já lançado), clonando do
-// Modelo — sem modal pra escolher mês/ano, igual ao esquema da aba Cartões.
+// Modelo — sem modal pra escolher mês/ano, mês fixo.
 function addMonth(){
   const ultimo = DATA.monthOrder[DATA.monthOrder.length-1];
   const nomeCompleto = nomeMesSeguinte(ultimo);
@@ -1234,14 +1146,20 @@ async function save(){
   pendingSaves++;
   setSaveStatus('saving');
   try{
+    const body = JSON.stringify(DATA);
+    // keepalive garante que o navegador finalize o envio mesmo que a aba/app
+    // seja fechado logo em seguida (ex: usuário edita um campo e fecha rápido) —
+    // sem isso, o fetch era cancelado no meio e a edição se perdia silenciosamente.
+    // MAS navegadores recusam requisições keepalive com corpo acima de ~64KB —
+    // por isso só usamos keepalive quando os dados cabem nesse limite; do
+    // contrário, mandamos sem keepalive (senão TODO salvamento passaria a falhar
+    // assim que os dados do app crescessem além disso).
+    const usaKeepalive = body.length < 60000;
     const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-app-password': currentPassword },
-      body: JSON.stringify(DATA),
-      // keepalive garante que o navegador finalize o envio mesmo que a aba/app
-      // seja fechado logo em seguida (ex: usuário edita um campo e fecha rápido) —
-      // sem isso, o fetch era cancelado no meio e a edição se perdia silenciosamente.
-      keepalive: true
+      body,
+      keepalive: usaKeepalive
     });
     if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
     setSaveStatus('saved');
@@ -1419,7 +1337,7 @@ function itemCategoriaSelectHtml(item){
   const classe = classeCategoria(atual);
   const estiloInline = estiloInlineCategoria(atual);
   const opcoes = categoriaListaCompleta().map(nome =>
-    `<option value="${escapeHtml(nome)}" ${nome === atual ? 'selected' : ''}>${nome || 'Sem categoria'}</option>`
+    `<option value="${escapeHtml(nome)}" ${nome === atual ? 'selected' : ''}>${escapeHtml(nome) || 'Sem categoria'}</option>`
   ).join('') + `<option value="__nova__">+ Nova categoria…</option>`;
   return `<select class="item-categoria ${classe}"${estiloInline} title="Categoria (você pode trocar, ou criar uma nova)">${opcoes}</select>`;
 }
@@ -1552,7 +1470,7 @@ function mesTotalmentePago(m){
 
 function renderTabs(){
   const tabs = document.getElementById('tabs');
-  const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações", "Cartões"];
+  const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações"];
   const podeExcluirAtual = DATA.monthOrder.includes(currentTab);
   tabs.innerHTML = allTabs.map(t =>
     `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${t}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${t}</button>`
@@ -1618,9 +1536,6 @@ function renderContent(){
   } else if(currentTab === "Resumo Anual"){
     content.innerHTML = renderResumoAnualView();
     attachResumoAnualEvents();
-  } else if(currentTab === "Cartões"){
-    content.innerHTML = renderCartoesView();
-    attachCartoesEvents();
   }
 }
 
@@ -1674,7 +1589,7 @@ function monthTotalsFiltrados(m){
 function filtroCategoriaBarHtml(){
   const opcoes = categoriaListaCompleta()
     .filter(nome => nome !== '')
-    .map(nome => `<option value="${escapeHtml(nome)}" ${nome === categoriaFiltro ? 'selected' : ''}>${nome}</option>`)
+    .map(nome => `<option value="${escapeHtml(nome)}" ${nome === categoriaFiltro ? 'selected' : ''}>${escapeHtml(nome)}</option>`)
     .join('');
   return `
   <div class="cat-filtro-bar">
@@ -2596,40 +2511,8 @@ function renderEmprestimosView(){
   </div>`;
 }
 
-// ============================= CARTÕES DE CRÉDITO =============================
-// Quantos dias faltam pro próximo fechamento (dia fixo todo mês). Se o dia já
-// passou neste mês, calcula pro mês seguinte.
-// Último dia válido de um mês (ex: fevereiro tem 28 ou 29, não 31) — usado
-// pra "grudar" o fechamento/vencimento no fim do mês em vez de vazar pro mês
-// seguinte quando o dia configurado (ex: 31) não existe naquele mês.
-function ultimoDiaDoMes(ano, mesIdx){
-  return new Date(ano, mesIdx+1, 0).getDate();
-}
-function diaClampado(ano, mesIdx, dia){
-  return Math.min(dia, ultimoDiaDoMes(ano, mesIdx));
-}
-function diasAteFechamento(diaFechamento){
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  let ano = hoje.getFullYear(), mesIdx = hoje.getMonth();
-  let alvo = new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaFechamento));
-  if(alvo < hoje){
-    mesIdx++; if(mesIdx>11){ mesIdx=0; ano++; }
-    alvo = new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaFechamento));
-  }
-  return Math.round((alvo - hoje) / (1000*60*60*24));
-}
-function proximoVencimentoCartao(diaVencimento, mesKey){
-  // Vencimento é sempre dentro do mês da própria fatura (mesKey), não
-  // calculado relativo a hoje — cada fatura já sabe a que mês pertence.
-  const p = parseMonthKey(mesKey);
-  if(p) return new Date(p.ano, p.idx, diaClampado(p.ano, p.idx, diaVencimento));
-  // Fallback (mesKey inválido/ausente): usa o mês atual do calendário.
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const ano = hoje.getFullYear(), mesIdx = hoje.getMonth();
-  return new Date(ano, mesIdx, diaClampado(ano, mesIdx, diaVencimento));
-}
-// Nome do mês seguinte a uma chave "Mês/Ano" existente — usado pro botão
-// "+ novo mês" dentro de um cartão (mesmo padrão de nome usado nas abas principais).
+// Nome do mês seguinte a uma chave "Mês/Ano" existente — usado pelo botão
+// "+ novo mês" (mesmo padrão de nome usado nas abas principais).
 function nomeMesSeguinte(chave){
   const p = parseMonthKey(chave);
   if(!p){ const h = new Date(); return `${NOMES_MESES[h.getMonth()]}/${h.getFullYear()}`; }
@@ -2637,218 +2520,6 @@ function nomeMesSeguinte(chave){
   if(idx > 11){ idx = 0; ano++; }
   return `${NOMES_MESES[idx]}/${ano}`;
 }
-// Garante que existe um mês selecionado válido na barra compartilhada de
-// cartões (a mesma barra vale pra todos os cartões, não uma por cartão).
-function currentCartaoMesKey(){
-  if(!DATA.cartaoMeses) DATA.cartaoMeses = [];
-  if(DATA.cartaoMeses.length === 0) DATA.cartaoMeses = [nomeMesSeguinte(null)];
-  if(!currentCartaoMes || !DATA.cartaoMeses.includes(currentCartaoMes)){
-    currentCartaoMes = DATA.cartaoMeses[0];
-  }
-  return currentCartaoMes;
-}
-// Cria o mês seguinte pra TODOS os cartões de uma vez, copiando limite/
-// fechamento/vencimento de cada cartão no mês anterior e zerando valor/pago.
-function addMesCartao(){
-  currentCartaoMesKey();
-  const ultimoMes = DATA.cartaoMeses[DATA.cartaoMeses.length-1];
-  const novoMes = nomeMesSeguinte(ultimoMes);
-  if(DATA.cartaoMeses.includes(novoMes)){ alert('Esse mês já existe.'); return; }
-  Object.values(DATA.cartoes).forEach(cartao=>{
-    const base = cartao.faturas[ultimoMes] || { limite:0, diaFechamento:1, diaVencimento:10 };
-    cartao.faturas[novoMes] = { valor:0, paga:false, limite:base.limite, diaFechamento:base.diaFechamento, diaVencimento:base.diaVencimento };
-  });
-  DATA.cartaoMeses.push(novoMes);
-  currentCartaoMes = novoMes;
-  save(); renderContent();
-}
-// Exclui um mês de TODOS os cartões ao mesmo tempo (sempre mantém pelo menos um).
-function deleteMesCartao(mesKey){
-  if(DATA.cartaoMeses.length <= 1){ alert('Precisa manter pelo menos um mês cadastrado.'); return; }
-  if(!confirmarExclusaoComNome('o mês', mesKey)) return;
-  Object.values(DATA.cartoes).forEach(cartao=>{ delete cartao.faturas[mesKey]; });
-  DATA.cartaoMeses = DATA.cartaoMeses.filter(m=>m!==mesKey);
-  if(currentCartaoMes === mesKey) currentCartaoMes = DATA.cartaoMeses[0];
-  save(); renderContent();
-}
-// Quando um mês de fatura ainda não existe pra um cartão, usa a
-// configuração (limite/fechamento/vencimento) de qualquer outra fatura já
-// existente do mesmo cartão como base — em vez de um padrão fixo, que fazia
-// o "vence dia" voltar pra 10 mesmo quando o cartão já usava outro dia.
-function baseFaturaCartaoPadrao(cartao){
-  const meses = DATA.cartaoMeses || [];
-  for(let i=meses.length-1; i>=0; i--){
-    const f = cartao.faturas[meses[i]];
-    if(f) return { limite:f.limite, diaFechamento:f.diaFechamento, diaVencimento:f.diaVencimento };
-  }
-  return { limite:0, diaFechamento:1, diaVencimento:10 };
-}
-// Migração pontual: faturas que já foram salvas ANTES desse fix, quando o
-// mês era criado automaticamente com o padrão fixo (fechamento=1, vence=10)
-// em vez de puxar a configuração real do cartão. Ver correção em migrateData().
-function cartaoCardHtml(key, cartao){
-  const mesAtual = currentCartaoMesKey();
-  if(!cartao.faturas[mesAtual]){
-    const base = baseFaturaCartaoPadrao(cartao);
-    cartao.faturas[mesAtual] = { valor:0, paga:false, limite:base.limite, diaFechamento:base.diaFechamento, diaVencimento:base.diaVencimento };
-  }
-  const fat = cartao.faturas[mesAtual];
-  const limite = round2(Number(fat.limite)||0);
-  const valor = round2(Number(fat.valor)||0);
-  const pct = limite > 0 ? Math.min(100, Math.round(valor/limite*100)) : 0;
-  const diaFechamento = Math.min(31, Math.max(1, Number(fat.diaFechamento)||1));
-  const diaVencimento = Math.min(31, Math.max(1, Number(fat.diaVencimento)||10));
-  const dias = diasAteFechamento(diaFechamento);
-  const venc = proximoVencimentoCartao(diaVencimento, mesAtual);
-  const corBarra = pct >= 90 ? 'var(--red)' : (pct >= 70 ? 'var(--amber)' : 'var(--blue)');
-  return `
-  <div class="loan-card ${fat.paga?'cartao-paga-card':''}" data-cartao="${key}">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <input type="text" class="cartao-title-input" value="${escapeHtml(cartao.titulo)}" style="flex:1; min-width:0;">
-      <div class="move-btns">
-        <button class="move-btn" data-move="left" data-cartao-move="${key}" title="Mover para trás">◀</button>
-        <button class="move-btn" data-move="up" data-cartao-move="${key}" title="Mover para cima">▲</button>
-        <button class="move-btn" data-move="down" data-cartao-move="${key}" title="Mover para baixo">▼</button>
-        <button class="move-btn" data-move="right" data-cartao-move="${key}" title="Mover para frente">▶</button>
-      </div>
-      <button class="block-remove" data-cartao-remove="${key}" title="Excluir este cartão">×</button>
-    </div>
-    <div class="loan-sub">Fatura de cartão de crédito</div>
-    <label class="loan-inicial-row" style="cursor:pointer; margin-top:12px;">
-      <span>Fatura de ${escapeHtml(mesAtual)} paga</span>
-      <input type="checkbox" class="cartao-paga" ${fat.paga ? 'checked' : ''} style="width:16px; height:16px; margin:0;">
-    </label>
-    <label class="loan-inicial-row">
-      <span>Valor da fatura</span>
-      <span class="loan-inicial-valor-group">
-        <span class="rs-prefix-dark">R$</span>
-        <input type="text" inputmode="decimal" class="cartao-fatura-valor" value="${valor.toFixed(2)}">
-      </span>
-    </label>
-    <div style="height:8px; background:var(--bg); border-radius:4px; overflow:hidden; margin-bottom:8px;">
-      <div style="width:${pct}%; height:100%; background:${corBarra};"></div>
-    </div>
-    <div style="display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-bottom:14px;">
-      <span>${pct}% do limite usado</span>
-      <span>limite R$ ${fmt(limite)}</span>
-    </div>
-    <div class="loan-inicial-row" style="margin-bottom:10px;">
-      <span>Fecha em</span>
-      <span class="rs-prefix-dark">${dias<=0 ? 'hoje' : `${dias} dia${dias===1?'':'s'}`}</span>
-    </div>
-    <div class="loan-inicial-row" style="margin-bottom:14px;">
-      <span>Próximo vencimento</span>
-      <span class="rs-prefix-dark">${venc.toLocaleDateString('pt-BR')}</span>
-    </div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <label style="flex:1; min-width:110px; font-size:11.5px; color:var(--muted);">Limite
-        <span class="cell-currency" style="display:flex; margin-top:4px;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="cartao-limite" value="${limite.toFixed(2)}"></span>
-      </label>
-      <label style="width:90px; font-size:11.5px; color:var(--muted);">Fecha dia
-        <input type="number" min="1" max="31" class="cartao-fechamento" value="${diaFechamento}" style="width:100%; margin-top:4px;">
-      </label>
-      <label style="width:90px; font-size:11.5px; color:var(--muted);">Vence dia
-        <input type="number" min="1" max="31" class="cartao-vencimento" value="${diaVencimento}" style="width:100%; margin-top:4px;">
-      </label>
-    </div>
-  </div>`;
-}
-// Reordena os cartões trocando de posição com o vizinho (up/left andam pra
-// trás, down/right andam pra frente) — como DATA.cartoes é um objeto (não
-// array), a ordem é redefinida reconstruindo o objeto na nova ordem de chaves.
-function moveCartao(key, direction){
-  const chaves = Object.keys(DATA.cartoes);
-  const idx = chaves.indexOf(key);
-  if(idx === -1) return;
-  let novoIdx;
-  if(direction === 'up' || direction === 'left') novoIdx = idx - 1;
-  else if(direction === 'down' || direction === 'right') novoIdx = idx + 1;
-  else return;
-  if(novoIdx < 0 || novoIdx >= chaves.length) return;
-  [chaves[idx], chaves[novoIdx]] = [chaves[novoIdx], chaves[idx]];
-  const novoCartoes = {};
-  chaves.forEach(k => { novoCartoes[k] = DATA.cartoes[k]; });
-  DATA.cartoes = novoCartoes;
-  save(); renderContent();
-}
-// Cria um novo bloco de cartão, retroativo em todos os meses já existentes na
-// barra (fatura zerada em cada um). Sem confirmação extra — a trava fica na exclusão.
-function criarNovoCartao(){
-  currentCartaoMesKey();
-  const key = 'cartao' + Date.now();
-  const faturas = {};
-  DATA.cartaoMeses.forEach(mk=>{ faturas[mk] = { valor:0, paga:false, limite:0, diaFechamento:1, diaVencimento:10 }; });
-  DATA.cartoes[key] = { titulo:'Novo cartão', faturas };
-  save(); renderContent();
-}
-function renderCartoesView(){
-  if(!DATA.cartoes) DATA.cartoes = {};
-  const mesAtual = currentCartaoMesKey();
-  const chaves = Object.keys(DATA.cartoes);
-  const abasHtml = DATA.cartaoMeses.map(mk=>{
-    const partes = mk.split('/');
-    const label = `${partes[0].slice(0,3)}/${String(partes[1]).slice(-2)}`;
-    const todasPagas = chaves.length > 0 && chaves.every(k => DATA.cartoes[k].faturas[mk] && DATA.cartoes[k].faturas[mk].paga);
-    return `<button class="cartao-fatura-tab ${mk===mesAtual?'active':''} ${todasPagas?'tab-completo':''}" data-cartao-mes-tab="${mk}" title="${escapeHtml(mk)}">${label}</button>`;
-  }).join('');
-  return `
-  <div class="cartao-fatura-tabs" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px;">
-    ${abasHtml}
-    <button class="cartao-fatura-add" id="add-mes-cartao-btn" title="Cria o mês seguinte pra todos os cartões, copiando limite/fechamento/vencimento e zerando o valor">+ novo mês</button>
-    ${DATA.cartaoMeses.length > 1 ? `<button class="cartao-fatura-del" id="del-mes-cartao-btn" title="Excluir este mês de todos os cartões">excluir mês</button>` : ''}
-  </div>
-  <div class="emprestimos-grid">
-    ${chaves.map(k => cartaoCardHtml(k, DATA.cartoes[k])).join('')}
-  </div>
-  ${chaves.length===0 ? `<div class="empty-hint">Nenhum cartão cadastrado ainda.</div>` : ''}
-  <div style="margin-top:16px;">
-    <button id="add-cartao-btn" class="loan-add-btn">+ Novo cartão</button>
-  </div>`;
-}
-function attachCartoesEvents(){
-  const content = document.getElementById('content');
-  content.querySelectorAll('[data-cartao-mes-tab]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ currentCartaoMes = btn.dataset.cartaoMesTab; renderContent(); });
-  });
-  const addMesBtn = content.querySelector('#add-mes-cartao-btn');
-  if(addMesBtn) addMesBtn.addEventListener('click', addMesCartao);
-  const delMesBtn = content.querySelector('#del-mes-cartao-btn');
-  if(delMesBtn) delMesBtn.addEventListener('click', ()=>deleteMesCartao(currentCartaoMesKey()));
-
-  content.querySelectorAll('.loan-card[data-cartao]').forEach(card=>{
-    const key = card.dataset.cartao;
-    const cartao = DATA.cartoes[key];
-    const fat = cartao.faturas[currentCartaoMesKey()];
-    card.querySelector('.cartao-title-input').addEventListener('change', e=>{ cartao.titulo = e.target.value.trim() || 'Cartão'; save(); });
-    card.querySelector('.cartao-paga').addEventListener('change', e=>{ fat.paga = e.target.checked; save(); renderContent(); });
-    card.querySelector('.cartao-fatura-valor').addEventListener('change', e=>{ fat.valor = round2(parseValorBR(e.target.value)); save(); renderContent(); });
-    card.querySelector('.cartao-limite').addEventListener('change', e=>{ fat.limite = round2(parseValorBR(e.target.value)); save(); renderContent(); });
-    card.querySelector('.cartao-fechamento').addEventListener('change', e=>{ fat.diaFechamento = Math.min(31, Math.max(1, parseInt(e.target.value,10)||1)); save(); renderContent(); });
-    card.querySelector('.cartao-vencimento').addEventListener('change', e=>{ fat.diaVencimento = Math.min(31, Math.max(1, parseInt(e.target.value,10)||10)); save(); renderContent(); });
-  });
-  content.querySelectorAll('[data-cartao-move]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      moveCartao(btn.dataset.cartaoMove, btn.dataset.move);
-    });
-  });
-  content.querySelectorAll('[data-cartao-remove]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const key = btn.dataset.cartaoRemove;
-      const titulo = DATA.cartoes[key].titulo;
-      const digitado = window.prompt(`Isso vai excluir o cartão "${titulo}" e o histórico de faturas dele em TODOS os meses — não pode ser desfeito.\n\nPra confirmar, digite CARTÃO:`);
-      if(digitado === null) return;
-      if(digitado.trim().toUpperCase() !== 'CARTÃO'){
-        alert('Não confere — o cartão não foi excluído.');
-        return;
-      }
-      delete DATA.cartoes[key];
-      save(); renderContent();
-    });
-  });
-  const addBtn = content.querySelector('#add-cartao-btn');
-  if(addBtn) addBtn.addEventListener('click', criarNovoCartao);
-}
-
 // ============================= RESUMO ANUAL =============================
 function renderBarChart(items, chartId){
   const w = 700, h = 220, padding = 30;
