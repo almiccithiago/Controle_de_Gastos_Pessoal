@@ -644,7 +644,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-14.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-14.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1189,11 +1189,26 @@ function deleteMonth(monthKey){
   renderContent();
 }
 let pendingSaves = 0;
+// Se o usuário digitou algo num campo e fecha a aba/app sem clicar fora antes,
+// o navegador nunca dispara o evento de "mudança" daquele campo — e o valor
+// nem chega a entrar na fila de salvar. Aqui, ao detectar que a página está
+// sendo fechada ou minimizada, forçamos o campo em foco a perder o foco
+// (dispara o commit normal do valor) antes que seja tarde demais.
+function flushCampoEmFoco(){
+  const el = document.activeElement;
+  if(el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')){
+    el.blur();
+  }
+}
 window.addEventListener('beforeunload', e=>{
+  flushCampoEmFoco();
   if(pendingSaves > 0){
     e.preventDefault();
     e.returnValue = '';
   }
+});
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'hidden') flushCampoEmFoco();
 });
 
 function setSaveStatus(state){
@@ -1222,7 +1237,11 @@ async function save(){
     const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-app-password': currentPassword },
-      body: JSON.stringify(DATA)
+      body: JSON.stringify(DATA),
+      // keepalive garante que o navegador finalize o envio mesmo que a aba/app
+      // seja fechado logo em seguida (ex: usuário edita um campo e fecha rápido) —
+      // sem isso, o fetch era cancelado no meio e a edição se perdia silenciosamente.
+      keepalive: true
     });
     if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
     setSaveStatus('saved');
