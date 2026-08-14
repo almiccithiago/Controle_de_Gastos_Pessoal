@@ -2626,10 +2626,23 @@ function deleteMesCartao(mesKey){
   if(currentCartaoMes === mesKey) currentCartaoMes = DATA.cartaoMeses[0];
   save(); renderContent();
 }
+// Quando um mês de fatura ainda não existe pra um cartão, usa a
+// configuração (limite/fechamento/vencimento) de qualquer outra fatura já
+// existente do mesmo cartão como base — em vez de um padrão fixo, que fazia
+// o "vence dia" voltar pra 10 mesmo quando o cartão já usava outro dia.
+function baseFaturaCartaoPadrao(cartao){
+  const meses = DATA.cartaoMeses || [];
+  for(let i=meses.length-1; i>=0; i--){
+    const f = cartao.faturas[meses[i]];
+    if(f) return { limite:f.limite, diaFechamento:f.diaFechamento, diaVencimento:f.diaVencimento };
+  }
+  return { limite:0, diaFechamento:1, diaVencimento:10 };
+}
 function cartaoCardHtml(key, cartao){
   const mesAtual = currentCartaoMesKey();
   if(!cartao.faturas[mesAtual]){
-    cartao.faturas[mesAtual] = { valor:0, paga:false, limite:0, diaFechamento:1, diaVencimento:10 };
+    const base = baseFaturaCartaoPadrao(cartao);
+    cartao.faturas[mesAtual] = { valor:0, paga:false, limite:base.limite, diaFechamento:base.diaFechamento, diaVencimento:base.diaVencimento };
   }
   const fat = cartao.faturas[mesAtual];
   const limite = round2(Number(fat.limite)||0);
