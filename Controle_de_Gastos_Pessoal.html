@@ -644,7 +644,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-07.9</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-14.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -919,6 +919,32 @@ function migrateData(data){
           ? loan.parcelas[0].saldo : 0;
       }
       (loan.parcelas||[]).forEach(p=>{ delete p.saldo; });
+    });
+  }
+
+  // migração: faturas de cartão criadas automaticamente (antes desse fix) caíam
+  // sempre no padrão fixo fechamento=1/vencimento=10, ignorando o dia real já
+  // configurado em outros meses do mesmo cartão. Se a fatura bate exatamente
+  // nesse padrão "suspeito" e existe outro mês do mesmo cartão com valor
+  // diferente, assume que o outro mês é o correto e corrige aqui, uma única vez.
+  if(data.cartoes && data.cartaoMeses){
+    Object.values(data.cartoes).forEach(cartao=>{
+      if(!cartao.faturas) return;
+      data.cartaoMeses.forEach(mesAtual=>{
+        const fat = cartao.faturas[mesAtual];
+        if(!fat) return;
+        const pareceDefaultAntigo = Number(fat.diaFechamento) === 1 && Number(fat.diaVencimento) === 10;
+        if(!pareceDefaultAntigo) return;
+        for(const mk of data.cartaoMeses){
+          if(mk === mesAtual) continue;
+          const outro = cartao.faturas[mk];
+          if(outro && !(Number(outro.diaFechamento) === 1 && Number(outro.diaVencimento) === 10)){
+            fat.diaFechamento = outro.diaFechamento;
+            fat.diaVencimento = outro.diaVencimento;
+            break;
+          }
+        }
+      });
     });
   }
 
@@ -2638,6 +2664,9 @@ function baseFaturaCartaoPadrao(cartao){
   }
   return { limite:0, diaFechamento:1, diaVencimento:10 };
 }
+// Migração pontual: faturas que já foram salvas ANTES desse fix, quando o
+// mês era criado automaticamente com o padrão fixo (fechamento=1, vence=10)
+// em vez de puxar a configuração real do cartão. Ver correção em migrateData().
 function cartaoCardHtml(key, cartao){
   const mesAtual = currentCartaoMesKey();
   if(!cartao.faturas[mesAtual]){
