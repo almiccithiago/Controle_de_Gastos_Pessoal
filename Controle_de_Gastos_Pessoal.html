@@ -630,7 +630,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -846,6 +846,7 @@ function defaultData(){
 let DATA = null;
 let currentTab = null;
 let dataReady = false;
+let agostoClonadoNestaCarga = false; // migração pontual (14/08): true quando a aba Agosto/2026 acabou de ser clonada de Setembro/2026 nesta carga
 let currentPassword = '';
 let categoriaFiltro = ''; // '' = mostra todas as categorias; filtro é só visual, não altera dados
 const FILTRO_SEM_CATEGORIA = '__sem_categoria__'; // valor especial: filtra só os itens sem nenhuma categoria
@@ -941,6 +942,23 @@ function migrateData(data){
       data.monthOrder = data.monthOrder.map(m => m === nomeAntigo ? novoNome : m);
     }
   });
+
+  // migração pontual (14/08): cria a aba "Agosto/2026" clonando o conteúdo de
+  // "Setembro/2026" (mesma renda, mesmas contas e boxes), e insere ela logo
+  // antes de Setembro na ordem das abas. Só roda se Agosto ainda não existir —
+  // depois da primeira vez que isso salvar no servidor, nunca mais se repete,
+  // mesmo que o usuário depois edite ou apague itens de Agosto.
+  if(data.months && data.months["Setembro/2026"] && !data.months["Agosto/2026"]){
+    data.months["Agosto/2026"] = deepClone(data.months["Setembro/2026"]);
+    const idxSetembro = data.monthOrder.indexOf("Setembro/2026");
+    if(idxSetembro !== -1){
+      data.monthOrder.splice(idxSetembro, 0, "Agosto/2026");
+    } else {
+      data.monthOrder.unshift("Agosto/2026");
+    }
+    agostoClonadoNestaCarga = true;
+  }
+
 
   // labels editáveis das caixas (Recebimento Dia 18/08, títulos das seções)
   // — agora são POR MÊS, não mais um valor único global.
@@ -1181,6 +1199,10 @@ async function initApp(){
     dataReady = true;
     renderTabs();
     renderContent();
+    if(agostoClonadoNestaCarga){
+      agostoClonadoNestaCarga = false;
+      save();
+    }
     return { ok:true };
   }catch(e){
     console.error('Falha ao carregar dados do servidor', e);
