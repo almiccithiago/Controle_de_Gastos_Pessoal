@@ -630,7 +630,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-14.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -705,17 +705,19 @@ function defaultData(){
   return {
     months: {
       "Agosto/2026": {
-        recebimentos: { dia18: 0, dia08: 9900 },
-        dia18: [],
+        recebimentos: { dia18: 6600, dia08: 9900 },
+        dia18: [
+          i("cano banheiro",250), i("japonês - aniversário do pê",350), i("livro do mês",150),
+          i("mãe",300), i("pedro",650), i("plano de saúde",996.39), i("plano odonto",106.6),
+          i("revolut",474.92), i("TFIF",126.11)
+        ],
         dia08: [
-          i("água",61.4), i("energia",274.33), i("gás",50), i("imposto",1004.39),
-          i("INSS",178.31), i("IPTU",54.67), i("itaú - 03",264.08), i("júnior",350),
-          i("noh",3724), i("pedro",1100), i("TFIF",126.11), i("vacinas cachorros",220), i("vó",2000)
+          i("água",60), i("gás",50), i("energia",350), i("imposto",1004.39),
+          i("INSS",178.31), i("IPTU",54.67), i("itaú - 04",264.08), i("júnior",350), i("noh",3724), i("vó",6000)
         ],
         detalhamentos: [
-          { titulo:"NOH", refer:"detalha o item “noh”", items: [
-            i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500)
-          ]}
+          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
+          { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       },
       "Setembro/2026": {
@@ -2045,12 +2047,10 @@ function renderMonthView(monthKey){
   // dia08 entra sempre como primeiro bloco da coluna esquerda, junto com os
   // detalhamentos extras (ex: "a pagar"), em vez de ocupar uma linha inteira sozinho.
   const dia08Html = !oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : '';
-  const detsColA = detsComIdx.filter((o,pos)=> pos % 2 === 0);
-  const detsColB = detsComIdx.filter((o,pos)=> pos % 2 === 1);
   html += `
   <div class="detalhamentos-grid">
-    <div class="detalhamentos-col" data-col="0">${dia08Html}${detsColA.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
-    <div class="detalhamentos-col" data-col="1">${detsColB.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
+    <div class="detalhamentos-col" data-col="0">${detsComIdx.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
+    <div class="detalhamentos-col" data-col="1">${dia08Html}</div>
   </div>
 
   <div class="add-detail-row">
