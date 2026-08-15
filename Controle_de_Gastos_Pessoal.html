@@ -630,7 +630,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -847,6 +847,7 @@ let DATA = null;
 let currentTab = null;
 let dataReady = false;
 let agostoClonadoNestaCarga = false; // migração pontual (14/08): true quando a aba Agosto/2026 acabou de ser clonada de Setembro/2026 nesta carga
+let colunaPagarDia18CorrigidaNestaCarga = false; // migração pontual (15/08): true quando a coluna dos blocos de detalhamento acabou de ser corrigida nesta carga
 let currentPassword = '';
 let categoriaFiltro = ''; // '' = mostra todas as categorias; filtro é só visual, não altera dados
 const FILTRO_SEM_CATEGORIA = '__sem_categoria__'; // valor especial: filtra só os itens sem nenhuma categoria
@@ -943,7 +944,22 @@ function migrateData(data){
     }
   });
 
-  // migração pontual (14/08): cria a aba "Agosto/2026" clonando o conteúdo de
+  // migração pontual (15/08): redefine a coluna dos blocos de detalhamento —
+  // "a pagar - dia 18" vai pra coluna direita, e TODOS os outros blocos voltam
+  // pra coluna esquerda, inclusive na aba Modelo. Roda só uma vez (marcado em
+  // data.migColunaPagarDia18); depois disso as setas ◀/▶ do usuário passam a
+  // valer normalmente, sem serem desfeitas no próximo carregamento.
+  if(!data.migColunaPagarDia18){
+    const allObjsParaColuna = [...Object.values(data.months||{}), data.template].filter(Boolean);
+    allObjsParaColuna.forEach(m=>{
+      (m.detalhamentos||[]).forEach(d=>{
+        d.col = isPagarDia18Titulo(d.titulo) ? 1 : 0;
+      });
+    });
+    data.migColunaPagarDia18 = true;
+    colunaPagarDia18CorrigidaNestaCarga = true;
+  }
+
   // "Setembro/2026" (mesma renda, mesmas contas e boxes), e insere ela logo
   // antes de Setembro na ordem das abas. Só roda se Agosto ainda não existir —
   // depois da primeira vez que isso salvar no servidor, nunca mais se repete,
@@ -1011,8 +1027,13 @@ function migrateData(data){
       });
       m.dia18 = [];
     }
-    // qualquer bloco que ainda estivesse na coluna esquerda passa pra direita
-    (m.detalhamentos||[]).forEach(d=>{ d.col = 1; });
+    // Observação (15/08): a linha que existia aqui forçando `d.col = 1` em
+    // todo bloco, a cada carregamento, foi removida — ela já tinha cumprido
+    // o papel dela na migração da coluna "Dia 18" e depois ficou executando
+    // pra sempre, desfazendo qualquer coluna escolhida pelo usuário (inclusive
+    // via as setas ◀/▶) assim que a página recarregava. A coluna de cada bloco
+    // agora é definida pela migração "migColunaPagarDia18" (roda uma única vez)
+    // e, depois disso, só muda quando o usuário usa as setas.
     // o bloco "Dia 18" nunca mais fica oculto/restaurável — só existe o Dia 08 agora
     if(m.blocosOcultos) m.blocosOcultos.dia18 = false;
   });
@@ -1042,6 +1063,12 @@ function migrateData(data){
   return data;
 }
 function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
+// identifica o box "a pagar - dia 18" (e variações de escrita do título) pra
+// saber que ele sempre vai na coluna direita — usado tanto na migração de
+// coluna quanto no destaque visual (borda vermelha) do card.
+function isPagarDia18Titulo(titulo){
+  return /a\s*pagar.*dia\s*18/i.test(String(titulo||'').trim());
+}
 
 // Modal de 3 opções (substitui o confirm() nativo, que só tinha OK/Cancelar e confundia).
 // Retorna uma Promise que resolve para 'replicate' | 'only' | 'cancel'.
@@ -1199,8 +1226,9 @@ async function initApp(){
     dataReady = true;
     renderTabs();
     renderContent();
-    if(agostoClonadoNestaCarga){
+    if(agostoClonadoNestaCarga || colunaPagarDia18CorrigidaNestaCarga){
       agostoClonadoNestaCarga = false;
+      colunaPagarDia18CorrigidaNestaCarga = false;
       save();
     }
     return { ok:true };
@@ -1696,23 +1724,22 @@ function moveDetalhamento(m, dIdx, direction){
   const detalhamentos = m.detalhamentos;
   const detail = detalhamentos[dIdx];
   if(!detail) return;
+  const col = detColOf(detail);
 
-  // Os blocos são exibidos em 2 colunas alternando por posição (par/ímpar) na
-  // lista: índice par = coluna esquerda, índice ímpar = coluna direita, e o
-  // vizinho da mesma linha é sempre o índice adjacente (idx-1/idx+1).
-  const ultimo = detalhamentos.length - 1;
-  const emColunaEsquerda = dIdx % 2 === 0;
-  if(direction === 'up' && dIdx - 2 >= 0){
-    // "▲/▼" andam DENTRO da própria coluna, por isso pulam de 2 em 2.
-    [detalhamentos[dIdx], detalhamentos[dIdx-2]] = [detalhamentos[dIdx-2], detalhamentos[dIdx]];
-  } else if(direction === 'down' && dIdx + 2 <= ultimo){
-    [detalhamentos[dIdx], detalhamentos[dIdx+2]] = [detalhamentos[dIdx+2], detalhamentos[dIdx]];
-  } else if(direction === 'left' && !emColunaEsquerda && dIdx - 1 >= 0){
-    // "◀" troca com o vizinho da mesma linha na coluna da esquerda.
-    [detalhamentos[dIdx], detalhamentos[dIdx-1]] = [detalhamentos[dIdx-1], detalhamentos[dIdx]];
-  } else if(direction === 'right' && emColunaEsquerda && dIdx + 1 <= ultimo){
-    // "▶" troca com o vizinho da mesma linha na coluna da direita.
-    [detalhamentos[dIdx], detalhamentos[dIdx+1]] = [detalhamentos[dIdx+1], detalhamentos[dIdx]];
+  if(direction === 'up' || direction === 'down'){
+    // "▲/▼" trocam de posição com o vizinho mais próximo QUE ESTIVER NA MESMA
+    // COLUNA (não precisa mais estar exatamente 2 posições de distância).
+    const passo = direction === 'up' ? -1 : 1;
+    let j = dIdx + passo;
+    while(j >= 0 && j < detalhamentos.length && detColOf(detalhamentos[j]) !== col) j += passo;
+    if(j < 0 || j >= detalhamentos.length) return;
+    [detalhamentos[dIdx], detalhamentos[j]] = [detalhamentos[j], detalhamentos[dIdx]];
+  } else if(direction === 'left'){
+    if(col === 0) return; // já está na esquerda
+    detail.col = 0;
+  } else if(direction === 'right'){
+    if(col === 1) return; // já está na direita
+    detail.col = 1;
   } else {
     return;
   }
@@ -1727,7 +1754,7 @@ function detailSectionHtml(monthKey, detail, dIdx){
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
   const semItemNaCategoria = detail.items.length > 0 && itemsVisiveis.length === 0
     ? `<div class="empty-hint">Nenhum item de "${escapeHtml(nomeExibicaoFiltro())}" neste bloco.</div>` : '';
-  const isPagarDia18 = /a\s*pagar.*dia\s*18/i.test(String(detail.titulo).trim());
+  const isPagarDia18 = isPagarDia18Titulo(detail.titulo);
   const cardStyle = isPagarDia18 ? ' style="border-style:solid; border-color:var(--red); border-width:2px;"' : '';
   const tituloStyle = isPagarDia18 ? ' style="color:var(--red);"' : '';
   const pillBg = isPagarDia18 ? 'var(--red)' : 'var(--teal)';
@@ -2066,13 +2093,16 @@ function renderMonthView(monthKey){
 
   `;
 
-  // dia08 entra sempre como primeiro bloco da coluna esquerda, junto com os
-  // detalhamentos extras (ex: "a pagar"), em vez de ocupar uma linha inteira sozinho.
+  // Vencimentos (dia08) e os demais blocos ficam na coluna esquerda; só o box
+  // "a pagar - dia 18" fica na direita (d.col é a fonte da verdade, e as setas
+  // ◀/▶ do usuário mexem nela a partir de agora).
   const dia08Html = !oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : '';
+  const detsColEsquerda = detsComIdx.filter(o=>detColOf(o.d) === 0);
+  const detsColDireita = detsComIdx.filter(o=>detColOf(o.d) === 1);
   html += `
   <div class="detalhamentos-grid">
-    <div class="detalhamentos-col" data-col="0">${detsComIdx.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
-    <div class="detalhamentos-col" data-col="1">${dia08Html}</div>
+    <div class="detalhamentos-col" data-col="0">${dia08Html}${detsColEsquerda.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
+    <div class="detalhamentos-col" data-col="1">${detsColDireita.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
   </div>
 
   <div class="add-detail-row">
@@ -2434,7 +2464,7 @@ function attachMonthEvents(monthKey){
       alert(`Já existe um bloco chamado "${nomeLimpo}" neste mês.`);
       return;
     }
-    m.detalhamentos.push({ titulo: nomeLimpo, items: [], col: 1 });
+    m.detalhamentos.push({ titulo: nomeLimpo, items: [], col: isPagarDia18Titulo(nomeLimpo) ? 1 : 0 });
     save(); renderContent();
   });
 
