@@ -630,7 +630,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.5</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2073,7 +2073,6 @@ function renderMonthView(monthKey){
     </div>
   </div>
   ${!isTemplate ? resumoIaHtml(monthKey) : ''}
-  ${!isTemplate ? insightsHtml(monthKey) : ''}
   <div class="summary-grid">
     <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div>${compRenda}</div>
     <div class="summary-card accent-red"><div class="label">Total Despesas${sufixoFiltro}</div><div class="value">R$ ${fmt(despesasExibida)}</div>${tf ? '' : compDespesas}${tf ? '' : compMedia}</div>
