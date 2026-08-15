@@ -630,7 +630,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.3</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.4</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -848,6 +848,7 @@ let currentTab = null;
 let dataReady = false;
 let agostoClonadoNestaCarga = false; // migração pontual (14/08): true quando a aba Agosto/2026 acabou de ser clonada de Setembro/2026 nesta carga
 let colunaPagarDia18CorrigidaNestaCarga = false; // migração pontual (15/08): true quando a coluna dos blocos de detalhamento acabou de ser corrigida nesta carga
+let vencimentosAgostoOcultadoNestaCarga = false; // migração pontual (15/08): true quando o quadro Vencimentos (dia08) de Agosto/2026 acabou de ser ocultado nesta carga
 let currentPassword = '';
 let categoriaFiltro = ''; // '' = mostra todas as categorias; filtro é só visual, não altera dados
 const FILTRO_SEM_CATEGORIA = '__sem_categoria__'; // valor especial: filtra só os itens sem nenhuma categoria
@@ -974,6 +975,19 @@ function migrateData(data){
     }
     agostoClonadoNestaCarga = true;
   }
+
+  // migração pontual (15/08): esconde o quadro "Vencimentos" (dia 08) só na
+  // aba Agosto/2026, a pedido do usuário. Os itens e o recebimento continuam
+  // salvos por baixo — o quadro pode voltar a qualquer momento pelo botão
+  // "+ mostrar bloco Dia 08". Roda só uma vez (marcado em data.migOcultarVencimentosAgosto).
+  if(!data.migOcultarVencimentosAgosto && data.months && data.months["Agosto/2026"]){
+    const mesAgosto = data.months["Agosto/2026"];
+    if(!mesAgosto.blocosOcultos) mesAgosto.blocosOcultos = { dia18:false, dia08:false };
+    mesAgosto.blocosOcultos.dia08 = true;
+    data.migOcultarVencimentosAgosto = true;
+    vencimentosAgostoOcultadoNestaCarga = true;
+  }
+
 
 
   // labels editáveis das caixas (Recebimento Dia 18/08, títulos das seções)
@@ -1226,9 +1240,10 @@ async function initApp(){
     dataReady = true;
     renderTabs();
     renderContent();
-    if(agostoClonadoNestaCarga || colunaPagarDia18CorrigidaNestaCarga){
+    if(agostoClonadoNestaCarga || colunaPagarDia18CorrigidaNestaCarga || vencimentosAgostoOcultadoNestaCarga){
       agostoClonadoNestaCarga = false;
       colunaPagarDia18CorrigidaNestaCarga = false;
+      vencimentosAgostoOcultadoNestaCarga = false;
       save();
     }
     return { ok:true };
