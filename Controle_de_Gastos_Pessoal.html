@@ -323,6 +323,17 @@
   .block-remove:hover{ color:var(--red); opacity:1; }
   .detalhamentos-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px; align-items:start; }
   .detalhamentos-col{ display:flex; flex-direction:column; gap:16px; min-width:0; }
+  .col-total-card{
+    background: var(--text); border-radius:10px; padding:10px 14px;
+    display:flex; justify-content:space-between; align-items:center; min-width:0;
+  }
+  .col-total-label{ font-size:13px; color:#D3D1C7; }
+  .col-total-value{ font-size:15px; font-weight:600; color:#fff; }
+  @media (max-width:700px){
+    .col-total-card{ padding:8px 10px; }
+    .col-total-label{ font-size:11px; }
+    .col-total-value{ font-size:13px; }
+  }
 
   /* Dois blocos por linha também no celular (menos rolagem), com respiro reduzido
      nas bordas/paddings pra não ficar apertado, e categoria/valor mais compactos. */
@@ -630,7 +641,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-15.5</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-16.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2032,20 +2043,6 @@ function renderMonthView(monthKey){
   const bannerClass = t.saldo >= 0 ? 'pos' : 'neg';
   const oc = m.blocosOcultos;
 
-  // "Disponível por dia": divide o saldo do mês (que já desconta todas as
-  // despesas, pagas ou não) pelos dias que faltam no mês-calendário real.
-  // Só mostra na aba do mês mais recente, tratado como o mês corrente —
-  // não faz sentido calcular "dias restantes" pra um mês já fechado.
-  let disponivelPorDiaHtml = '';
-  if(!isTemplate && !tf && monthKey === DATA.monthOrder[DATA.monthOrder.length-1]){
-    const hoje = new Date();
-    const diasNoMesReal = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
-    const diasRestantesReal = Math.max(1, diasNoMesReal - hoje.getDate() + 1);
-    const disponivelPorDia = round2(saldoExibido / diasRestantesReal);
-    const corDisponivel = disponivelPorDia >= 0 ? 'accent-green' : 'accent-red';
-    disponivelPorDiaHtml = `<div class="summary-card ${corDisponivel}" title="Saldo do mês dividido pelos dias restantes no mês corrente"><div class="label">Disponível/dia</div><div class="value ${disponivelPorDia>=0?'positive':'negative'}">R$ ${fmt(disponivelPorDia)}</div><div class="comparativo" style="color:var(--muted);">${diasRestantesReal} dias restantes</div></div>`;
-  }
-
   let compRenda = '', compDespesas = '', compMedia = '';
   if(!isTemplate){
     const idx = DATA.monthOrder.indexOf(monthKey);
@@ -2079,7 +2076,6 @@ function renderMonthView(monthKey){
     <div class="summary-card ${saldoExibido>=0?'accent-green':'accent-red'}"><div class="label">Saldo do Mês${sufixoFiltro}</div><div class="value ${saldoClass}">R$ ${fmt(saldoExibido)}</div></div>
     <div class="summary-card accent-green"><div class="label">Pago${sufixoFiltro}</div><div class="value">R$ ${fmt(pagoExibido)}</div></div>
     <div class="summary-card accent-amber"><div class="label">Pendente${sufixoFiltro}</div><div class="value">R$ ${fmt(pendenteExibido)}</div></div>
-    ${disponivelPorDiaHtml}
   </div>
   ${filtroCategoriaBarHtml()}
 
@@ -2113,7 +2109,25 @@ function renderMonthView(monthKey){
   const dia08Html = !oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : '';
   const detsColEsquerda = detsComIdx.filter(o=>detColOf(o.d) === 0);
   const detsColDireita = detsComIdx.filter(o=>detColOf(o.d) === 1);
+
+  // Totais das colunas: soma o total de cada bloco visível na coluna (respeitando
+  // o filtro de categoria ativo, se houver), incluindo o bloco "Vencimentos - Dia 08"
+  // na coluna esquerda quando ele não estiver oculto.
+  const totalBlocoItems = (items) => {
+    const itemsVisiveis = categoriaFiltro ? items.filter(itemPassaNoFiltro) : items;
+    return itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0);
+  };
+  let totalColEsquerda = detsColEsquerda.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
+  if(!oc.dia08) totalColEsquerda += totalBlocoItems(m.dia08);
+  const totalColDireita = detsColDireita.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
+  const totaisColunasHtml = `
+  <div class="detalhamentos-grid" style="margin-bottom:0;">
+    <div class="col-total-card"><span class="col-total-label">Total coluna esquerda</span><span class="col-total-value">R$ ${fmt(round2(totalColEsquerda))}</span></div>
+    <div class="col-total-card"><span class="col-total-label">Total coluna direita</span><span class="col-total-value">R$ ${fmt(round2(totalColDireita))}</span></div>
+  </div>`;
+
   html += `
+  ${totaisColunasHtml}
   <div class="detalhamentos-grid">
     <div class="detalhamentos-col" data-col="0">${dia08Html}${detsColEsquerda.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
     <div class="detalhamentos-col" data-col="1">${detsColDireita.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
