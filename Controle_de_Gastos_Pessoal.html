@@ -357,15 +357,21 @@
   }
   .notes-card{
     background: var(--card); border-radius: var(--radius); border:1px solid var(--border);
-    padding:16px; margin-top:16px;
+    border-top: 4px solid var(--amber);
+    padding:16px; margin-top:20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
-  .notes-card h3{ font-size:14.5px; margin:0 0 8px 0; font-weight:700; color:var(--text); }
+  .notes-card h3{
+    font-size:14px; margin:0 0 10px 0; font-weight:700; color:var(--text);
+    text-transform:uppercase; letter-spacing:0.4px;
+  }
+  .notes-card h3::before{ content:"📝 "; }
   .notes-textarea{
-    width:100%; min-height:80px; resize:vertical; font-family:inherit; font-size:13.5px;
-    color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px 12px;
-    text-transform:none; line-height:1.5;
+    width:100%; min-height:90px; resize:vertical; font-family:inherit; font-size:14px;
+    color:var(--text); border:1px solid var(--border); border-radius:8px; padding:12px 14px;
+    text-transform:none; line-height:1.6; background:#fff;
   }
-  .notes-textarea:focus{ outline:1px solid var(--blue); }
+  .notes-textarea:focus{ outline:2px solid var(--blue); }
   .notes-textarea::placeholder{ color:var(--muted); }
   .add-detail-row{ margin-top:16px; text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .add-block-btn{
@@ -2091,6 +2097,11 @@ function renderMonthView(monthKey){
   </div>
   ${filtroCategoriaBarHtml()}
 
+  <div class="notes-card">
+    <h3>Anotações${isTemplate ? ' do modelo' : ''}</h3>
+    <textarea id="month-notes" class="notes-textarea" placeholder="Escreva uma observação sobre este mês...">${escapeHtml(m.anotacoes || '')}</textarea>
+  </div>
+
   ${(!isTemplate && !oc.dia08 && Number(m.recebimentos.dia08)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
 
   ${oc.dia08 ? `<div class="blocos-ocultos-bar">
@@ -2147,11 +2158,6 @@ function renderMonthView(monthKey){
 
   <div class="add-detail-row">
     <button id="add-detail-right-btn" class="add-block-btn">+ Inserir novo box</button>
-  </div>
-
-  <div class="notes-card">
-    <h3>Anotações${isTemplate ? ' do modelo' : ''}</h3>
-    <textarea id="month-notes" class="notes-textarea" placeholder="Escreva uma observação sobre este mês...">${escapeHtml(m.anotacoes || '')}</textarea>
   </div>
   `;
 
