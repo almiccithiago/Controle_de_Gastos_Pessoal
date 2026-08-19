@@ -355,6 +355,18 @@
     .block-remove{ padding:4px 4px; padding-left:8px; margin-left:3px; }
     .section-header .pill{ font-size:10px; padding:3px 7px; }
   }
+  .notes-card{
+    background: var(--card); border-radius: var(--radius); border:1px solid var(--border);
+    padding:16px; margin-top:16px;
+  }
+  .notes-card h3{ font-size:14.5px; margin:0 0 8px 0; font-weight:700; color:var(--text); }
+  .notes-textarea{
+    width:100%; min-height:80px; resize:vertical; font-family:inherit; font-size:13.5px;
+    color:var(--text); border:1px solid var(--border); border-radius:8px; padding:10px 12px;
+    text-transform:none; line-height:1.5;
+  }
+  .notes-textarea:focus{ outline:1px solid var(--blue); }
+  .notes-textarea::placeholder{ color:var(--muted); }
   .add-detail-row{ margin-top:16px; text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .add-block-btn{
     background: var(--purple); color:#fff; border:none; border-radius:10px; padding:11px 20px;
@@ -641,7 +653,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-16.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-19.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2136,6 +2148,11 @@ function renderMonthView(monthKey){
   <div class="add-detail-row">
     <button id="add-detail-right-btn" class="add-block-btn">+ Inserir novo box</button>
   </div>
+
+  <div class="notes-card">
+    <h3>Anotações${isTemplate ? ' do modelo' : ''}</h3>
+    <textarea id="month-notes" class="notes-textarea" placeholder="Escreva uma observação sobre este mês...">${escapeHtml(m.anotacoes || '')}</textarea>
+  </div>
   `;
 
   if(!isTemplate){
@@ -2273,6 +2290,16 @@ function attachMonthEvents(monthKey){
       save(); renderContent();
     });
   });
+
+  // anotações do mês (ou do Modelo) — salva ao sair do campo, sem re-renderizar
+  // pra não perder o foco/cursor do usuário no meio da digitação.
+  const notesEl = content.querySelector('#month-notes');
+  if(notesEl){
+    notesEl.addEventListener('change', e=>{
+      m.anotacoes = e.target.value;
+      save();
+    });
+  }
 
   // mover bloco de detalhamento (cima/baixo/esquerda/direita)
   content.querySelectorAll('.move-btn[data-detail-move]').forEach(btn=>{
