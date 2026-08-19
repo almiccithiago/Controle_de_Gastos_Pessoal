@@ -195,7 +195,7 @@
   }
   #delete-month-btn:hover{ background:var(--red); color:#fff; }
   .summary-grid{
-    display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom: 1cm;
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom: 0.5cm;
   }
   @media (max-width: 900px){ .summary-grid{ grid-template-columns: repeat(2,1fr);} }
   .insights-bar{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
@@ -209,7 +209,7 @@
   .insight-dismiss:hover{ opacity:1; }
   .resumo-ia-card{
     background:var(--card); border:1px solid var(--border); border-radius:12px;
-    padding:14px 16px; margin-bottom:1cm;
+    padding:14px 16px; margin-bottom:0.5cm;
   }
   .resumo-ia-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; }
   .resumo-ia-titulo{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; color:var(--text); }
@@ -254,7 +254,7 @@
   .value.negative{ color: var(--red); }
   .value.positive{ color: var(--green); }
 
-  .recebimentos-row{ display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom:1cm; }
+  .recebimentos-row{ display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom:0.5cm; }
   @media (max-width:700px){ .recebimentos-row{ grid-template-columns: 1fr; } }
   .receb-card{
     background: linear-gradient(135deg, var(--navy-soft), var(--navy));
@@ -358,7 +358,7 @@
   .notes-card{
     background: var(--card); border-radius: var(--radius); border:1px solid var(--border);
     border-top: 4px solid var(--amber);
-    padding:16px; margin-bottom:1cm;
+    padding:16px; margin-bottom:0.5cm;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
   .notes-card h3{
@@ -379,7 +379,7 @@
     font-size:13.5px; font-weight:700; cursor:pointer;
   }
   .add-block-btn:hover{ background:#6B4F32; }
-  .blocos-ocultos-bar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1cm; }
+  .blocos-ocultos-bar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:0.5cm; }
   .block-restore{
     background:#F0F2F5; border:1px dashed var(--border); color:var(--muted);
     border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:700; cursor:pointer;
@@ -457,7 +457,7 @@
   .cat-filtro-bar{
     display:flex; align-items:center; gap:10px; flex-wrap:wrap;
     background: var(--card); border:1px solid var(--border); border-radius:10px;
-    padding:10px 14px; margin-bottom:1cm;
+    padding:10px 14px; margin-bottom:0.5cm;
   }
   .cat-filtro-bar label{ font-size:12.5px; font-weight:700; color:var(--muted); font-family:'Poppins', sans-serif; }
   .cat-filtro-bar select{
@@ -620,7 +620,7 @@
   .modal-btn-primary{ background:var(--teal); color:#fff; }
   .modal-btn-primary:hover{ background:#2A5009; }
 
-  .annual-card{ margin-bottom:1cm; }
+  .annual-card{ margin-bottom:0.5cm; }
   .annual-chart-wrap{ margin: 6px 0 16px 0; }
   table.annual-table{ width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; }
   table.annual-table th{
@@ -636,7 +636,7 @@
 
   .receb-warning{
     background: rgba(245,179,1,0.12); color:#8A6A00; border:1px solid rgba(245,179,1,0.35);
-    padding:9px 14px; border-radius:10px; font-size:12.5px; font-weight:600; margin-bottom:1cm;
+    padding:9px 14px; border-radius:10px; font-size:12.5px; font-weight:600; margin-bottom:0.5cm;
   }
 
   .month-title-input{
@@ -2696,7 +2696,7 @@ function graficoCategoriaHtml(m){
       <span style="font-size:12.5px; font-weight:700;">${Math.round(f.valor/total*100)}%</span>
     </div>`).join('');
   return `
-  <div class="section-card" style="margin-bottom:1cm;">
+  <div class="section-card" style="margin-bottom:0.5cm;">
     <div style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px; margin-bottom:14px;">gasto por categoria</div>
     <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
       ${renderPizzaCategorias(fatias)}
@@ -2793,7 +2793,7 @@ function projecaoSaldoFuturoHtml(){
 
   return `
   ${alertaHtml}
-  <div class="section-card" style="margin-bottom:1cm;">
+  <div class="section-card" style="margin-bottom:0.5cm;">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;">
       <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">projeção de fluxo de caixa</span>
       <span style="font-size:10.5px; color:var(--muted);">baseado na média dos últimos ${ultimos.length} meses · ${MESES_PROJETADOS} meses à frente</span>
@@ -2921,7 +2921,7 @@ function moveMetaEconomia(idx, direction){
 function renderMetasEconomiaHtml(){
   const metas = DATA.metasEconomia || [];
   return `
-  <div class="section-card" style="margin-bottom:1cm;">
+  <div class="section-card" style="margin-bottom:0.5cm;">
     <div class="section-header">
       <h3>metas de economia</h3>
       <button id="add-meta-economia-btn" class="add-block-btn" style="padding:6px 14px; font-size:12px;">+ nova meta</button>
@@ -3013,7 +3013,7 @@ function relatorioEstiloHtml(){
   <style>
     .rel-doc{ font-family:'Poppins', Arial, Helvetica, sans-serif; color:#2A2E22; max-width:760px; margin:0 auto; }
     .rel-doc *{ box-sizing:border-box; }
-    .rel-header{ display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:1cm; border-bottom:3px solid #3B6D11; }
+    .rel-header{ display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:0.5cm; border-bottom:3px solid #3B6D11; }
     .rel-mark{ width:44px; height:44px; border-radius:11px; flex-shrink:0; background:linear-gradient(135deg,#3B6D11,#639922); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:15px; letter-spacing:0.4px; }
     .rel-header h1{ font-size:19px; margin:0; color:#1A230A; }
     .rel-header .rel-sub{ font-size:12px; color:#837F6E; margin-top:2px; }
