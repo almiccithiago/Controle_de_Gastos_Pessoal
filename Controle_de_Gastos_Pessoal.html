@@ -675,7 +675,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-20.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-20.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2946,6 +2946,27 @@ function metaEconomiaCardHtml(goal, idx){
   </div>`;
 }
 
+// Total acumulado da reserva de emergência — soma o valor guardado em CADA
+// mês real (DATA.monthOrder nunca inclui "Modelo", então o template nunca
+// entra nessa soma). Cresce sozinho conforme os meses guardam valor, e ao
+// criar um mês novo o total só aumenta se aquele mês novo também guardar algo.
+function totalReservaEmergenciaHtml(){
+  const total = round2(
+    DATA.monthOrder.reduce((s,key)=>{
+      const m = DATA.months[key];
+      return s + (m ? Number(m.reservaEmergencia||0) : 0);
+    }, 0)
+  );
+  return `
+  <div class="section-card" style="margin-bottom:0.5cm; border-top:4px solid var(--blue);">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">🛟 reserva de emergência · total acumulado</span>
+      <span style="font-size:20px; font-weight:800; color:var(--blue); font-family:'Poppins', sans-serif;">R$ ${fmt(total)}</span>
+    </div>
+    <div style="font-size:11px; color:var(--muted); margin-top:4px;">soma do valor guardado em cada mês (não inclui o Modelo)</div>
+  </div>`;
+}
+
 // Move uma meta de economia dentro da lista (cima/baixo/esquerda/direita).
 // Como os cartões ficam numa grade responsiva (o número de colunas muda
 // conforme a largura da tela), as 4 setas fazem a mesma coisa na prática —
@@ -3272,9 +3293,9 @@ function renderResumoAnualView(){
   });
 
   const anos = Object.keys(grupos).sort();
-  if(anos.length === 0) return renderMetasEconomiaHtml() + `<div class="empty-hint">Nenhum mês cadastrado ainda.</div>`;
+  if(anos.length === 0) return renderMetasEconomiaHtml() + totalReservaEmergenciaHtml() + `<div class="empty-hint">Nenhum mês cadastrado ainda.</div>`;
 
-  let html = renderMetasEconomiaHtml() + projecaoSaldoFuturoHtml();
+  let html = renderMetasEconomiaHtml() + totalReservaEmergenciaHtml() + projecaoSaldoFuturoHtml();
   anos.forEach(ano=>{
     const meses = grupos[ano];
     const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
