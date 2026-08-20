@@ -470,6 +470,22 @@
   }
   .cat-filtro-bar button:hover{ background:#E4E8EE; color:var(--text); }
 
+  .reserva-box{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background: var(--card); border:1px solid var(--border); border-radius:10px;
+    border-left: 4px solid var(--blue);
+    padding:10px 14px; margin-bottom:0.5cm;
+  }
+  .reserva-box label{ font-size:12.5px; font-weight:700; color:var(--muted); font-family:'Poppins', sans-serif; }
+  .reserva-box .reserva-input-wrap{ display:flex; align-items:center; gap:4px; }
+  .reserva-box input{
+    width:110px; text-align:right; font-size:13.5px; font-weight:700; color:var(--text);
+    border:1px solid var(--border); border-radius:8px; padding:6px 8px; font-family:'Poppins', sans-serif;
+    background:#fff;
+  }
+  .reserva-box input:focus{ outline:2px solid var(--blue); }
+  .reserva-box .reserva-hint{ font-size:11.5px; color:var(--muted); font-family:'Poppins', sans-serif; }
+
   .section-total{
     display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 4px 0 4px;
     border-top: 2px solid var(--border); font-weight:800; font-size:14px;
@@ -659,7 +675,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-19.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-20.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1656,14 +1672,15 @@ function monthTotals(m){
   );
   const despesasTotal = round2(dia18Total + dia08Total + detalhamentosLivresTotal);
   const rendaTotal = round2(Number(m.recebimentos.dia18||0) + Number(m.recebimentos.dia08||0));
-  const saldo = round2(rendaTotal - despesasTotal);
+  const reservaEmergencia = round2(Number(m.reservaEmergencia||0));
+  const saldo = round2(rendaTotal - despesasTotal - reservaEmergencia);
   const pagoDetalhamentosLivres = round2(
     (m.detalhamentos||[])
       .reduce((s,d)=>s + d.items.filter(x=>x.pago).reduce((s2,x)=>s2+Number(x.valor||0),0), 0)
   );
   const pago = round2([...m.dia18, ...m.dia08].filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0) + pagoDetalhamentosLivres);
   const pendente = round2(despesasTotal - pago);
-  return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente };
+  return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente, reservaEmergencia };
 }
 
 // Totais só da categoria filtrada — usado apenas pra exibir os cartões do topo
@@ -1678,6 +1695,22 @@ function monthTotalsFiltrados(m){
   const pago = round2(itens.filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0));
   const pendente = round2(despesasTotal - pago);
   return { despesasTotal, pago, pendente };
+}
+
+// Box de reserva de emergência — valor guardado NESTE mês. Entra direto no
+// cálculo do saldo (saldo = renda - despesas - reserva), então mexe em tudo
+// que usa monthTotals (banner, resumo anual, PDF, resumo IA).
+function reservaEmergenciaBoxHtml(m){
+  const valor = round2(Number(m.reservaEmergencia||0));
+  return `
+  <div class="reserva-box">
+    <label for="reserva-emergencia-input">🛟 Reserva de emergência guardada este mês:</label>
+    <div class="reserva-input-wrap">
+      <span class="rs-prefix">R$</span>
+      <input type="text" inputmode="decimal" id="reserva-emergencia-input" value="${valor.toFixed(2)}">
+    </div>
+    <span class="reserva-hint">esse valor é descontado do saldo do mês</span>
+  </div>`;
 }
 
 // Barra de filtro por categoria — filtra só a exibição (quais itens aparecem e
@@ -2055,7 +2088,7 @@ function renderMonthView(monthKey){
   const despesasExibida = tf ? tf.despesasTotal : t.despesasTotal;
   const pagoExibido = tf ? tf.pago : t.pago;
   const pendenteExibido = tf ? tf.pendente : t.pendente;
-  const saldoExibido = tf ? round2(t.rendaTotal - tf.despesasTotal) : t.saldo;
+  const saldoExibido = tf ? round2(t.rendaTotal - tf.despesasTotal - t.reservaEmergencia) : t.saldo;
   const sufixoFiltro = tf ? ` (${nomeExibicaoFiltro()})` : '';
   const saldoClass = saldoExibido >= 0 ? 'positive' : 'negative';
   const bannerClass = t.saldo >= 0 ? 'pos' : 'neg';
@@ -2096,6 +2129,7 @@ function renderMonthView(monthKey){
     <div class="summary-card accent-amber"><div class="label">Pendente${sufixoFiltro}</div><div class="value">R$ ${fmt(pendenteExibido)}</div></div>
   </div>
   ${filtroCategoriaBarHtml()}
+  ${reservaEmergenciaBoxHtml(m)}
 
   <div class="notes-card">
     <h3>Anotações${isTemplate ? ' do modelo' : ''}</h3>
@@ -2295,6 +2329,18 @@ function attachMonthEvents(monthKey){
       m.detalhamentos.splice(dIdx,1);
       save(); renderContent();
     });
+  });
+
+  // reserva de emergência do mês — mesmo padrão de validação do recebimento
+  const reservaEl = content.querySelector('#reserva-emergencia-input');
+  if(reservaEl) reservaEl.addEventListener('change', e=>{
+    const novoValor = parseValorBR(e.target.value);
+    if(isNaN(novoValor) || novoValor < 0){
+      alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 1000,00).');
+      e.target.value = round2(Number(m.reservaEmergencia||0)).toFixed(2);
+      return;
+    }
+    m.reservaEmergencia = round2(novoValor); save(); renderContent();
   });
 
   // anotações do mês (ou do Modelo) — salva ao sair do campo, sem re-renderizar
