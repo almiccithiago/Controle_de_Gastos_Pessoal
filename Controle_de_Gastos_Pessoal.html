@@ -27,32 +27,32 @@
 <title>Controle de Gastos Pessoal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy: #27340F;
-    --navy-deep: #1A230A;
-    --navy-soft: #3B4D19;
-    --teal: #3B6D11;
-    --blue: #639922;
-    --purple: #8A6A45;
-    --orange: #B5762E;
-    --pink: #A8607A;
-    --amber: #C68A2E;
-    --green: #3B6D11;
-    --red: #A3402D;
-    --bg: #FBF9F4;
-    --card: #FFFEFB;
-    --text: #2A2E22;
-    --muted: #837F6E;
-    --border: #E4DFD2;
+    --navy: #14161A;
+    --navy-deep: #0B0C0F;
+    --navy-soft: #1E2128;
+    --teal: #16A34A;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --orange: #F97316;
+    --pink: #DB2777;
+    --amber: #F59E0B;
+    --green: #16A34A;
+    --red: #DC2626;
+    --bg: #F5F6F8;
+    --card: #FFFFFF;
+    --text: #14161A;
+    --muted: #6B7280;
+    --border: #E5E7EB;
     --radius: 14px;
   }
   *{box-sizing:border-box; min-width:0;}
   html{ overflow-x:hidden; }
   html, body{ width:100%; margin:0; padding:0; }
   body{
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
     background: var(--bg);
     color: var(--text);
     -webkit-font-smoothing: antialiased;
@@ -102,7 +102,7 @@
     background: var(--teal); color:#fff; border:none; border-radius:8px;
     padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; flex-shrink:0;
   }
-  .history-restore-btn:hover{ background:#2A5009; }
+  .history-restore-btn:hover{ background:#128A3E; }
   .history-empty{ font-size:13px; color:var(--muted); padding:12px 0; }
   .save-status{
     font-size:11.5px; font-weight:700; padding:6px 10px; border-radius:8px; flex-shrink:0;
@@ -120,7 +120,7 @@
     box-shadow: 0 3px 10px rgba(59,109,17,0.4);
   }
   .brand-text h1{ font-size: 19px; margin:0; font-weight:700; letter-spacing:0.2px;}
-  .brand-text p{ font-size: 12px; margin:2px 0 0 0; color: #C9D6B0; }
+  .brand-text p{ font-size: 12px; margin:2px 0 0 0; color: #A8AEBB; }
   nav.tabs{
     display:flex; flex-wrap:nowrap; gap:4px; overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
     border-bottom: 1px solid rgba(255,255,255,0.12);
@@ -130,7 +130,7 @@
   }
   nav.tabs::-webkit-scrollbar{ display:none; }
   nav.tabs button{
-    background:transparent; border:none; color:#B7C49A;
+    background:transparent; border:none; color:#A8AEBB;
     padding: 10px 16px; font-size: 13.5px; font-weight:600; cursor:pointer;
     white-space:nowrap; border-bottom: 3px solid transparent;
     transition: all .15s ease;
@@ -142,7 +142,7 @@
   nav.tabs button#add-month-tab{
     color: var(--teal); font-weight:800; margin-left:4px;
   }
-  nav.tabs button#add-month-tab:hover{ color:#8FBF52; }
+  nav.tabs button#add-month-tab:hover{ color:#86EFAC; }
   nav.tabs button#delete-month-tab{
     color: #D9764A; font-weight:600; margin-left:2px;
   }
@@ -261,15 +261,15 @@
     color:#fff; border-radius: var(--radius); padding:18px 26px;
     display:flex; align-items:center; justify-content:space-between; gap:20px;
   }
-  .receb-card .rlabel{ font-size:14px; color:#B7C49A; font-weight:600; text-transform:lowercase;}
+  .receb-card .rlabel{ font-size:14px; color:#A8AEBB; font-weight:600; text-transform:lowercase;}
   .receb-card .rlabel-input{
-    font-size:14px; color:#B7C49A; font-weight:600; text-transform:lowercase;
+    font-size:14px; color:#A8AEBB; font-weight:600; text-transform:lowercase;
     border:none; background:transparent; font-family:inherit; padding:2px 2px;
     width:260px; max-width:60%; text-align:left; -webkit-appearance:none; appearance:none;
   }
   .receb-card .rlabel-input:focus{ outline:1px solid rgba(255,255,255,0.4); border-radius:4px; color:#fff; }
   .receb-amount{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
-  .receb-prefix{ font-size:15px; font-weight:700; color:#B7C49A; }
+  .receb-prefix{ font-size:15px; font-weight:700; color:#A8AEBB; }
   .receb-card input{
     background: rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
     color:#fff; font-size:20px; font-weight:700; border-radius:8px; padding:8px 14px;
@@ -277,7 +277,7 @@
   }
   .receb-card input:focus{ outline:2px solid var(--teal); }
   .receb-card.receb-zero{
-    background: linear-gradient(135deg, #D6555C, #B23037);
+    background: linear-gradient(135deg, #F87171, #DC2626);
     box-shadow: 0 4px 14px rgba(178,48,55,0.35);
   }
   .receb-card.receb-zero .rlabel{ color:#FFE1E2; }
@@ -395,7 +395,7 @@
   .item-row.paid{ background: #EEF0F3; }
   .item-row.paid .item-desc,
   .item-row.paid .item-valor,
-  .item-row.paid .rs-prefix{ color:#A6AEB9; opacity:0.6; }
+  .item-row.paid .rs-prefix{ color:#9CA3AF; opacity:0.6; }
   .item-row input[type=checkbox]{
     width:20px; height:20px; accent-color: var(--green); cursor:pointer; flex-shrink:0;
   }
@@ -446,7 +446,7 @@
   .cat-alimentacao{ background:#FDECEA; color:#B5442E; } /* vermelho */
   .cat-transporte{ background:#EAF2FD; color:#2E5FB5; }  /* azul */
   .cat-saude{ background:#EAFBEF; color:#2E8B57; }       /* verde */
-  .cat-moradia{ background:#FFF6E5; color:#B5762E; }     /* laranja/âmbar */
+  .cat-moradia{ background:#FFF6E5; color:#F97316; }     /* laranja/âmbar */
   .cat-lazer{ background:#F6EAFD; color:#8A45B5; }       /* roxo */
   .cat-vestuario{ background:#FDEAF3; color:#B5308A; }   /* magenta/rosa forte */
   .cat-educacao{ background:#E4F5F5; color:#1F8A8A; }    /* teal/ciano */
@@ -502,7 +502,7 @@
     background: var(--teal); color:#fff; border:none; border-radius:8px;
     padding: 6px 12px; font-size:13px; font-weight:700; cursor:pointer;
   }
-  .add-item-row button:hover{ background:#2A5009; }
+  .add-item-row button:hover{ background:#128A3E; }
   .meta-row{ display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11.5px; color:var(--muted); }
   .meta-row .meta-label{ font-weight:700; flex-shrink:0; }
   .meta-input{ width:80px; border:1px solid var(--border); border-radius:6px; padding:3px 6px; font-size:12px; }
@@ -515,7 +515,7 @@
     display:flex; justify-content:space-between; align-items:center;
     font-weight:700; font-size:14px;
   }
-  .saldo-banner.pos{ background: rgba(31,170,89,0.1); color: #157a3f; border:1px solid rgba(31,170,89,0.3); }
+  .saldo-banner.pos{ background: rgba(31,170,89,0.1); color: #15803D; border:1px solid rgba(31,170,89,0.3); }
   .saldo-banner.neg{ background: rgba(229,72,77,0.1); color: #b23337; border:1px solid rgba(229,72,77,0.3); }
 
   /* Emprestimos */
@@ -548,7 +548,7 @@
   table.loan-table td{ padding: 5px 4px; border-bottom:1px solid var(--border); vertical-align:middle;}
   .cell-currency{ display:inline-flex; align-items:center; gap:4px; width:100%; }
   table.loan-table tr.paid{ background:#EEF0F3; }
-  table.loan-table tr.paid td{ color:#A6AEB9; }
+  table.loan-table tr.paid td{ color:#9CA3AF; }
   table.loan-table th.nowrap{ white-space:nowrap; }
   table.loan-table .loan-parcela{ min-width:120px; }
   .loan-saldo{ font-weight:700 !important; }
@@ -596,7 +596,7 @@
     width:100%; background: var(--teal); color:#fff; border:none; border-radius:10px;
     padding:11px 14px; font-size:14.5px; font-weight:700; cursor:pointer;
   }
-  #lock-btn:hover{ background:#2A5009; }
+  #lock-btn:hover{ background:#128A3E; }
   .lock-error{
     display:none; color: var(--red); font-size:12.5px; margin-top:10px; font-weight:600;
   }
@@ -634,7 +634,7 @@
   .modal-btn-secondary{ background:#F0F2F5; color:var(--text); }
   .modal-btn-secondary:hover{ background:#E4E8EE; }
   .modal-btn-primary{ background:var(--teal); color:#fff; }
-  .modal-btn-primary:hover{ background:#2A5009; }
+  .modal-btn-primary:hover{ background:#128A3E; }
 
   .annual-card{ margin-bottom:0.5cm; }
   .annual-chart-wrap{ margin: 6px 0 16px 0; }
@@ -675,7 +675,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1384,14 +1384,14 @@ function classeCategoria(nome){
 // Mesmas cores usadas nas tags de categoria (ver CSS .cat-*), só que em hex —
 // usado pra desenhar o gráfico de pizza em SVG (que não lê classes CSS).
 const CATEGORIA_HEX = {
-  'Alimentação':'#B5442E', 'Transporte':'#2E5FB5', 'Saúde':'#2E8B57', 'Moradia':'#B5762E',
-  'Lazer':'#8A45B5', 'Vestuário':'#B5308A', 'Educação':'#1F8A8A', 'Outros':'#6B6B6B', '':'#837F6E'
+  'Alimentação':'#B5442E', 'Transporte':'#2E5FB5', 'Saúde':'#2E8B57', 'Moradia':'#F97316',
+  'Lazer':'#8A45B5', 'Vestuário':'#B5308A', 'Educação':'#1F8A8A', 'Outros':'#6B6B6B', '':'#6B7280'
 };
 function corCategoriaHex(nome){
   if(CATEGORIA_HEX[nome]) return CATEGORIA_HEX[nome];
   const idx = categoriasCustom().indexOf(nome);
   if(idx > -1) return PALETA_CUSTOM[idx % PALETA_CUSTOM.length].fg;
-  return '#837F6E';
+  return '#6B7280';
 }
 function estiloInlineCategoria(nome){
   if(!nome || CATEGORIA_CLASSES[nome]) return '';
@@ -2702,7 +2702,7 @@ function renderBarChart(items, chartId){
   });
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="220" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="${chartId}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#3B6D11"/><stop offset="100%" stop-color="#8FBF52"/>
+      <stop offset="0%" stop-color="#16A34A"/><stop offset="100%" stop-color="#86EFAC"/>
     </linearGradient></defs>
     <line x1="${padding}" y1="${h-40}" x2="${w-padding}" y2="${h-40}" stroke="#E4E8EE" stroke-width="1"/>
     ${bars}
@@ -2791,11 +2791,11 @@ function renderLinhaSaldoFuturo(pontos){
   const pontosSvg = coords.map(c=>`
     <circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="4" fill="${c.p.projetado?'var(--amber)':'var(--teal)'}"></circle>
     <text x="${c.x.toFixed(1)}" y="${(c.y-10).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="${c.p.projetado?'var(--amber)':'var(--navy)'}">${fmt(c.p.acumulado)}</text>
-    <text x="${c.x.toFixed(1)}" y="${h-16}" text-anchor="middle" font-size="10" fill="#837F6E">${escapeHtml(c.p.label)}${c.p.projetado?'*':''}</text>
+    <text x="${c.x.toFixed(1)}" y="${h-16}" text-anchor="middle" font-size="10" fill="#6B7280">${escapeHtml(c.p.label)}${c.p.projetado?'*':''}</text>
   `).join('');
 
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="190" xmlns="http://www.w3.org/2000/svg">
-    <line x1="${padding}" y1="${h-40}" x2="${w-padding}" y2="${h-40}" stroke="#E4DFD2" stroke-width="1"/>
+    <line x1="${padding}" y1="${h-40}" x2="${w-padding}" y2="${h-40}" stroke="#E5E7EB" stroke-width="1"/>
     <polyline points="${linhaReal}" fill="none" stroke="var(--teal)" stroke-width="2.5"/>
     <polyline points="${linhaProj}" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-dasharray="5,4"/>
     ${pontosSvg}
@@ -3084,34 +3084,34 @@ function attachMetasEconomiaEvents(){
 function relatorioEstiloHtml(){
   return `
   <style>
-    .rel-doc{ font-family:'Poppins', Arial, Helvetica, sans-serif; color:#2A2E22; max-width:760px; margin:0 auto; }
+    .rel-doc{ font-family:'Poppins', Arial, Helvetica, sans-serif; color:#14161A; max-width:760px; margin:0 auto; }
     .rel-doc *{ box-sizing:border-box; }
-    .rel-header{ display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:0.5cm; border-bottom:3px solid #3B6D11; }
-    .rel-mark{ width:44px; height:44px; border-radius:11px; flex-shrink:0; background:linear-gradient(135deg,#3B6D11,#639922); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:15px; letter-spacing:0.4px; }
-    .rel-header h1{ font-size:19px; margin:0; color:#1A230A; }
-    .rel-header .rel-sub{ font-size:12px; color:#837F6E; margin-top:2px; }
+    .rel-header{ display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:0.5cm; border-bottom:3px solid #16A34A; }
+    .rel-mark{ width:44px; height:44px; border-radius:11px; flex-shrink:0; background:linear-gradient(135deg,#16A34A,#2563EB); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:15px; letter-spacing:0.4px; }
+    .rel-header h1{ font-size:19px; margin:0; color:#0B0C0F; }
+    .rel-header .rel-sub{ font-size:12px; color:#6B7280; margin-top:2px; }
     .rel-stats{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
-    .rel-stat{ flex:1; min-width:110px; background:#FBF9F4; border:1px solid #E4DFD2; border-radius:10px; padding:10px 12px; border-top:3px solid #3B6D11; }
-    .rel-stat.saldo-pos{ border-top-color:#3B6D11; }
-    .rel-stat.saldo-neg{ border-top-color:#A3402D; }
-    .rel-stat .rel-stat-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; color:#837F6E; font-weight:700; }
-    .rel-stat .rel-stat-value{ font-size:15px; font-weight:800; margin-top:3px; color:#2A2E22; }
-    .rel-stat .rel-stat-value.neg{ color:#A3402D; }
-    .rel-stat .rel-stat-value.pos{ color:#157a3f; }
+    .rel-stat{ flex:1; min-width:110px; background:#F5F6F8; border:1px solid #E5E7EB; border-radius:10px; padding:10px 12px; border-top:3px solid #16A34A; }
+    .rel-stat.saldo-pos{ border-top-color:#16A34A; }
+    .rel-stat.saldo-neg{ border-top-color:#DC2626; }
+    .rel-stat .rel-stat-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; color:#6B7280; font-weight:700; }
+    .rel-stat .rel-stat-value{ font-size:15px; font-weight:800; margin-top:3px; color:#14161A; }
+    .rel-stat .rel-stat-value.neg{ color:#DC2626; }
+    .rel-stat .rel-stat-value.pos{ color:#15803D; }
     .rel-section{ margin-bottom:18px; break-inside:avoid; }
-    .rel-section-title{ display:flex; align-items:center; justify-content:space-between; background:#1A230A; color:#fff; padding:7px 12px; border-radius:8px 8px 0 0; font-size:12.5px; font-weight:700; text-transform:lowercase; }
+    .rel-section-title{ display:flex; align-items:center; justify-content:space-between; background:#0B0C0F; color:#fff; padding:7px 12px; border-radius:8px 8px 0 0; font-size:12.5px; font-weight:700; text-transform:lowercase; }
     .rel-section-title .rel-section-total{ font-family:'Poppins',sans-serif; font-weight:800; }
-    table.rel-table{ width:100%; border-collapse:collapse; font-size:11.5px; border:1px solid #E4DFD2; border-top:none; }
-    table.rel-table thead th{ text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:0.3px; color:#837F6E; padding:6px 10px; border-bottom:1px solid #E4DFD2; background:#FBF9F4; }
+    table.rel-table{ width:100%; border-collapse:collapse; font-size:11.5px; border:1px solid #E5E7EB; border-top:none; }
+    table.rel-table thead th{ text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:0.3px; color:#6B7280; padding:6px 10px; border-bottom:1px solid #E5E7EB; background:#F5F6F8; }
     table.rel-table td{ padding:6px 10px; border-bottom:1px solid #EFEBE0; }
     table.rel-table tbody tr:nth-child(even){ background:#FCFBF8; }
-    table.rel-table tbody tr.pago td{ color:#A6AEB9; }
-    table.rel-table tfoot td{ font-weight:800; border-top:2px solid #E4DFD2; border-bottom:none; background:#FBF9F4; }
+    table.rel-table tbody tr.pago td{ color:#9CA3AF; }
+    table.rel-table tfoot td{ font-weight:800; border-top:2px solid #E5E7EB; border-bottom:none; background:#F5F6F8; }
     .rel-cat-pill{ display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:99px; background:#EEF0F3; color:#6B6B6B; }
     .rel-status{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:99px; }
     .rel-status.pago{ background:#EAFBEF; color:#2E8B57; }
-    .rel-status.pendente{ background:#FFF6E5; color:#B5762E; }
-    .rel-footer{ margin-top:26px; padding-top:10px; border-top:1px solid #E4DFD2; font-size:10px; color:#A6AEB9; text-align:center; }
+    .rel-status.pendente{ background:#FFF6E5; color:#F97316; }
+    .rel-footer{ margin-top:26px; padding-top:10px; border-top:1px solid #E5E7EB; font-size:10px; color:#9CA3AF; text-align:center; }
   </style>`;
 }
 
@@ -3188,7 +3188,7 @@ function relatorioPaginaHtml(titulo, conteudoHtml){
 <title>${escapeHtml(titulo)}</title>
 <style>
   body{ margin:0; padding:28px 20px 40px; background:#f4f1ea; }
-  .rel-print-btn{ position:fixed; top:16px; right:16px; background:#3B6D11; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-family:'Poppins',Arial,sans-serif; font-weight:700; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,0.18); z-index:10; }
+  .rel-print-btn{ position:fixed; top:16px; right:16px; background:#16A34A; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-family:'Poppins',Arial,sans-serif; font-weight:700; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,0.18); z-index:10; }
   .rel-print-btn:hover{ background:#2f5a0d; }
   @media print{
     body{ background:#fff; padding:0; }
@@ -3202,14 +3202,14 @@ function relatorioPaginaHtml(titulo, conteudoHtml){
       print-color-adjust: exact !important;
       color-adjust: exact !important;
     }
-    .rel-section-title{ background:#1A230A !important; color:#fff !important; }
-    .rel-stat{ background:#FBF9F4 !important; }
+    .rel-section-title{ background:#0B0C0F !important; color:#fff !important; }
+    .rel-stat{ background:#F5F6F8 !important; }
     .rel-cat-pill{ background:#EEF0F3 !important; color:#6B6B6B !important; }
     .rel-status.pago{ background:#EAFBEF !important; color:#2E8B57 !important; }
-    .rel-status.pendente{ background:#FFF6E5 !important; color:#B5762E !important; }
+    .rel-status.pendente{ background:#FFF6E5 !important; color:#F97316 !important; }
     table.rel-table tbody tr:nth-child(even){ background:#FCFBF8 !important; }
-    table.rel-table tbody tr.pago td{ color:#A6AEB9 !important; }
-    table.rel-table tfoot td{ background:#FBF9F4 !important; }
+    table.rel-table tbody tr.pago td{ color:#9CA3AF !important; }
+    table.rel-table tfoot td{ background:#F5F6F8 !important; }
   }
 </style>
 </head>
@@ -3242,7 +3242,7 @@ function relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalReserva,
       <td style="text-align:right;">R$ ${fmt(x.t.rendaTotal)}</td>
       <td style="text-align:right;">R$ ${fmt(x.t.despesasTotal)}</td>
       <td style="text-align:right;">R$ ${fmt(x.t.reservaEmergencia)}</td>
-      <td style="text-align:right; font-weight:700; color:${x.t.saldo>=0?'#157a3f':'#A3402D'};">R$ ${fmt(x.t.saldo)}</td>
+      <td style="text-align:right; font-weight:700; color:${x.t.saldo>=0?'#15803D':'#DC2626'};">R$ ${fmt(x.t.saldo)}</td>
     </tr>`).join('');
   return `
   ${relatorioEstiloHtml()}
@@ -3264,7 +3264,7 @@ function relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalReserva,
           <td style="text-align:right;">R$ ${fmt(totalRenda)}</td>
           <td style="text-align:right;">R$ ${fmt(totalDespesas)}</td>
           <td style="text-align:right;">R$ ${fmt(totalReserva)}</td>
-          <td style="text-align:right; color:${totalSaldo>=0?'#157a3f':'#A3402D'};">R$ ${fmt(totalSaldo)}</td>
+          <td style="text-align:right; color:${totalSaldo>=0?'#15803D':'#DC2626'};">R$ ${fmt(totalSaldo)}</td>
         </tr></tfoot>
       </table>
     </div>
