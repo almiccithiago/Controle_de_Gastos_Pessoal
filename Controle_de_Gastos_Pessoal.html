@@ -675,7 +675,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-20.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1010,7 +1010,7 @@ function migrateData(data){
   // antes de Setembro na ordem das abas. Só roda se Agosto ainda não existir —
   // depois da primeira vez que isso salvar no servidor, nunca mais se repete,
   // mesmo que o usuário depois edite ou apague itens de Agosto.
-  if(data.months && data.months["Setembro/2026"] && !data.months["Agosto/2026"]){
+  if(!data.migAgostoClonado && data.months && data.months["Setembro/2026"] && !data.months["Agosto/2026"]){
     data.months["Agosto/2026"] = deepClone(data.months["Setembro/2026"]);
     const idxSetembro = data.monthOrder.indexOf("Setembro/2026");
     if(idxSetembro !== -1){
@@ -1018,7 +1018,13 @@ function migrateData(data){
     } else {
       data.monthOrder.unshift("Agosto/2026");
     }
+    data.migAgostoClonado = true;
     agostoClonadoNestaCarga = true;
+  }
+  // marca a migração como concluída mesmo se Agosto já existia (ou o usuário já a excluiu antes desta correção),
+  // pra garantir que ela nunca mais rode e recrie a aba depois de excluída
+  if(!data.migAgostoClonado){
+    data.migAgostoClonado = true;
   }
 
   // migração pontual (15/08): esconde o quadro "Vencimentos" (dia 08) só na
