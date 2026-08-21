@@ -675,7 +675,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.5</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2027,9 +2027,16 @@ function montarPayloadResumoIA(monthKey){
     pct: g.valorAlvo>0 ? round2((Number(g.valorAtual)||0)/Number(g.valorAlvo)*100) : 0,
     streak: calcularStreakMeta(g)
   }));
+  // reserva de emergência: sempre entra no payload, mesmo quando é zero — assim a leitura
+  // do mês nunca deixa de considerar quanto foi guardado (ou que nada foi guardado) neste mês,
+  // além do total já acumulado em todos os meses até aqui.
+  const reservaAcumulada = round2(
+    Object.values(DATA.months||{}).reduce((s,mm)=> s + Number(mm.reservaEmergencia||0), 0)
+  );
   return {
     mes: monthKey,
     rendaTotal: t.rendaTotal, despesasTotal: t.despesasTotal, saldo: t.saldo,
+    reservaEmergenciaMes: t.reservaEmergencia, reservaEmergenciaAcumulada: reservaAcumulada,
     categorias, metas
   };
 }
