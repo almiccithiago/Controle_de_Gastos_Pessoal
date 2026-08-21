@@ -675,7 +675,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -3235,12 +3235,13 @@ function exportarRelatorioMes(monthKey){
   abrirRelatorioEmNovaAba('Relatório de ' + monthKey, relatorioMesHtml(monthKey));
 }
 
-function relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalSaldo){
+function relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalReserva, totalSaldo){
   const linhas = meses.map(x=>`
     <tr>
       <td>${escapeHtml(x.mes)}</td>
       <td style="text-align:right;">R$ ${fmt(x.t.rendaTotal)}</td>
       <td style="text-align:right;">R$ ${fmt(x.t.despesasTotal)}</td>
+      <td style="text-align:right;">R$ ${fmt(x.t.reservaEmergencia)}</td>
       <td style="text-align:right; font-weight:700; color:${x.t.saldo>=0?'#157a3f':'#A3402D'};">R$ ${fmt(x.t.saldo)}</td>
     </tr>`).join('');
   return `
@@ -3250,17 +3251,19 @@ function relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalSaldo){
     <div class="rel-stats">
       <div class="rel-stat"><div class="rel-stat-label">renda total no ano</div><div class="rel-stat-value">R$ ${fmt(totalRenda)}</div></div>
       <div class="rel-stat"><div class="rel-stat-label">despesas no ano</div><div class="rel-stat-value">R$ ${fmt(totalDespesas)}</div></div>
+      <div class="rel-stat"><div class="rel-stat-label">reserva de emergência no ano</div><div class="rel-stat-value">R$ ${fmt(totalReserva)}</div></div>
       <div class="rel-stat ${totalSaldo>=0?'saldo-pos':'saldo-neg'}"><div class="rel-stat-label">saldo do ano</div><div class="rel-stat-value ${totalSaldo>=0?'pos':'neg'}">R$ ${fmt(totalSaldo)}</div></div>
     </div>
     <div class="rel-section">
       <div class="rel-section-title"><span>mês a mês</span><span class="rel-section-total">${escapeHtml(ano)}</span></div>
       <table class="rel-table">
-        <thead><tr><th>mês</th><th style="text-align:right;">renda</th><th style="text-align:right;">despesas</th><th style="text-align:right;">saldo</th></tr></thead>
+        <thead><tr><th>mês</th><th style="text-align:right;">renda</th><th style="text-align:right;">despesas</th><th style="text-align:right;">reserva emergência</th><th style="text-align:right;">saldo</th></tr></thead>
         <tbody>${linhas}</tbody>
         <tfoot><tr>
           <td>total</td>
           <td style="text-align:right;">R$ ${fmt(totalRenda)}</td>
           <td style="text-align:right;">R$ ${fmt(totalDespesas)}</td>
+          <td style="text-align:right;">R$ ${fmt(totalReserva)}</td>
           <td style="text-align:right; color:${totalSaldo>=0?'#157a3f':'#A3402D'};">R$ ${fmt(totalSaldo)}</td>
         </tr></tfoot>
       </table>
@@ -3281,8 +3284,9 @@ function exportarRelatorioAnual(ano){
     .filter(Boolean);
   const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
   const totalDespesas = round2(meses.reduce((s,x)=>s+x.t.despesasTotal,0));
-  const totalSaldo = round2(totalRenda - totalDespesas);
-  abrirRelatorioEmNovaAba('Resumo anual · ' + ano, relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalSaldo));
+  const totalReserva = round2(meses.reduce((s,x)=>s+x.t.reservaEmergencia,0));
+  const totalSaldo = round2(totalRenda - totalDespesas - totalReserva);
+  abrirRelatorioEmNovaAba('Resumo anual · ' + ano, relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalReserva, totalSaldo));
 }
 
 function renderResumoAnualView(){
@@ -3306,13 +3310,15 @@ function renderResumoAnualView(){
     const meses = grupos[ano];
     const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
     const totalDespesas = round2(meses.reduce((s,x)=>s+x.t.despesasTotal,0));
-    const totalSaldo = round2(totalRenda - totalDespesas);
+    const totalReserva = round2(meses.reduce((s,x)=>s+x.t.reservaEmergencia,0));
+    const totalSaldo = round2(totalRenda - totalDespesas - totalReserva);
 
     const rows = meses.map(x=>`
       <tr>
         <td>${escapeHtml(x.mes)}</td>
         <td class="num">R$ ${fmt(x.t.rendaTotal)}</td>
         <td class="num">R$ ${fmt(x.t.despesasTotal)}</td>
+        <td class="num">R$ ${fmt(x.t.reservaEmergencia)}</td>
         <td class="num ${x.t.saldo>=0?'num-positive':'num-negative'}">R$ ${fmt(x.t.saldo)}</td>
       </tr>`).join('');
 
@@ -3326,12 +3332,13 @@ function renderResumoAnualView(){
       </div>
       <div class="annual-chart-wrap">${chart}</div>
       <table class="annual-table">
-        <thead><tr><th>mês</th><th class="num">renda</th><th class="num">despesas</th><th class="num">saldo</th></tr></thead>
+        <thead><tr><th>mês</th><th class="num">renda</th><th class="num">despesas</th><th class="num">reserva emergência</th><th class="num">saldo</th></tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr>
           <td>total</td>
           <td class="num">R$ ${fmt(totalRenda)}</td>
           <td class="num">R$ ${fmt(totalDespesas)}</td>
+          <td class="num">R$ ${fmt(totalReserva)}</td>
           <td class="num ${totalSaldo>=0?'num-positive':'num-negative'}">R$ ${fmt(totalSaldo)}</td>
         </tr></tfoot>
       </table>
