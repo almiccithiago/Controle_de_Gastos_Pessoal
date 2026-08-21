@@ -675,7 +675,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.3</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.4</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2808,21 +2808,22 @@ function projecaoSaldoFuturoHtml(){
 
   let acumulado = 0;
   const pontos = ordenados.map(o=>{
-    const t = monthTotals(DATA.months[o.key]);
-    acumulado = round2(acumulado + t.saldo);
-    return { label: o.key.split('/')[0].slice(0,3)+'/'+String(o.ano).slice(-2), acumulado, saldoMes: t.saldo, idx:o.idx, ano:o.ano };
+    const m = DATA.months[o.key];
+    const reservaMes = round2(Number(m.reservaEmergencia||0));
+    acumulado = round2(acumulado + reservaMes);
+    return { label: o.key.split('/')[0].slice(0,3)+'/'+String(o.ano).slice(-2), acumulado, reservaMes, idx:o.idx, ano:o.ano };
   });
 
   const ultimos = pontos.slice(-3);
-  const mediaSaldo = round2(ultimos.reduce((s,p)=>s+p.saldoMes,0) / ultimos.length);
+  const mediaReserva = round2(ultimos.reduce((s,p)=>s+p.reservaMes,0) / ultimos.length);
 
   let idx = pontos[pontos.length-1].idx, ano = pontos[pontos.length-1].ano;
   let acumProj = pontos[pontos.length-1].acumulado;
   const projPontos = [];
-  const MESES_PROJETADOS = 6; // fluxo de caixa: olha 6 meses à frente, não só 2
+  const MESES_PROJETADOS = 6; // projeção da reserva: olha 6 meses à frente
   for(let i=0;i<MESES_PROJETADOS;i++){
     idx++; if(idx>11){ idx=0; ano++; }
-    acumProj = round2(acumProj + mediaSaldo);
+    acumProj = round2(acumProj + mediaReserva);
     projPontos.push({ label: NOMES_MESES[idx].slice(0,3)+'/'+String(ano).slice(-2), acumulado: acumProj, projetado:true });
   }
 
@@ -2830,32 +2831,30 @@ function projecaoSaldoFuturoHtml(){
   const todosPontos = [...reaisVisiveis, ...projPontos];
   const grafico = renderLinhaSaldoFuturo(todosPontos);
 
-  // Alerta: primeiro mês (real já lançado ou projetado) em que o saldo ACUMULADO fica negativo —
-  // isso é o "fluxo de caixa" de verdade: mostra quando o dinheiro acaba, não só o saldo isolado do mês.
-  const primeiroNegativo = todosPontos.find(p=>p.acumulado < 0);
-  const alertaHtml = primeiroNegativo
+  // Alerta: se a média guardada nos últimos meses for zero (ou o usuário parou de guardar),
+  // avisa que a reserva não vai crescer no ritmo atual. Caso contrário, mostra a projeção final.
+  const alertaHtml = mediaReserva <= 0
     ? `<div class="receb-warning" style="margin-bottom:14px;">
-        ⚠️ no ritmo atual (média dos últimos ${ultimos.length} meses), seu saldo acumulado
-        ${primeiroNegativo.projetado ? 'fica' : 'ficou'} negativo em
-        <b>${escapeHtml(primeiroNegativo.label)}</b> (R$ ${fmt(primeiroNegativo.acumulado)}).
+        ⚠️ na média dos últimos ${ultimos.length} meses, você não guardou nada na reserva de emergência —
+        no ritmo atual, ela não deve crescer nos próximos ${MESES_PROJETADOS} meses.
       </div>`
     : `<div class="saldo-banner pos" style="margin-bottom:14px; padding:10px 16px; font-size:12.5px;">
-        ✓ no ritmo atual, seu saldo acumulado se mantém positivo nos próximos ${MESES_PROJETADOS} meses projetados.
+        ✓ no ritmo atual, sua reserva de emergência deve chegar a R$ ${fmt(acumProj)} em ${MESES_PROJETADOS} meses.
       </div>`;
 
   return `
   ${alertaHtml}
   <div class="section-card" style="margin-bottom:0.5cm;">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;">
-      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">projeção de fluxo de caixa</span>
+      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">projeção da reserva de emergência</span>
       <span style="font-size:10.5px; color:var(--muted);">baseado na média dos últimos ${ultimos.length} meses · ${MESES_PROJETADOS} meses à frente</span>
     </div>
     ${grafico}
     <div style="display:flex; align-items:center; gap:14px; margin-top:6px; font-size:11px; color:var(--muted);">
-      <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px;height:10px;border-radius:99px;background:var(--teal);display:inline-block;"></span>saldo realizado (acumulado)</span>
+      <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px;height:10px;border-radius:99px;background:var(--teal);display:inline-block;"></span>reserva acumulada</span>
       <span style="display:flex; align-items:center; gap:4px;"><span style="width:10px;height:10px;border-radius:99px;background:var(--amber);display:inline-block;"></span>projeção</span>
     </div>
-    <div style="margin-top:10px; font-size:11px; color:var(--muted); font-style:italic;">acumulado começando em ${escapeHtml(ordenados[0].key)} · estimativa com base no saldo médio mensal de R$ ${fmt(mediaSaldo)} nos últimos ${ultimos.length} meses lançados. Não considera parcelas de empréstimo/obrigações ainda não lançadas como item de algum mês.</div>
+    <div style="margin-top:10px; font-size:11px; color:var(--muted); font-style:italic;">acumulado começando em ${escapeHtml(ordenados[0].key)} · estimativa com base no valor médio guardado de R$ ${fmt(mediaReserva)} nos últimos ${ultimos.length} meses lançados.</div>
   </div>`;
 }
 
