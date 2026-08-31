@@ -254,26 +254,33 @@
   .value.negative{ color: var(--red); }
   .value.positive{ color: var(--green); }
 
-  .recebimentos-row{ display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom:0.5cm; }
+  .recebimentos-row{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-bottom:0.5cm; }
   @media (max-width:700px){ .recebimentos-row{ grid-template-columns: 1fr; } }
+  .receb-total-card{
+    background: linear-gradient(135deg, var(--navy-soft), var(--navy));
+    color:#fff; border-radius: var(--radius); padding:14px 26px;
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5cm;
+  }
+  .receb-total-card .label{ font-size:14px; color:#A8AEBB; font-weight:600; }
+  .receb-total-card .value{ font-size:20px; font-weight:700; color:#fff; }
   .receb-card{
     background: linear-gradient(135deg, var(--navy-soft), var(--navy));
     color:#fff; border-radius: var(--radius); padding:18px 26px;
-    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    display:flex; flex-direction:column; align-items:flex-start; gap:10px;
   }
   .receb-card .rlabel{ font-size:14px; color:#A8AEBB; font-weight:600; text-transform:lowercase;}
   .receb-card .rlabel-input{
     font-size:14px; color:#A8AEBB; font-weight:600; text-transform:lowercase;
     border:none; background:transparent; font-family:inherit; padding:2px 2px;
-    width:260px; max-width:60%; text-align:left; -webkit-appearance:none; appearance:none;
+    width:100%; text-align:left; -webkit-appearance:none; appearance:none;
   }
   .receb-card .rlabel-input:focus{ outline:1px solid rgba(255,255,255,0.4); border-radius:4px; color:#fff; }
-  .receb-amount{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .receb-amount{ display:flex; align-items:center; gap:8px; flex-shrink:0; width:100%; }
   .receb-prefix{ font-size:15px; font-weight:700; color:#A8AEBB; }
   .receb-card input{
     background: rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
     color:#fff; font-size:20px; font-weight:700; border-radius:8px; padding:8px 14px;
-    width:170px; text-align:right;
+    width:100%; text-align:right;
   }
   .receb-card input:focus{ outline:2px solid var(--teal); }
   .receb-card.receb-zero{
@@ -1046,6 +1053,9 @@ function migrateData(data){
   const labelsPadrao = {
     recebDia18: "Recebimento · Dia 18",
     recebDia08: "Recebimento · Dia 08",
+    recebThiDia08: "Recebimento Thi · Dia 08",
+    recebPeDia08: "Recebimento Pe · Dia 08",
+    recebThiDia18: "Recebimento Thi · Dia 18",
     secaoDia18: "DIA 18 · Vencimentos",
     secaoDia08: "DIA 08 · Vencimentos",
   };
@@ -1078,6 +1088,7 @@ function migrateData(data){
       m.recebimentos.dia08 = round2(Number(m.recebimentos.dia08||0) + Number(m.recebimentos.dia18||0));
       m.recebimentos.dia18 = 0;
     }
+
     // integra os itens do dia 18 no dia 08 (soma o valor se já existir uma conta com o mesmo nome)
     if(m.dia18.length){
       m.dia18.forEach(item=>{
@@ -1101,6 +1112,25 @@ function migrateData(data){
     // e, depois disso, só muda quando o usuário usa as setas.
     // o bloco "Dia 18" nunca mais fica oculto/restaurável — só existe o Dia 08 agora
     if(m.blocosOcultos) m.blocosOcultos.dia18 = false;
+  });
+
+  // migração: recebimento do dia 08 dividido em 3 caixas editáveis (Thi Dia 08,
+  // Pe Dia 08, Thi Dia 18), que somadas formam o total de recebimento do mês.
+  // Roda uma única vez, definindo os valores iniciais pedidos.
+  if(!data.migReceb3Caixas){
+    allMonthObjs.forEach(m=>{
+      if(!m.recebimentos) m.recebimentos = {};
+      m.recebimentos.thiDia08 = 9900;
+      m.recebimentos.peDia08 = 2500;
+      m.recebimentos.thiDia18 = 6600;
+    });
+    data.migReceb3Caixas = true;
+  }
+  allMonthObjs.forEach(m=>{
+    if(!m.recebimentos) m.recebimentos = {};
+    if(typeof m.recebimentos.thiDia08 !== 'number') m.recebimentos.thiDia08 = 0;
+    if(typeof m.recebimentos.peDia08 !== 'number') m.recebimentos.peDia08 = 0;
+    if(typeof m.recebimentos.thiDia18 !== 'number') m.recebimentos.thiDia18 = 0;
   });
 
   // migração: bloco "REVOLUT" removido de vez — inclusive do Modelo, pra não voltar em meses novos
@@ -1677,7 +1707,7 @@ function monthTotals(m){
       .reduce((s,d)=>s + d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0)
   );
   const despesasTotal = round2(dia18Total + dia08Total + detalhamentosLivresTotal);
-  const rendaTotal = round2(Number(m.recebimentos.dia18||0) + Number(m.recebimentos.dia08||0));
+  const rendaTotal = round2(Number(m.recebimentos.thiDia08||0) + Number(m.recebimentos.peDia08||0) + Number(m.recebimentos.thiDia18||0));
   const reservaEmergencia = round2(Number(m.reservaEmergencia||0));
   const saldo = round2(rendaTotal - despesasTotal - reservaEmergencia);
   const pagoDetalhamentosLivres = round2(
@@ -2149,7 +2179,7 @@ function renderMonthView(monthKey){
     <textarea id="month-notes" class="notes-textarea" placeholder="Escreva uma observação sobre este mês...">${escapeHtml(m.anotacoes || '')}</textarea>
   </div>
 
-  ${(!isTemplate && !oc.dia08 && Number(m.recebimentos.dia08)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
+  ${(!isTemplate && !oc.dia08 && Number(t.rendaTotal)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
 
   ${oc.dia08 ? `<div class="blocos-ocultos-bar">
     <button class="block-restore" data-restore="dia08">+ mostrar bloco Dia 08</button>
@@ -2162,14 +2192,32 @@ function renderMonthView(monthKey){
 
   html += `
   <div class="recebimentos-row">
-    ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.dia08)===0 ? 'receb-zero' : ''}">
-      <input type="text" class="rlabel-input" data-label-key="recebDia08" value="${escapeHtml(m.labels.recebDia08)}">
+    ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.thiDia08)===0 ? 'receb-zero' : ''}">
+      <input type="text" class="rlabel-input" data-label-key="recebThiDia08" value="${escapeHtml(m.labels.recebThiDia08)}">
       <div class="receb-amount">
         <span class="receb-prefix">R$</span>
-        <input type="text" inputmode="decimal" id="receb-dia08" value="${round2(m.recebimentos.dia08).toFixed(2)}">
+        <input type="text" inputmode="decimal" id="receb-thidia08" value="${round2(m.recebimentos.thiDia08).toFixed(2)}">
+      </div>
+    </div>` : ''}
+    ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.peDia08)===0 ? 'receb-zero' : ''}">
+      <input type="text" class="rlabel-input" data-label-key="recebPeDia08" value="${escapeHtml(m.labels.recebPeDia08)}">
+      <div class="receb-amount">
+        <span class="receb-prefix">R$</span>
+        <input type="text" inputmode="decimal" id="receb-pedia08" value="${round2(m.recebimentos.peDia08).toFixed(2)}">
+      </div>
+    </div>` : ''}
+    ${!oc.dia08 ? `<div class="receb-card ${Number(m.recebimentos.thiDia18)===0 ? 'receb-zero' : ''}">
+      <input type="text" class="rlabel-input" data-label-key="recebThiDia18" value="${escapeHtml(m.labels.recebThiDia18)}">
+      <div class="receb-amount">
+        <span class="receb-prefix">R$</span>
+        <input type="text" inputmode="decimal" id="receb-thidia18" value="${round2(m.recebimentos.thiDia18).toFixed(2)}">
       </div>
     </div>` : ''}
   </div>
+  ${!oc.dia08 ? `<div class="receb-total-card">
+    <span class="label">Total recebido</span>
+    <span class="value">R$ ${fmt(t.rendaTotal)}</span>
+  </div>` : ''}
 
   `;
 
@@ -2283,15 +2331,37 @@ function attachMonthEvents(monthKey){
     });
   }
 
-  const receb08El = content.querySelector('#receb-dia08');
+  const receb08El = content.querySelector('#receb-thidia08');
   if(receb08El) receb08El.addEventListener('change', e=>{
     const novoValor = parseValorBR(e.target.value);
     if(isNaN(novoValor)){
       alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 9900,00).');
-      e.target.value = round2(m.recebimentos.dia08).toFixed(2);
+      e.target.value = round2(m.recebimentos.thiDia08).toFixed(2);
       return;
     }
-    m.recebimentos.dia08 = round2(novoValor); save(); renderContent();
+    m.recebimentos.thiDia08 = round2(novoValor); save(); renderContent();
+  });
+
+  const recebPeEl = content.querySelector('#receb-pedia08');
+  if(recebPeEl) recebPeEl.addEventListener('change', e=>{
+    const novoValor = parseValorBR(e.target.value);
+    if(isNaN(novoValor)){
+      alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 9900,00).');
+      e.target.value = round2(m.recebimentos.peDia08).toFixed(2);
+      return;
+    }
+    m.recebimentos.peDia08 = round2(novoValor); save(); renderContent();
+  });
+
+  const recebThiDia18El = content.querySelector('#receb-thidia18');
+  if(recebThiDia18El) recebThiDia18El.addEventListener('change', e=>{
+    const novoValor = parseValorBR(e.target.value);
+    if(isNaN(novoValor)){
+      alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 9900,00).');
+      e.target.value = round2(m.recebimentos.thiDia18).toFixed(2);
+      return;
+    }
+    m.recebimentos.thiDia18 = round2(novoValor); save(); renderContent();
   });
 
   // labels editáveis (Recebimento · Dia 18/08, títulos das seções DIA 18/08)
@@ -2301,6 +2371,9 @@ function attachMonthEvents(monthKey){
       const valorPadrao = {
         recebDia18: "Recebimento · Dia 18",
         recebDia08: "Recebimento · Dia 08",
+        recebThiDia08: "Recebimento Thi · Dia 08",
+        recebPeDia08: "Recebimento Pe · Dia 08",
+        recebThiDia18: "Recebimento Thi · Dia 18",
         secaoDia18: "DIA 18 · Vencimentos",
         secaoDia08: "DIA 08 · Vencimentos",
       }[key];
@@ -2319,7 +2392,14 @@ function attachMonthEvents(monthKey){
       if(!m.blocosOcultos) m.blocosOcultos = { dia18:false, dia08:false };
       m.blocosOcultos[listKey] = true;
       m[listKey] = [];
-      m.recebimentos[listKey] = 0;
+      if(listKey === 'dia08'){
+        // as 3 caixas de recebimento ficam junto do bloco Dia 08 (mesma flag oc.dia08)
+        m.recebimentos.thiDia08 = 0;
+        m.recebimentos.peDia08 = 0;
+        m.recebimentos.thiDia18 = 0;
+      } else {
+        m.recebimentos[listKey] = 0;
+      }
       save(); renderContent();
     });
   });
