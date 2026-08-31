@@ -3161,9 +3161,16 @@ function relatorioMesHtml(monthKey){
     </div>`;
   }
 
-  const secoes = [{ titulo: m.labels.secaoDia08, items: m.dia08 }]
-    .concat(m.detalhamentos || [])
-    .sort((a,b) => (a.titulo||'').localeCompare(b.titulo||'', 'pt-BR', { sensitivity:'base' }));
+  const todasSecoes = [{ titulo: m.labels.secaoDia08, items: m.dia08 }]
+    .concat(m.detalhamentos || []);
+  // o quadro "dia 18" sai da ordenação alfabética normal e vai sempre para a
+  // última posição do relatório (não depende de estar junto com "a pagar").
+  const ehQuadroDia18 = titulo => /dia\s*18/i.test(String(titulo||'').trim());
+  const secoesDia18 = todasSecoes.filter(s => ehQuadroDia18(s.titulo));
+  const secoes = todasSecoes
+    .filter(s => !ehQuadroDia18(s.titulo))
+    .sort((a,b) => (a.titulo||'').localeCompare(b.titulo||'', 'pt-BR', { sensitivity:'base' }))
+    .concat(secoesDia18);
   const blocos = secoes.map(sec => tabelaItens(sec.titulo, sec.items)).join('');
 
   return `
