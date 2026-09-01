@@ -333,18 +333,35 @@
   .pessoa-secao-blocos{ display:flex; flex-direction:column; gap:16px; padding-left:6px; }
   .transferencia-row{
     display:flex; align-items:center; gap:10px; background:#FCEBE3; border:1px solid #F0C4AE;
-    border-radius:8px; padding:8px 14px; margin:0 0 12px 6px;
+    border-radius:8px; padding:8px 14px; margin:0 0 8px 6px;
   }
   .transferencia-row input[type=checkbox]{
     width:16px; height:16px; accent-color:#B5541F; cursor:pointer; flex-shrink:0;
   }
-  .transferencia-label{ font-size:12.5px; font-weight:600; color:#8A3E17; flex:1; }
-  .transferencia-valor{ font-size:13px; font-weight:700; color:#8A3E17; }
+  input.transferencia-label{
+    font-size:12.5px; font-weight:600; color:#8A3E17; flex:1;
+    border:none; background:transparent; font-family:inherit; padding:2px 0;
+    -webkit-appearance:none; appearance:none;
+  }
+  input.transferencia-label:focus{ outline:none; text-decoration:underline; }
+  .transferencia-valor{ font-size:13px; font-weight:700; color:#8A3E17; flex-shrink:0; }
   .transferencia-valor .rs-prefix{ font-size:12px; font-weight:600; color:#8A3E17; }
   .transferencia-row.transferencia-feita{ background:#EEF0F3; border-color:var(--border); }
-  .transferencia-row.transferencia-feita .transferencia-label,
+  .transferencia-row.transferencia-feita input.transferencia-label,
   .transferencia-row.transferencia-feita .transferencia-valor,
   .transferencia-row.transferencia-feita .transferencia-valor .rs-prefix{ color:#9CA3AF; opacity:0.7; }
+  .total-dia08-row{
+    display:flex; align-items:center; gap:10px; background:#F5F5F3; border:1px solid #E5E4DF;
+    border-radius:8px; padding:8px 14px; margin:0 0 12px 6px;
+  }
+  input.total-dia08-label{
+    font-size:12.5px; font-weight:600; color:#444441; flex:1;
+    border:none; background:transparent; font-family:inherit; padding:2px 0;
+    -webkit-appearance:none; appearance:none;
+  }
+  input.total-dia08-label:focus{ outline:none; text-decoration:underline; }
+  .total-dia08-valor{ font-size:13px; font-weight:700; color:#2C2C2A; flex-shrink:0; }
+  .total-dia08-valor .rs-prefix{ font-size:12px; font-weight:600; color:#2C2C2A; }
   .pessoa-toggle{ display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
   .pessoa-btn{
     border:none; background:#fff; color:var(--muted); font-size:11px; font-weight:600;
@@ -2274,6 +2291,13 @@ function renderMonthView(monthKey){
   const thiagoGastoCor = thiagoGastos > thiagoRecebido ? 'var(--red)' : 'var(--blue)';
   const pedroGastoCor = pedroGastos > pedroRecebido ? 'var(--red)' : 'var(--blue)';
 
+  // "Total Dia 08" = tudo que está na seção do Thiago, MENOS o(s) bloco(s) que
+  // representam "a pagar - dia 18" (identificados pelo título, ex: isPagarDia18Titulo).
+  const totalDia18BlocosThiago = detsThiago
+    .filter(o=>isPagarDia18Titulo(o.d.titulo))
+    .reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
+  const totalDia08 = round2(thiagoGastos - totalDia18BlocosThiago);
+
   html += `</div>
 
   `;
@@ -2299,8 +2323,12 @@ function renderMonthView(monthKey){
     ${!m.pessoaSecaoOculta.thiago ? `
     <div class="transferencia-row ${m.transferenciaPedroFeita ? 'transferencia-feita' : ''}">
       <input type="checkbox" id="transferencia-pedro-check" ${m.transferenciaPedroFeita ? 'checked' : ''}>
-      <span class="transferencia-label">transferência pedro</span>
+      <input type="text" class="transferencia-label" id="transferencia-pedro-label" value="${escapeHtml(m.transferenciaPedroLabel || 'transferência pedro')}">
       <span class="transferencia-valor"><span class="rs-prefix">R$</span> ${fmt(round2(Math.max(0, pedroGastos - pedroRecebido)))}</span>
+    </div>
+    <div class="total-dia08-row">
+      <input type="text" class="total-dia08-label" id="total-dia08-label" value="${escapeHtml(m.totalDia08Label || 'total dia 08')}">
+      <span class="total-dia08-valor"><span class="rs-prefix">R$</span> ${fmt(totalDia08)}</span>
     </div>
     <div class="pessoa-secao-blocos">
       ${m.dia08Pessoa !== 'pedro' ? dia08Html : ''}
@@ -2432,6 +2460,18 @@ function attachMonthEvents(monthKey){
   const transferenciaCheck = content.querySelector('#transferencia-pedro-check');
   if(transferenciaCheck) transferenciaCheck.addEventListener('change', e=>{
     m.transferenciaPedroFeita = e.target.checked;
+    save(); renderContent();
+  });
+
+  const transferenciaLabelInput = content.querySelector('#transferencia-pedro-label');
+  if(transferenciaLabelInput) transferenciaLabelInput.addEventListener('change', e=>{
+    m.transferenciaPedroLabel = e.target.value.trim() || 'transferência pedro';
+    save(); renderContent();
+  });
+
+  const totalDia08LabelInput = content.querySelector('#total-dia08-label');
+  if(totalDia08LabelInput) totalDia08LabelInput.addEventListener('change', e=>{
+    m.totalDia08Label = e.target.value.trim() || 'total dia 08';
     save(); renderContent();
   });
 
