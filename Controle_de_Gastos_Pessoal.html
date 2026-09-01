@@ -306,7 +306,6 @@
   .section-card.goal-atingida .goal-field,
   .section-card.goal-atingida .rs-prefix,
   .section-card.goal-atingida input{ color:#9CA3AF; opacity:0.7; }
-  .section-card.goal-atingida input{ cursor:not-allowed; }
   .section-card.goal-atingida .goal-link-open{ opacity:1; cursor:pointer; }
   .goal-archive-btn, .goal-unarchive-btn{
     display:flex; align-items:center; gap:4px; border:none; border-radius:8px;
@@ -3066,7 +3065,7 @@ function metaEconomiaCardHtml(goal, idx){
   return `
   <div class="section-card ${atingida ? 'goal-atingida' : ''} ${arquivada ? 'goal-arquivada' : ''}" data-goal="${idx}">
     <div class="section-header">
-      <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}" ${atingida ? 'disabled' : ''}>
+      <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}">
       <div class="section-header-actions">
         ${streakHtml}
         <span class="pill" style="background:${corBarra}">${atingida ? 'concluída 🎉' : pct.toFixed(0)+'%'}</span>
@@ -3083,19 +3082,19 @@ function metaEconomiaCardHtml(goal, idx){
     </div>
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px;">
       <label class="goal-field">valor alvo
-        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-alvo" value="${alvo.toFixed(2)}" style="width:110px;" ${atingida ? 'disabled' : ''}></div>
+        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-alvo" value="${alvo.toFixed(2)}" style="width:110px;"></div>
       </label>
       <label class="goal-field">já guardado
-        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-atual" value="${atual.toFixed(2)}" style="width:110px;" ${atingida ? 'disabled' : ''}></div>
+        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-atual" value="${atual.toFixed(2)}" style="width:110px;"></div>
       </label>
       <label class="goal-field">data alvo (opcional)
-        <div style="margin-top:4px;"><input type="date" class="goal-data" value="${goal.dataAlvo || ''}" ${atingida ? 'disabled' : ''}></div>
+        <div style="margin-top:4px;"><input type="date" class="goal-data" value="${goal.dataAlvo || ''}"></div>
       </label>
     </div>
     <label class="goal-field" style="display:block; margin-bottom:8px;">link do produto (opcional)
       <div class="goal-link-wrap">
         <span class="goal-link-icon">🔗</span>
-        <input type="text" class="goal-link" placeholder="https://..." value="${escapeHtml(goal.link || '')}" ${atingida ? 'disabled' : ''}>
+        <input type="text" class="goal-link" placeholder="https://..." value="${escapeHtml(goal.link || '')}">
         ${goal.link ? `<a href="${escapeHtml(goal.link)}" target="_blank" rel="noopener" class="goal-link-open">↗ abrir</a>` : ''}
       </div>
     </label>
