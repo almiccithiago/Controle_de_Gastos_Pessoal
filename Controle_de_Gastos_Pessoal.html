@@ -322,6 +322,10 @@
   }
   .metas-arquivadas-toggle .chev{ font-size:11px; transition:transform .15s ease; }
   .metas-arquivadas-toggle.open .chev{ transform:rotate(180deg); }
+  .goal-header{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+  .goal-header-top{ display:flex; align-items:center; gap:8px; }
+  .goal-header-top .detail-title-input{ margin-bottom:0; }
+  .goal-header .section-header-actions{ margin:0; }
   .section-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .section-header h3{ font-size:14.5px; margin:0; font-weight:700; }
   .detail-title-input{
@@ -3064,11 +3068,13 @@ function metaEconomiaCardHtml(goal, idx){
   const arquivada = !!goal.arquivada;
   return `
   <div class="section-card ${atingida ? 'goal-atingida' : ''} ${arquivada ? 'goal-arquivada' : ''}" data-goal="${idx}">
-    <div class="section-header">
-      <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}">
+    <div class="goal-header">
+      <div class="goal-header-top">
+        <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}">
+        <span class="pill" style="background:${corBarra}; flex-shrink:0;">${atingida ? 'concluída 🎉' : pct.toFixed(0)+'%'}</span>
+      </div>
       <div class="section-header-actions">
         ${streakHtml}
-        <span class="pill" style="background:${corBarra}">${atingida ? 'concluída 🎉' : pct.toFixed(0)+'%'}</span>
         ${atingida && !arquivada ? `<button class="goal-archive-btn" title="Arquivar esta meta">📦 arquivar</button>` : ''}
         ${arquivada ? `<button class="goal-unarchive-btn" title="Trazer esta meta de volta">↩ desarquivar</button>` : ''}
         ${!arquivada ? `<div class="move-btns">
