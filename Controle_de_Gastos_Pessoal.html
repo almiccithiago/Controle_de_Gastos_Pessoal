@@ -362,6 +362,20 @@
   .pessoa-total-valor:last-child{ margin-right:0; }
   .pessoa-total-gasto{ color:var(--red); }
   .pessoa-secao-blocos{ display:flex; flex-direction:column; gap:16px; padding-left:6px; }
+  .transferencia-row{
+    display:flex; align-items:center; gap:10px; background:#FCEBE3; border:1px solid #F0C4AE;
+    border-radius:8px; padding:8px 14px; margin:0 0 12px 6px;
+  }
+  .transferencia-row input[type=checkbox]{
+    width:16px; height:16px; accent-color:#B5541F; cursor:pointer; flex-shrink:0;
+  }
+  .transferencia-label{ font-size:12.5px; font-weight:600; color:#8A3E17; flex:1; }
+  .transferencia-valor{ font-size:13px; font-weight:700; color:#8A3E17; }
+  .transferencia-valor .rs-prefix{ font-size:12px; font-weight:600; color:#8A3E17; }
+  .transferencia-row.transferencia-feita{ background:#EEF0F3; border-color:var(--border); }
+  .transferencia-row.transferencia-feita .transferencia-label,
+  .transferencia-row.transferencia-feita .transferencia-valor,
+  .transferencia-row.transferencia-feita .transferencia-valor .rs-prefix{ color:#9CA3AF; opacity:0.7; }
   .pessoa-toggle{ display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
   .pessoa-btn{
     border:none; background:#fff; color:var(--muted); font-size:11px; font-weight:600;
@@ -2316,6 +2330,11 @@ function renderMonthView(monthKey){
       <button class="pessoa-toggle-btn" data-pessoa-toggle="thiago">${m.pessoaSecaoOculta.thiago ? 'mostrar ▸' : 'ocultar ▾'}</button>
     </div>
     ${!m.pessoaSecaoOculta.thiago ? `
+    <div class="transferencia-row ${m.transferenciaPedroFeita ? 'transferencia-feita' : ''}">
+      <input type="checkbox" id="transferencia-pedro-check" ${m.transferenciaPedroFeita ? 'checked' : ''}>
+      <span class="transferencia-label">transferência pedro</span>
+      <span class="transferencia-valor"><span class="rs-prefix">R$</span> ${fmt(round2(pedroGastos - pedroRecebido))}</span>
+    </div>
     <div class="pessoa-secao-blocos">
       ${m.dia08Pessoa !== 'pedro' ? dia08Html : ''}
       ${detsThiago.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}
@@ -2451,6 +2470,12 @@ function attachMonthEvents(monthKey){
       m.pessoaSecaoOculta[pessoa] = !m.pessoaSecaoOculta[pessoa];
       save(); renderContent();
     });
+  });
+
+  const transferenciaCheck = content.querySelector('#transferencia-pedro-check');
+  if(transferenciaCheck) transferenciaCheck.addEventListener('change', e=>{
+    m.transferenciaPedroFeita = e.target.checked;
+    save(); renderContent();
   });
 
 
