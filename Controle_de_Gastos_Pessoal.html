@@ -305,7 +305,7 @@
   .section-card.goal-atingida .detail-title-input,
   .section-card.goal-atingida .goal-field,
   .section-card.goal-atingida .rs-prefix,
-  .section-card.goal-atingida input{ color:#9CA3AF; opacity:0.7; }
+  .section-card.goal-atingida input{ color:var(--muted); }
   .section-card.goal-atingida .goal-link-open{ opacity:1; cursor:pointer; }
   .goal-archive-btn, .goal-unarchive-btn{
     display:flex; align-items:center; gap:4px; border:none; border-radius:8px;
@@ -3071,12 +3071,12 @@ function metaEconomiaCardHtml(goal, idx){
         <span class="pill" style="background:${corBarra}">${atingida ? 'concluída 🎉' : pct.toFixed(0)+'%'}</span>
         ${atingida && !arquivada ? `<button class="goal-archive-btn" title="Arquivar esta meta">📦 arquivar</button>` : ''}
         ${arquivada ? `<button class="goal-unarchive-btn" title="Trazer esta meta de volta">↩ desarquivar</button>` : ''}
-        <div class="move-btns">
+        ${!arquivada ? `<div class="move-btns">
           <button class="move-btn" data-move="left" data-meta-move="${idx}" title="Mover para a esquerda">◀</button>
           <button class="move-btn" data-move="up" data-meta-move="${idx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-meta-move="${idx}" title="Mover para baixo">▼</button>
           <button class="move-btn" data-move="right" data-meta-move="${idx}" title="Mover para a direita">▶</button>
-        </div>
+        </div>` : ''}
         <button class="block-remove goal-remove" title="Excluir esta meta">×</button>
       </div>
     </div>
@@ -3156,7 +3156,7 @@ function renderMetasEconomiaHtml(){
       <span class="chev">▾</span>
     </div>
     ${metasArquivadasExpandido
-      ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; align-items:start;">${arquivadasComIdx.map(x=>metaEconomiaCardHtml(x.g,x.idx)).join('')}</div>`
+      ? `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 280px)); gap:12px; align-items:start;">${arquivadasComIdx.map(x=>metaEconomiaCardHtml(x.g,x.idx)).join('')}</div>`
       : ''}`
     : '';
   return `
