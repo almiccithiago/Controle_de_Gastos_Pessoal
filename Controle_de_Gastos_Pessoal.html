@@ -2333,7 +2333,7 @@ function renderMonthView(monthKey){
     <div class="transferencia-row ${m.transferenciaPedroFeita ? 'transferencia-feita' : ''}">
       <input type="checkbox" id="transferencia-pedro-check" ${m.transferenciaPedroFeita ? 'checked' : ''}>
       <span class="transferencia-label">transferência pedro</span>
-      <span class="transferencia-valor"><span class="rs-prefix">R$</span> ${fmt(round2(pedroGastos - pedroRecebido))}</span>
+      <span class="transferencia-valor"><span class="rs-prefix">R$</span> ${fmt(round2(Math.max(0, pedroGastos - pedroRecebido)))}</span>
     </div>
     <div class="pessoa-secao-blocos">
       ${m.dia08Pessoa !== 'pedro' ? dia08Html : ''}
