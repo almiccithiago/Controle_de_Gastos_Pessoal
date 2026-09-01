@@ -255,15 +255,14 @@
 
   .recebimentos-card{
     background: var(--card); border:1px solid var(--border); border-radius: var(--radius);
-    padding: 20px; margin-bottom:0.5cm; text-align:center;
+    padding: 20px; margin-bottom:0.5cm; text-align:center; position:relative;
   }
-  .recebimentos-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
-  .recebimentos-title{ font-size:13px; font-weight:700; color:var(--text); }
-  .recebimentos-toggle{
-    border:none; background:transparent; color:var(--muted); font-size:12px; font-weight:600;
-    cursor:pointer; font-family:'Poppins', sans-serif; padding:4px 6px; border-radius:6px;
+  .recebimentos-hide-btn{
+    position:absolute; top:14px; right:16px; border:none; background:transparent; color:var(--muted);
+    font-size:11.5px; font-weight:600; cursor:pointer; font-family:'Poppins', sans-serif;
+    padding:4px 8px; border-radius:6px; opacity:0.6;
   }
-  .recebimentos-toggle:hover{ background:#F0F2F5; color:var(--text); }
+  .recebimentos-hide-btn:hover{ background:#F0F2F5; color:var(--text); opacity:1; }
   .receb-total-label{ font-size:12.5px; color:var(--muted); margin:0 0 4px; }
   .receb-total-value{ font-size:28px; font-weight:700; color:#16A34A; margin:0 0 16px; font-family:'Poppins', sans-serif; }
   .recebimentos-row{
@@ -2186,6 +2185,7 @@ function renderMonthView(monthKey){
   const isTemplate = monthKey === "Modelo";
   const m = isTemplate ? DATA.template : DATA.months[monthKey];
   if(!m.blocosOcultos) m.blocosOcultos = { dia18:false, dia08:false };
+  if(m.blocosOcultos.recebimentos === undefined) m.blocosOcultos.recebimentos = false;
   const t = monthTotals(m);
   // quando um filtro de categoria está ativo, os cartões do topo (despesas,
   // saldo, pago, pendente) mostram só a soma daquela categoria — a renda
@@ -2244,8 +2244,9 @@ function renderMonthView(monthKey){
 
   ${(!isTemplate && !oc.dia08 && Number(t.rendaTotal)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
 
-  ${oc.dia08 ? `<div class="blocos-ocultos-bar">
-    <button class="block-restore" data-restore="dia08">+ mostrar bloco Dia 08</button>
+  ${(oc.dia08 || oc.recebimentos) ? `<div class="blocos-ocultos-bar">
+    ${oc.dia08 ? `<button class="block-restore" data-restore="dia08">+ mostrar bloco Dia 08</button>` : ''}
+    ${oc.recebimentos ? `<button class="block-restore" data-restore="recebimentos">+ mostrar bloco Recebimentos</button>` : ''}
   </div>` : ''}
 
   `;
@@ -2272,12 +2273,8 @@ function renderMonthView(monthKey){
   const totalColDireita = detsColDireita.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
 
   html += `
-  ${!oc.dia08 ? `<div class="recebimentos-card">
-    <div class="recebimentos-header">
-      <span class="recebimentos-title">Recebimentos</span>
-      <button id="toggle-recebimentos-btn" class="recebimentos-toggle">${m.recebimentosOculto ? 'mostrar ▸' : 'ocultar ▾'}</button>
-    </div>
-    ${!m.recebimentosOculto ? `
+  ${(!oc.dia08 && !oc.recebimentos) ? `<div class="recebimentos-card">
+    <button class="recebimentos-hide-btn" data-hide="recebimentos" title="Ocultar bloco de recebimentos">ocultar ✕</button>
     <p class="receb-total-label">Total recebido</p>
     <p class="receb-total-value">R$ ${fmt(t.rendaTotal)}</p>
     <div class="recebimentos-row">
@@ -2316,10 +2313,10 @@ function renderMonthView(monthKey){
       <div class="col-total-card col-esquerda"><span class="col-total-label">Total coluna esquerda</span><span class="col-total-value">R$ ${fmt(round2(totalColEsquerda))}</span></div>
       <div class="col-total-card col-direita"><span class="col-total-label">Total coluna direita</span><span class="col-total-value">R$ ${fmt(round2(totalColDireita))}</span></div>
     </div>
-    ` : ''}
   </div>` : ''}
 
   `;
+
 
   html += `
   <div class="detalhamentos-grid">
@@ -2440,9 +2437,9 @@ function attachMonthEvents(monthKey){
     m.recebimentos.thiDia18 = round2(novoValor); save(); renderContent();
   });
 
-  const toggleRecebBtn = content.querySelector('#toggle-recebimentos-btn');
-  if(toggleRecebBtn) toggleRecebBtn.addEventListener('click', ()=>{
-    m.recebimentosOculto = !m.recebimentosOculto;
+  const hideRecebBtn = content.querySelector('.recebimentos-hide-btn[data-hide="recebimentos"]');
+  if(hideRecebBtn) hideRecebBtn.addEventListener('click', ()=>{
+    m.blocosOcultos.recebimentos = true;
     save(); renderContent();
   });
 
