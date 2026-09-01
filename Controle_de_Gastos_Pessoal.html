@@ -265,54 +265,20 @@
     cursor:pointer; font-family:'Poppins', sans-serif; padding:4px 8px; border-radius:6px;
   }
   .painel-extra-toggle:hover{ background:#F0F2F5; color:var(--text); }
-  .recebimentos-card{
-    background: var(--card); border:1px solid var(--border); border-radius: var(--radius);
-    padding: 20px; margin-bottom:0.5cm; text-align:center; position:relative;
+  .pessoa-receb-inputs{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .pessoa-receb-field{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-weight:600; }
+  .pessoa-receb-amount{ display:flex; align-items:center; gap:4px; }
+  .pessoa-receb-amount .rs-prefix{ font-size:11px; font-weight:600; color:var(--muted); }
+  .pessoa-receb-amount input{
+    background:#fff; border:1px solid var(--border); border-radius:6px; padding:3px 6px;
+    font-size:12.5px; font-weight:700; color:var(--text); width:80px; text-align:right;
   }
-  .receb-total-label{ font-size:12.5px; color:var(--muted); margin:0 0 4px; }
-  .receb-total-value{ font-size:28px; font-weight:700; color:#16A34A; margin:0 0 16px; font-family:'Poppins', sans-serif; }
-  .recebimentos-row{
-    display:flex; align-items:stretch; gap:10px; justify-content:center; flex-wrap:wrap;
-    margin-bottom:16px; text-align:left;
+  .pessoa-receb-amount input:focus{ outline:2px solid var(--teal); }
+  .pessoa-toggle-btn{
+    border:none; background:transparent; color:var(--muted); font-size:11.5px; font-weight:600;
+    cursor:pointer; font-family:'Poppins', sans-serif; padding:4px 8px; border-radius:6px; flex-shrink:0;
   }
-  .receb-card{
-    display:flex; flex-direction:column; gap:5px; border-radius:10px; padding:9px 14px; min-width:150px;
-  }
-  .receb-card.receb-thi{ background: rgba(37,99,235,0.06); }
-  .receb-card.receb-pe{ background: rgba(124,58,237,0.06); }
-  .receb-card .rlabel-row{ display:flex; align-items:center; gap:6px; }
-  .receb-card .rlabel-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-  .receb-card.receb-thi .rlabel-dot{ background:#2563EB; }
-  .receb-card.receb-pe .rlabel-dot{ background:#7C3AED; }
-  .receb-card .rlabel-input{
-    font-size:11.5px; font-weight:600; text-transform:lowercase;
-    border:none; background:transparent; font-family:inherit; padding:2px 0;
-    width:100%; text-align:left; -webkit-appearance:none; appearance:none;
-  }
-  .receb-card.receb-thi .rlabel-input{ color:#2563EB; }
-  .receb-card.receb-pe .rlabel-input{ color:#7C3AED; }
-  .receb-card .rlabel-input:focus{ outline:none; text-decoration:underline; }
-  .receb-amount{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
-  .receb-prefix{ font-size:12px; font-weight:600; color:var(--muted); }
-  .receb-card input{
-    background: #fff; border:1px solid var(--border);
-    color:var(--text); font-size:14px; font-weight:600; border-radius:6px; padding:4px 8px;
-    width:100px; text-align:right;
-  }
-  .receb-card input:focus{ outline:2px solid var(--teal); }
-  .receb-card.receb-zero{ background: rgba(220,38,38,0.10); }
-  .receb-card.receb-zero .rlabel-dot{ background:#DC2626; }
-  .receb-card.receb-zero .rlabel-input{ color:#a12b2b; }
-  .receb-card.receb-zero .receb-prefix{ color:#a12b2b; }
-  .receb-card.receb-zero input{ background: rgba(220,38,38,0.10); border-color: rgba(220,38,38,0.3); color:#a12b2b; }
-  .col-total-row{ display:flex; gap:12px; border-top:1px solid var(--border); padding-top:16px; }
-  .col-total-card{ flex:1; border-radius:10px; padding:10px 14px; text-align:left; }
-  .col-total-card.col-esquerda{ background: rgba(37,99,235,0.05); }
-  .col-total-card.col-direita{ background: rgba(22,163,74,0.05); }
-  .col-total-label{ font-size:12px; display:block; }
-  .col-total-card.col-esquerda .col-total-label{ color:#2563EB; }
-  .col-total-card.col-direita .col-total-label{ color:#16A34A; }
-  .col-total-value{ font-size:16px; font-weight:700; color:var(--text); display:block; margin-top:3px; font-family:'Poppins', sans-serif; }
+  .pessoa-toggle-btn:hover{ background:rgba(0,0,0,0.06); color:var(--text); }
 
   .sections-grid{ display:grid; grid-template-columns: 1fr; gap:16px; }
   @media (max-width: 900px){ .sections-grid{ grid-template-columns:1fr; } }
@@ -376,6 +342,39 @@
   }
   .block-remove:hover{ color:var(--red); opacity:1; }
   .detalhamentos-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:0; align-items:start; }
+  .pessoa-secao{ margin-bottom:0.5cm; }
+  .pessoa-secao-header{
+    display:flex; align-items:center; gap:12px; border-radius:var(--radius);
+    padding:12px 16px; margin-bottom:10px; flex-wrap:wrap; row-gap:8px;
+  }
+  .pessoa-secao-header.pessoa-thiago{ background:rgba(37,99,235,0.06); }
+  .pessoa-secao-header.pessoa-pedro{ background:rgba(124,58,237,0.06); }
+  .pessoa-avatar{
+    width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:12px; flex-shrink:0; font-family:'Poppins', sans-serif;
+  }
+  .pessoa-avatar-thiago{ background:rgba(37,99,235,0.15); color:#2563EB; }
+  .pessoa-avatar-pedro{ background:rgba(124,58,237,0.15); color:#7C3AED; }
+  .pessoa-nome{ font-weight:700; font-size:14px; color:var(--text); flex:1; text-transform:lowercase; }
+  .pessoa-totais{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .pessoa-total-label{ font-size:11px; color:var(--muted); }
+  .pessoa-total-valor{ font-size:13px; font-weight:700; color:var(--text); margin-right:10px; }
+  .pessoa-total-valor:last-child{ margin-right:0; }
+  .pessoa-total-gasto{ color:var(--red); }
+  .pessoa-secao-blocos{ display:flex; flex-direction:column; gap:16px; padding-left:6px; }
+  .pessoa-toggle{ display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .pessoa-btn{
+    border:none; background:#fff; color:var(--muted); font-size:11px; font-weight:600;
+    padding:5px 10px; cursor:pointer; font-family:'Poppins', sans-serif;
+  }
+  .pessoa-btn + .pessoa-btn{ border-left:1px solid var(--border); }
+  .pessoa-btn.active{ background:var(--navy); color:#fff; }
+  .block-duplicate{
+    border:none; background:transparent; color:var(--muted); cursor:pointer;
+    font-size:15px; line-height:1; padding:6px 6px; opacity:0.55;
+    transition: color .15s ease, opacity .15s ease;
+  }
+  .block-duplicate:hover{ color:var(--blue); opacity:1; }
   .detalhamentos-col{ display:flex; flex-direction:column; gap:16px; min-width:0; }
   @media (max-width:700px){
     .col-total-card{ padding:8px 10px; }
@@ -415,8 +414,8 @@
   }
   .notes-card h3::before{ content:"📝 "; }
   .notes-textarea{
-    width:100%; min-height:90px; resize:vertical; font-family:inherit; font-size:14px;
-    color:var(--text); border:1px solid var(--border); border-radius:8px; padding:12px 14px;
+    width:100%; min-height:auto; height:40px; resize:vertical; font-family:inherit; font-size:14px;
+    color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px 14px;
     text-transform:none; line-height:1.6; background:#fff;
   }
   .notes-textarea:focus{ outline:2px solid var(--blue); }
@@ -825,14 +824,13 @@ function defaultData(){
         dia18: [
           i("cano banheiro",250), i("japonês - aniversário do pê",350), i("livro do mês",150),
           i("mãe",300), i("pedro",650), i("plano de saúde",996.39), i("plano odonto",106.6),
-          i("revolut",474.92), i("TFIF",126.11)
+          i("TFIF",126.11)
         ],
         dia08: [
           i("água",60), i("gás",50), i("energia",350), i("imposto",1004.39),
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 04",264.08), i("júnior",350), i("noh",3724), i("vó",6000)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
           { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       },
@@ -841,14 +839,13 @@ function defaultData(){
         dia18: [
           i("cano banheiro",250), i("japonês - aniversário do pê",350), i("livro do mês",150),
           i("mãe",300), i("pedro",650), i("plano de saúde",996.39), i("plano odonto",106.6),
-          i("revolut",474.92), i("TFIF",126.11)
+          i("TFIF",126.11)
         ],
         dia08: [
           i("água",60), i("gás",50), i("energia",350), i("imposto",1004.39),
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 04",264.08), i("júnior",350), i("noh",3724), i("vó",6000)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
           { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       },
@@ -856,14 +853,13 @@ function defaultData(){
         recebimentos: { dia18: 6600, dia08: 9900 },
         dia18: [
           i("livro do mês",150), i("mãe",300), i("plano de saúde",996.39), i("plano odonto",106.6),
-          i("revolut",474.92), i("TFIF",126.11)
+          i("TFIF",126.11)
         ],
         dia08: [
           i("água",60), i("energia",350), i("gás",50), i("imposto",1004.39),
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 05",264.08), i("júnior",350), i("noh",3724), i("vó",7500)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
           { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       },
@@ -871,14 +867,13 @@ function defaultData(){
         recebimentos: { dia18: 6600, dia08: 9900 },
         dia18: [
           i("livro do mês",150), i("mãe",300), i("plano de saúde",996.39), i("plano odonto",106.6),
-          i("revolut",474.92), i("TFIF",126.11)
+          i("TFIF",126.11)
         ],
         dia08: [
           i("água",60), i("energia",350), i("gás",50), i("imposto",1004.39),
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 06",264.08), i("júnior",350), i("noh",3724), i("vó",7500)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
           { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       },
@@ -886,14 +881,13 @@ function defaultData(){
         recebimentos: { dia18: 6600, dia08: 9900 },
         dia18: [
           i("livro do mês",150), i("mãe",300), i("plano de saúde",996.39), i("plano odonto",106.6),
-          i("revolut",474.92), i("tag livros",700), i("TFIF",126.11)
+          i("tag livros",700), i("TFIF",126.11)
         ],
         dia08: [
           i("água",60), i("energia",350), i("gás",50), i("imposto",1004.39),
           i("INSS",178.31), i("IPTU",54.67), i("itaú - 07",264.08), i("júnior",350), i("noh",3724), i("vó",7000)
         ],
         detalhamentos: [
-          { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
           { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
         ]
       }
@@ -903,14 +897,13 @@ function defaultData(){
     template: {
       recebimentos: { dia18: 6600, dia08: 9900 },
       dia18: [
-        i("livro do mês",150), i("mãe",300), i("plano de saúde",996.39), i("plano odonto",106.6), i("revolut",169.92)
+        i("livro do mês",150), i("mãe",300), i("plano de saúde",996.39), i("plano odonto",106.6)
       ],
       dia08: [
         i("água",60), i("energia",350), i("gás",50), i("imposto",1004.39),
         i("INSS",178.31), i("IPTU",54.67), i("júnior",350), i("noh",3724), i("vó",8000)
       ],
       detalhamentos: [
-        { titulo:"REVOLUT", refer:"detalha o item “revolut”", items:[ i("plano saúde dogs",305), i("ração",169.92) ]},
         { titulo:"NOH", refer:"detalha o item “noh”", items:[ i("diarista",500), i("extras",1500), i("noh",24), i("remédios",200), i("supermercado",1500) ]}
       ]
     },
@@ -1034,10 +1027,6 @@ function migrateData(data){
   const allMonthObjs = [...Object.values(data.months||{}), data.template].filter(Boolean);
   allMonthObjs.forEach(m=>{
     (m.detalhamentos||[]).forEach(det=>{
-      // migração: box "PEDRO" / "PEDRO / REVOLUT" renomeado para "REVOLUT" (só ajusta nome)
-      if(det.titulo === "PEDRO" || det.titulo === "PEDRO / REVOLUT"){
-        det.titulo = "REVOLUT";
-      }
       if(det.linkTo){
         const list = m[det.linkTo.list];
         if(list){
@@ -1197,10 +1186,12 @@ function migrateData(data){
     if(typeof m.recebimentos.thiDia18 !== 'number') m.recebimentos.thiDia18 = 0;
   });
 
-  // migração: bloco "REVOLUT" removido de vez — inclusive do Modelo, pra não voltar em meses novos
+  // migração: bloco "REVOLUT" (e títulos legados equivalentes) removido de vez —
+  // inclusive do Modelo, pra não voltar em meses novos
+  const TITULOS_REVOLUT_LEGADO = ['revolut', 'pedro', 'pedro / revolut'];
   allMonthObjs.forEach(m=>{
     if(Array.isArray(m.detalhamentos)){
-      m.detalhamentos = m.detalhamentos.filter(d=>d.titulo.trim().toLowerCase() !== 'revolut');
+      m.detalhamentos = m.detalhamentos.filter(d=>!TITULOS_REVOLUT_LEGADO.includes(d.titulo.trim().toLowerCase()));
     }
   });
 
@@ -1538,11 +1529,7 @@ function categoriaAprendidaPorDesc(desc){
 // (mesmo que já tenha sido salva antes), usa ela. Senão, tenta o aprendizado
 // por histórico; se não houver sinal suficiente, cai pra regra por palavra-chave.
 function categoriaEfetiva(item){
-  if(item.categoria !== undefined && item.categoria !== null) return item.categoria;
-  const aprendida = categoriaAprendidaPorDesc(item.desc);
-  if(aprendida) return aprendida;
-  const auto = detectCategoriaDesc(item.desc);
-  return auto ? auto.nome : '';
+  return '';
 }
 function itemCategoriaSelectHtml(item){
   const atual = categoriaEfetiva(item);
@@ -1685,7 +1672,7 @@ function renderTabs(){
   const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações"];
   const podeExcluirAtual = DATA.monthOrder.includes(currentTab);
   tabs.innerHTML = allTabs.map(t =>
-    `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${t}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${t}</button>`
+    `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${escapeHtml(t)}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${escapeHtml(t)}</button>`
   ).join('')
     + `<button id="add-month-tab" title="Criar o próximo mês a partir do Modelo">+ Novo Mês</button>`
     + (podeExcluirAtual ? `<button id="delete-month-tab" title="Excluir o mês selecionado (${escapeHtml(currentTab)})">excluir mês</button>` : '');
@@ -1843,7 +1830,6 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   <div class="item-row ${item.pago?'paid':''}" data-list="${listAttr}" data-idx="${idx}">
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
-    ${itemCategoriaSelectHtml(item)}
     <span class="rs-prefix">R$</span>
     <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-remove" title="Remover item">×</button>
@@ -1863,7 +1849,7 @@ function metaBarraHtml(gasto, meta){
   <div class="meta-bar-text" style="color:${cor};">${pctReal.toFixed(0)}% da meta (R$ ${fmt(gasto)} de R$ ${fmt(metaNum)})</div>`;
 }
 
-function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
+function sectionHtml(monthKey, title, listKey, items, pillColor, meta, pessoa){
   const itemsVisiveis = categoriaFiltro ? items.filter(itemPassaNoFiltro) : items;
   const total = round2(itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0));
   const rows = items.length
@@ -1876,6 +1862,10 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
     <div class="section-header">
       <input type="text" class="detail-title-input section-title-input" data-label-key="${listKey === 'dia18' ? 'secaoDia18' : 'secaoDia08'}" value="${escapeHtml(title)}">
       <div class="section-header-actions">
+        <div class="pessoa-toggle" data-pessoa-for="${listKey}">
+          <button class="pessoa-btn ${pessoa==='thiago'?'active':''}" data-pessoa="thiago">Thiago</button>
+          <button class="pessoa-btn ${pessoa==='pedro'?'active':''}" data-pessoa="pedro">Pedro</button>
+        </div>
         <span class="pill" style="background:${pillColor}">R$ ${fmt(total)}</span>
         ${listKey === 'dia08' ? '' : `<button class="block-remove" data-block="${listKey}" title="Excluir este bloco do mês">×</button>`}
       </div>
@@ -1897,33 +1887,39 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta){
   </div>`;
 }
 
-function detColOf(detail){
-  return detail.col === 1 ? 1 : 0;
+function pessoaOf(detail){
+  return detail.pessoa === 'pedro' ? 'pedro' : 'thiago';
 }
 
 function moveDetalhamento(m, dIdx, direction){
   const detalhamentos = m.detalhamentos;
   const detail = detalhamentos[dIdx];
   if(!detail) return;
-  const col = detColOf(detail);
+  const pessoa = pessoaOf(detail);
 
   if(direction === 'up' || direction === 'down'){
-    // "▲/▼" trocam de posição com o vizinho mais próximo QUE ESTIVER NA MESMA
-    // COLUNA (não precisa mais estar exatamente 2 posições de distância).
+    // "▲/▼" trocam de posição com o vizinho mais próximo QUE FOR DA MESMA PESSOA.
     const passo = direction === 'up' ? -1 : 1;
     let j = dIdx + passo;
-    while(j >= 0 && j < detalhamentos.length && detColOf(detalhamentos[j]) !== col) j += passo;
+    while(j >= 0 && j < detalhamentos.length && pessoaOf(detalhamentos[j]) !== pessoa) j += passo;
     if(j < 0 || j >= detalhamentos.length) return;
     [detalhamentos[dIdx], detalhamentos[j]] = [detalhamentos[j], detalhamentos[dIdx]];
-  } else if(direction === 'left'){
-    if(col === 0) return; // já está na esquerda
-    detail.col = 0;
-  } else if(direction === 'right'){
-    if(col === 1) return; // já está na direita
-    detail.col = 1;
   } else {
     return;
   }
+  save(); renderContent();
+}
+
+function duplicarDetalhamento(m, dIdx){
+  const original = m.detalhamentos[dIdx];
+  if(!original) return;
+  const copia = {
+    titulo: original.titulo + ' (cópia)',
+    pessoa: original.pessoa,
+    col: original.col,
+    items: (original.items||[]).map(it=>({...it}))
+  };
+  m.detalhamentos.splice(dIdx+1, 0, copia);
   save(); renderContent();
 }
 
@@ -1939,18 +1935,22 @@ function detailSectionHtml(monthKey, detail, dIdx){
   const cardStyle = isPagarDia18 ? ' style="border-style:solid; border-color:var(--red); border-width:2px;"' : '';
   const tituloStyle = isPagarDia18 ? ' style="color:var(--red);"' : '';
   const pillBg = isPagarDia18 ? 'var(--red)' : 'var(--teal)';
+  const pessoa = pessoaOf(detail);
   return `
   <div class="section-card detail" data-detail="${dIdx}"${cardStyle}>
     <div class="section-header">
       <input type="text" class="detail-title-input"${tituloStyle} value="${escapeHtml(detail.titulo)}">
       <div class="section-header-actions">
+        <div class="pessoa-toggle" data-pessoa-for-detail="${dIdx}">
+          <button class="pessoa-btn ${pessoa==='thiago'?'active':''}" data-pessoa="thiago">Thiago</button>
+          <button class="pessoa-btn ${pessoa==='pedro'?'active':''}" data-pessoa="pedro">Pedro</button>
+        </div>
         <span class="pill" style="background:${pillBg}">R$ ${fmt(total)}</span>
         <div class="move-btns">
-          <button class="move-btn" data-move="left" data-detail-move="${dIdx}" title="Mover para a coluna da esquerda">◀</button>
           <button class="move-btn" data-move="up" data-detail-move="${dIdx}" title="Mover para cima">▲</button>
           <button class="move-btn" data-move="down" data-detail-move="${dIdx}" title="Mover para baixo">▼</button>
-          <button class="move-btn" data-move="right" data-detail-move="${dIdx}" title="Mover para a coluna da direita">▶</button>
         </div>
+        <button class="block-duplicate" data-detail-duplicate="${dIdx}" title="Duplicar este bloco">⧉</button>
         <button class="block-remove" data-detail-idx="${dIdx}" title="Excluir este bloco do mês">×</button>
       </div>
     </div>
@@ -2191,6 +2191,9 @@ function renderMonthView(monthKey){
   const isTemplate = monthKey === "Modelo";
   const m = isTemplate ? DATA.template : DATA.months[monthKey];
   if(!m.blocosOcultos) m.blocosOcultos = { dia18:false, dia08:false };
+  if(!m.dia08Pessoa) m.dia08Pessoa = 'thiago';
+  if(!Array.isArray(m.detalhamentos)) m.detalhamentos = [];
+  m.detalhamentos.forEach(d=>{ if(!d.pessoa) d.pessoa = 'thiago'; });
   const t = monthTotals(m);
   // quando um filtro de categoria está ativo, os cartões do topo (despesas,
   // saldo, pago, pendente) mostram só a soma daquela categoria — a renda
@@ -2252,7 +2255,6 @@ function renderMonthView(monthKey){
 
   if(painelExtraAberto){
     html += `
-    ${filtroCategoriaBarHtml()}
     ${reservaEmergenciaBoxHtml(m)}
 
     <div class="notes-card">
@@ -2271,78 +2273,76 @@ function renderMonthView(monthKey){
   if(!m.detalhamentos) m.detalhamentos = [];
   const detsComIdx = m.detalhamentos.map((d,idx)=>({d,idx}));
 
-  // Vencimentos (dia08) e os demais blocos ficam na coluna esquerda; só o box
-  // "a pagar - dia 18" fica na direita (d.col é a fonte da verdade, e as setas
-  // ◀/▶ do usuário mexem nela a partir de agora).
-  const dia08Html = !oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null) : '';
-  const detsColEsquerda = detsComIdx.filter(o=>detColOf(o.d) === 0);
-  const detsColDireita = detsComIdx.filter(o=>detColOf(o.d) === 1);
+  const dia08Html = !oc.dia08 ? sectionHtml(monthKey, m.labels.secaoDia08, "dia08", m.dia08, "var(--purple)", m.metas ? m.metas.dia08 : null, m.dia08Pessoa) : '';
+  const detsThiago = detsComIdx.filter(o=>pessoaOf(o.d) === 'thiago');
+  const detsPedro = detsComIdx.filter(o=>pessoaOf(o.d) === 'pedro');
 
-  // Totais das colunas: soma o total de cada bloco visível na coluna (respeitando
-  // o filtro de categoria ativo, se houver), incluindo o bloco "Vencimentos - Dia 08"
-  // na coluna esquerda quando ele não estiver oculto.
   const totalBlocoItems = (items) => {
     const itemsVisiveis = categoriaFiltro ? items.filter(itemPassaNoFiltro) : items;
     return itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0);
   };
-  let totalColEsquerda = detsColEsquerda.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
-  if(!oc.dia08) totalColEsquerda += totalBlocoItems(m.dia08);
-  const totalColDireita = detsColDireita.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
-
-  if(painelExtraAberto){
-  html += `
-  ${!oc.dia08 ? `<div class="recebimentos-card">
-    <p class="receb-total-label">Total recebido</p>
-    <p class="receb-total-value">R$ ${fmt(t.rendaTotal)}</p>
-    <div class="recebimentos-row">
-      <div class="receb-card receb-thi ${Number(m.recebimentos.thiDia08)===0 ? 'receb-zero' : ''}">
-        <div class="rlabel-row">
-          <span class="rlabel-dot"></span>
-          <input type="text" class="rlabel-input" data-label-key="recebThiDia08" value="${escapeHtml(m.labels.recebThiDia08)}">
-        </div>
-        <div class="receb-amount">
-          <span class="receb-prefix">R$</span>
-          <input type="text" inputmode="decimal" id="receb-thidia08" value="${round2(m.recebimentos.thiDia08).toFixed(2)}">
-        </div>
-      </div>
-      <div class="receb-card receb-pe ${Number(m.recebimentos.peDia08)===0 ? 'receb-zero' : ''}">
-        <div class="rlabel-row">
-          <span class="rlabel-dot"></span>
-          <input type="text" class="rlabel-input" data-label-key="recebPeDia08" value="${escapeHtml(m.labels.recebPeDia08)}">
-        </div>
-        <div class="receb-amount">
-          <span class="receb-prefix">R$</span>
-          <input type="text" inputmode="decimal" id="receb-pedia08" value="${round2(m.recebimentos.peDia08).toFixed(2)}">
-        </div>
-      </div>
-      <div class="receb-card receb-thi ${Number(m.recebimentos.thiDia18)===0 ? 'receb-zero' : ''}">
-        <div class="rlabel-row">
-          <span class="rlabel-dot"></span>
-          <input type="text" class="rlabel-input" data-label-key="recebThiDia18" value="${escapeHtml(m.labels.recebThiDia18)}">
-        </div>
-        <div class="receb-amount">
-          <span class="receb-prefix">R$</span>
-          <input type="text" inputmode="decimal" id="receb-thidia18" value="${round2(m.recebimentos.thiDia18).toFixed(2)}">
-        </div>
-      </div>
-    </div>
-    <div class="col-total-row">
-      <div class="col-total-card col-esquerda"><span class="col-total-label">Total coluna esquerda</span><span class="col-total-value">R$ ${fmt(round2(totalColEsquerda))}</span></div>
-      <div class="col-total-card col-direita"><span class="col-total-label">Total coluna direita</span><span class="col-total-value">R$ ${fmt(round2(totalColDireita))}</span></div>
-    </div>
-  </div>` : ''}
-  `;
+  let thiagoGastos = detsThiago.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
+  let pedroGastos = detsPedro.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
+  if(!oc.dia08){
+    if(m.dia08Pessoa === 'pedro') pedroGastos += totalBlocoItems(m.dia08);
+    else thiagoGastos += totalBlocoItems(m.dia08);
   }
+  const thiagoRecebido = round2(Number(m.recebimentos.thiDia08||0) + Number(m.recebimentos.thiDia18||0));
+  const pedroRecebido = round2(Number(m.recebimentos.peDia08||0));
+  if(!m.pessoaSecaoOculta) m.pessoaSecaoOculta = { thiago:false, pedro:false };
+  const thiagoGastoCor = thiagoGastos > thiagoRecebido ? 'var(--red)' : 'var(--blue)';
+  const pedroGastoCor = pedroGastos > pedroRecebido ? 'var(--red)' : 'var(--blue)';
 
   html += `</div>
 
   `;
 
-
   html += `
-  <div class="detalhamentos-grid">
-    <div class="detalhamentos-col" data-col="0">${dia08Html}${detsColEsquerda.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
-    <div class="detalhamentos-col" data-col="1">${detsColDireita.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}</div>
+  <div class="pessoa-secao">
+    <div class="pessoa-secao-header pessoa-thiago">
+      <div class="pessoa-avatar pessoa-avatar-thiago">TH</div>
+      <span class="pessoa-nome">thiago</span>
+      <div class="pessoa-receb-inputs">
+        <label class="pessoa-receb-field">dia 08
+          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-thidia08" value="${round2(m.recebimentos.thiDia08).toFixed(2)}"></span>
+        </label>
+        <label class="pessoa-receb-field">dia 18
+          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-thidia18" value="${round2(m.recebimentos.thiDia18).toFixed(2)}"></span>
+        </label>
+      </div>
+      <div class="pessoa-totais">
+        <span class="pessoa-total-label">gastos</span><span class="pessoa-total-valor" style="color:${thiagoGastoCor}">R$ ${fmt(round2(thiagoGastos))}</span>
+      </div>
+      <button class="pessoa-toggle-btn" data-pessoa-toggle="thiago">${m.pessoaSecaoOculta.thiago ? 'mostrar ▸' : 'ocultar ▾'}</button>
+    </div>
+    ${!m.pessoaSecaoOculta.thiago ? `
+    <div class="pessoa-secao-blocos">
+      ${m.dia08Pessoa !== 'pedro' ? dia08Html : ''}
+      ${detsThiago.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}
+    </div>
+    ` : ''}
+  </div>
+
+  <div class="pessoa-secao">
+    <div class="pessoa-secao-header pessoa-pedro">
+      <div class="pessoa-avatar pessoa-avatar-pedro">PE</div>
+      <span class="pessoa-nome">pedro</span>
+      <div class="pessoa-receb-inputs">
+        <label class="pessoa-receb-field">dia 18
+          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-pedia08" value="${round2(m.recebimentos.peDia08).toFixed(2)}"></span>
+        </label>
+      </div>
+      <div class="pessoa-totais">
+        <span class="pessoa-total-label">gastos</span><span class="pessoa-total-valor" style="color:${pedroGastoCor}">R$ ${fmt(round2(pedroGastos))}</span>
+      </div>
+      <button class="pessoa-toggle-btn" data-pessoa-toggle="pedro">${m.pessoaSecaoOculta.pedro ? 'mostrar ▸' : 'ocultar ▾'}</button>
+    </div>
+    ${!m.pessoaSecaoOculta.pedro ? `
+    <div class="pessoa-secao-blocos">
+      ${m.dia08Pessoa === 'pedro' ? dia08Html : ''}
+      ${detsPedro.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}
+    </div>
+    ` : ''}
   </div>
 
   <div class="add-detail-row">
@@ -2351,7 +2351,6 @@ function renderMonthView(monthKey){
   `;
 
   if(!isTemplate){
-    html += graficoCategoriaHtml(m);
     html += `
     <div class="saldo-banner ${bannerClass}">
       <span>${t.saldo>=0 ? 'Sobrou no mês' : 'Gastos maiores que a renda'}</span>
@@ -2380,25 +2379,6 @@ function attachMonthEvents(monthKey){
     });
     const resumoIaBtn = content.querySelector('#resumo-ia-btn');
     if(resumoIaBtn) resumoIaBtn.addEventListener('click', ()=>gerarResumoIA(monthKey));
-  }
-
-  const filtroSelect = content.querySelector('#filtro-categoria');
-  if(filtroSelect){
-    filtroSelect.addEventListener('change', e=>{
-      categoriaFiltro = e.target.value;
-      renderContent();
-    });
-  }
-  const limparFiltroBtn = content.querySelector('#limpar-filtro-categoria');
-  if(limparFiltroBtn){
-    limparFiltroBtn.addEventListener('click', ()=>{
-      categoriaFiltro = '';
-      renderContent();
-    });
-  }
-  const excluirCategoriaBtn = content.querySelector('#excluir-categoria-btn');
-  if(excluirCategoriaBtn){
-    excluirCategoriaBtn.addEventListener('click', excluirCategoriaViaPrompt);
   }
 
   const titleInput = content.querySelector('#month-title-input');
@@ -2464,6 +2444,15 @@ function attachMonthEvents(monthKey){
     save(); renderContent();
   });
 
+  content.querySelectorAll('.pessoa-toggle-btn[data-pessoa-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const pessoa = btn.dataset.pessoaToggle;
+      if(!m.pessoaSecaoOculta) m.pessoaSecaoOculta = { thiago:false, pedro:false };
+      m.pessoaSecaoOculta[pessoa] = !m.pessoaSecaoOculta[pessoa];
+      save(); renderContent();
+    });
+  });
+
 
   // labels editáveis (Recebimento · Dia 18/08, títulos das seções DIA 18/08)
   content.querySelectorAll('.rlabel-input[data-label-key], .section-title-input[data-label-key]').forEach(el=>{
@@ -2514,7 +2503,7 @@ function attachMonthEvents(monthKey){
     });
   });
 
-  // excluir bloco de detalhamento (REVOLUT / NOH)
+  // excluir bloco de detalhamento (ex: NOH)
   content.querySelectorAll('.block-remove[data-detail-idx]').forEach(btn=>{
     const dIdx = parseInt(btn.dataset.detailIdx,10);
     btn.addEventListener('click', ()=>{
@@ -2525,11 +2514,39 @@ function attachMonthEvents(monthKey){
     });
   });
 
+  // duplicar bloco de detalhamento
+  content.querySelectorAll('.block-duplicate[data-detail-duplicate]').forEach(btn=>{
+    const dIdx = parseInt(btn.dataset.detailDuplicate,10);
+    btn.addEventListener('click', ()=>{
+      duplicarDetalhamento(m, dIdx);
+    });
+  });
+
+  // trocar a pessoa (thiago/pedro) de um bloco de detalhamento
+  content.querySelectorAll('.pessoa-toggle[data-pessoa-for-detail] .pessoa-btn').forEach(btn=>{
+    const wrap = btn.closest('.pessoa-toggle');
+    const dIdx = parseInt(wrap.dataset.pessoaForDetail,10);
+    btn.addEventListener('click', ()=>{
+      const detail = m.detalhamentos[dIdx];
+      if(!detail) return;
+      detail.pessoa = btn.dataset.pessoa;
+      save(); renderContent();
+    });
+  });
+
+  // trocar a pessoa do bloco fixo (Vencimentos - Dia 08)
+  content.querySelectorAll('.pessoa-toggle[data-pessoa-for] .pessoa-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      m.dia08Pessoa = btn.dataset.pessoa;
+      save(); renderContent();
+    });
+  });
+
   // reserva de emergência do mês — mesmo padrão de validação do recebimento
   const reservaEl = content.querySelector('#reserva-emergencia-input');
   if(reservaEl) reservaEl.addEventListener('change', e=>{
     const novoValor = parseValorBR(e.target.value);
-    if(isNaN(novoValor) || novoValor < 0){
+    if(isNaN(novoValor)){
       alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 1000,00).');
       e.target.value = round2(Number(m.reservaEmergencia||0)).toFixed(2);
       return;
@@ -2585,15 +2602,6 @@ function attachMonthEvents(monthKey){
       const idx = parseInt(row.dataset.idx,10);
       row.querySelector('.chk-pago').addEventListener('change', e=>{
         list[idx].pago = e.target.checked; save(); renderContent();
-      });
-      row.querySelector('.item-categoria').addEventListener('change', e=>{
-        if(e.target.value === '__nova__'){
-          const nome = criarCategoriaViaPrompt();
-          if(!nome){ e.target.value = categoriaEfetiva(list[idx]); return; }
-          list[idx].categoria = nome; save(); renderContent();
-          return;
-        }
-        list[idx].categoria = e.target.value; save(); renderContent();
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
         const novoDesc = e.target.value.trim();
@@ -2666,12 +2674,6 @@ function attachMonthEvents(monthKey){
     card.querySelector('.detail-title-input').addEventListener('change', e=>{
       const novoTitulo = e.target.value.trim();
       if(!novoTitulo){ e.target.value = detail.titulo; return; }
-      const duplicado = m.detalhamentos.some(d => d !== detail && d.titulo.trim().toLowerCase() === novoTitulo.toLowerCase());
-      if(duplicado){
-        alert(`Já existe um bloco chamado "${novoTitulo}" neste mês.`);
-        e.target.value = detail.titulo;
-        return;
-      }
       detail.titulo = novoTitulo; save(); renderContent();
     });
 
@@ -2679,15 +2681,6 @@ function attachMonthEvents(monthKey){
       const idx = parseInt(row.dataset.idx,10);
       row.querySelector('.chk-pago').addEventListener('change', e=>{
         detail.items[idx].pago = e.target.checked; save(); renderContent();
-      });
-      row.querySelector('.item-categoria').addEventListener('change', e=>{
-        if(e.target.value === '__nova__'){
-          const nome = criarCategoriaViaPrompt();
-          if(!nome){ e.target.value = categoriaEfetiva(detail.items[idx]); return; }
-          detail.items[idx].categoria = nome; save(); renderContent();
-          return;
-        }
-        detail.items[idx].categoria = e.target.value; save(); renderContent();
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
         const novoDesc = e.target.value.trim();
@@ -2746,7 +2739,7 @@ function attachMonthEvents(monthKey){
           let detCorrespondente = mes.detalhamentos.find(d=>d.titulo.trim().toLowerCase() === tituloAlvo);
           if(!detCorrespondente){
             // o box ainda não existe nesse mês — cria ele (mesma coluna e vínculo do original) antes de adicionar o item
-            detCorrespondente = { titulo: detail.titulo, items: [], col: detColOf(detail) };
+            detCorrespondente = { titulo: detail.titulo, items: [], pessoa: pessoaOf(detail) };
             mes.detalhamentos.push(detCorrespondente);
           }
           if(!nomeDuplicado(detCorrespondente.items, desc)){
@@ -2768,11 +2761,7 @@ function attachMonthEvents(monthKey){
     const nomeLimpo = nome.trim();
     if(!nomeLimpo) return;
     if(!m.detalhamentos) m.detalhamentos = [];
-    if(m.detalhamentos.some(d=>d.titulo.trim().toLowerCase() === nomeLimpo.toLowerCase())){
-      alert(`Já existe um bloco chamado "${nomeLimpo}" neste mês.`);
-      return;
-    }
-    m.detalhamentos.push({ titulo: nomeLimpo, items: [], col: isPagarDia18Titulo(nomeLimpo) ? 1 : 0 });
+    m.detalhamentos.push({ titulo: nomeLimpo, items: [], pessoa: 'thiago' });
     save(); renderContent();
   });
 
@@ -3089,6 +3078,19 @@ function calcularStreakMeta(goal){
   }
   return streak;
 }
+// Segurança: só permite abrir links http/https como <a href>. Qualquer outro
+// esquema (javascript:, data:, vbscript: etc.) é bloqueado, senão um link salvo
+// com esse esquema executaria código ao ser clicado (XSS via link malicioso).
+function urlSeguraParaLink(url){
+  if(!url) return null;
+  const limpo = String(url).trim();
+  try{
+    const parsed = new URL(limpo, window.location.href);
+    if(parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+  }catch(e){ /* URL inválida — ignora */ }
+  return null;
+}
+
 function metaEconomiaCardHtml(goal, idx){
   const alvo = round2(Number(goal.valorAlvo)||0);
   const atual = round2(Number(goal.valorAtual)||0);
@@ -3149,7 +3151,7 @@ function metaEconomiaCardHtml(goal, idx){
       <div class="goal-link-wrap">
         <span class="goal-link-icon">🔗</span>
         <input type="text" class="goal-link" placeholder="https://..." value="${escapeHtml(goal.link || '')}">
-        ${goal.link ? `<a href="${escapeHtml(goal.link)}" target="_blank" rel="noopener" class="goal-link-open">↗ abrir</a>` : ''}
+        ${(() => { const u = urlSeguraParaLink(goal.link); return u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="goal-link-open">↗ abrir</a>` : (goal.link ? `<span class="goal-link-open" style="opacity:0.5; cursor:not-allowed;" title="Link com esquema não suportado (só http/https)">↗ abrir</span>` : ''); })()}
       </div>
     </label>
     <div class="meta-bar-track"><div class="meta-bar-fill" style="width:${pct}%; background:${corBarra};"></div></div>
@@ -3237,7 +3239,7 @@ function attachMetasEconomiaEvents(){
       const valorStr = window.prompt('Valor alvo (R$):');
       if(valorStr === null) return;
       const valorNum = parseValorBR(valorStr);
-      if(isNaN(valorNum) || valorNum <= 0){
+      if(isNaN(valorNum)){
         alert('Valor inválido — a meta não foi criada.');
         return;
       }
@@ -3257,7 +3259,7 @@ function attachMetasEconomiaEvents(){
     });
     card.querySelector('.goal-alvo').addEventListener('change', e=>{
       const v = parseValorBR(e.target.value);
-      if(isNaN(v) || v < 0){
+      if(isNaN(v)){
         alert('Valor inválido — mantendo o valor anterior.');
         e.target.value = round2(goal.valorAlvo).toFixed(2);
         return;
@@ -3266,7 +3268,7 @@ function attachMetasEconomiaEvents(){
     });
     card.querySelector('.goal-atual').addEventListener('change', e=>{
       const v = parseValorBR(e.target.value);
-      if(isNaN(v) || v < 0){
+      if(isNaN(v)){
         alert('Valor inválido — mantendo o valor anterior.');
         e.target.value = round2(goal.valorAtual).toFixed(2);
         return;
@@ -3780,7 +3782,7 @@ async function abrirHistorico(){
     lista.innerHTML = snapshots.map(s => `
       <div class="history-item">
         <span>${formatarDataHistorico(s.created_at)}</span>
-        <button class="history-restore-btn" data-snapshot-id="${s.id}">Restaurar</button>
+        <button class="history-restore-btn" data-snapshot-id="${escapeHtml(String(s.id))}">Restaurar</button>
       </div>
     `).join('');
     lista.querySelectorAll('.history-restore-btn').forEach(btn=>{
