@@ -257,6 +257,13 @@
     background: var(--card); border:1px solid var(--border); border-radius: var(--radius);
     padding: 20px; margin-bottom:0.5cm; text-align:center;
   }
+  .recebimentos-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .recebimentos-title{ font-size:13px; font-weight:700; color:var(--text); }
+  .recebimentos-toggle{
+    border:none; background:transparent; color:var(--muted); font-size:12px; font-weight:600;
+    cursor:pointer; font-family:'Poppins', sans-serif; padding:4px 6px; border-radius:6px;
+  }
+  .recebimentos-toggle:hover{ background:#F0F2F5; color:var(--text); }
   .receb-total-label{ font-size:12.5px; color:var(--muted); margin:0 0 4px; }
   .receb-total-value{ font-size:28px; font-weight:700; color:#16A34A; margin:0 0 16px; font-family:'Poppins', sans-serif; }
   .recebimentos-row{
@@ -2266,6 +2273,11 @@ function renderMonthView(monthKey){
 
   html += `
   ${!oc.dia08 ? `<div class="recebimentos-card">
+    <div class="recebimentos-header">
+      <span class="recebimentos-title">Recebimentos</span>
+      <button id="toggle-recebimentos-btn" class="recebimentos-toggle">${m.recebimentosOculto ? 'mostrar ▸' : 'ocultar ▾'}</button>
+    </div>
+    ${!m.recebimentosOculto ? `
     <p class="receb-total-label">Total recebido</p>
     <p class="receb-total-value">R$ ${fmt(t.rendaTotal)}</p>
     <div class="recebimentos-row">
@@ -2304,6 +2316,7 @@ function renderMonthView(monthKey){
       <div class="col-total-card col-esquerda"><span class="col-total-label">Total coluna esquerda</span><span class="col-total-value">R$ ${fmt(round2(totalColEsquerda))}</span></div>
       <div class="col-total-card col-direita"><span class="col-total-label">Total coluna direita</span><span class="col-total-value">R$ ${fmt(round2(totalColDireita))}</span></div>
     </div>
+    ` : ''}
   </div>` : ''}
 
   `;
@@ -2425,6 +2438,12 @@ function attachMonthEvents(monthKey){
       return;
     }
     m.recebimentos.thiDia18 = round2(novoValor); save(); renderContent();
+  });
+
+  const toggleRecebBtn = content.querySelector('#toggle-recebimentos-btn');
+  if(toggleRecebBtn) toggleRecebBtn.addEventListener('click', ()=>{
+    m.recebimentosOculto = !m.recebimentosOculto;
+    save(); renderContent();
   });
 
   // labels editáveis (Recebimento · Dia 18/08, títulos das seções DIA 18/08)
