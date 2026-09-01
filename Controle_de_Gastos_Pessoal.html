@@ -318,19 +318,30 @@
   }
   .pessoa-secao-header.pessoa-thiago{ background:rgba(37,99,235,0.06); }
   .pessoa-secao-header.pessoa-pedro{ background:rgba(124,58,237,0.06); }
+  .pessoa-nome-wrap{ display:flex; align-items:center; gap:12px; min-width:0; }
   .pessoa-avatar{
     width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
     font-weight:700; font-size:12px; flex-shrink:0; font-family:'Poppins', sans-serif;
   }
   .pessoa-avatar-thiago{ background:rgba(37,99,235,0.15); color:#2563EB; }
   .pessoa-avatar-pedro{ background:rgba(124,58,237,0.15); color:#7C3AED; }
-  .pessoa-nome{ font-weight:700; font-size:14px; color:var(--text); flex:1; text-transform:lowercase; }
-  .pessoa-totais{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  input.pessoa-nome{
+    font-weight:700; font-size:14px; color:var(--text); text-transform:lowercase;
+    border:none; background:transparent; font-family:inherit; padding:2px 0;
+    min-width:0; width:110px; -webkit-appearance:none; appearance:none;
+  }
+  input.pessoa-nome:focus{ outline:none; text-decoration:underline; }
+  .pessoa-totais{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-left:auto; }
   .pessoa-total-label{ font-size:11px; color:var(--muted); }
   .pessoa-total-valor{ font-size:13px; font-weight:700; color:var(--text); margin-right:10px; }
   .pessoa-total-valor:last-child{ margin-right:0; }
   .pessoa-total-gasto{ color:var(--red); }
   .pessoa-secao-blocos{ display:flex; flex-direction:column; gap:16px; padding-left:6px; }
+  @media (max-width:600px){
+    .pessoa-nome-wrap{ flex-basis:100%; }
+    .pessoa-receb-inputs{ flex-basis:100%; }
+    .pessoa-totais{ margin-left:0; flex-basis:100%; justify-content:space-between; }
+  }
   .transferencia-row{
     display:flex; align-items:center; gap:10px; background:#FCEBE3; border:1px solid #F0C4AE;
     border-radius:8px; padding:8px 14px; margin:0 0 8px 6px;
@@ -818,6 +829,7 @@ const STORAGE_KEY = 'controleGastosPessoal_v2';
 
 function defaultData(){
   return {
+    pessoaNomes: { thiago: 'thiago', pedro: 'pedro' },
     months: {
       "Agosto/2026": {
         recebimentos: { dia18: 6600, dia08: 9900 },
@@ -991,6 +1003,9 @@ async function loadFromServer(){
 }
 
 function migrateData(data){
+  if(!data.pessoaNomes) data.pessoaNomes = { thiago:'thiago', pedro:'pedro' };
+  if(!data.pessoaNomes.thiago) data.pessoaNomes.thiago = 'thiago';
+  if(!data.pessoaNomes.pedro) data.pessoaNomes.pedro = 'pedro';
   // migração: garante que monthOrder existe (dados salvos antes dessa versão)
   if(!data.monthOrder){
     const keys = Object.keys(data.months || {});
@@ -2305,8 +2320,10 @@ function renderMonthView(monthKey){
   html += `
   <div class="pessoa-secao">
     <div class="pessoa-secao-header pessoa-thiago">
-      <div class="pessoa-avatar pessoa-avatar-thiago">TH</div>
-      <span class="pessoa-nome">thiago</span>
+      <div class="pessoa-nome-wrap">
+        <div class="pessoa-avatar pessoa-avatar-thiago">TH</div>
+        <input type="text" class="pessoa-nome" id="pessoa-nome-thiago" value="${escapeHtml(DATA.pessoaNomes.thiago)}">
+      </div>
       <div class="pessoa-receb-inputs">
         <label class="pessoa-receb-field">dia 08
           <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-thidia08" value="${round2(m.recebimentos.thiDia08).toFixed(2)}"></span>
@@ -2339,8 +2356,10 @@ function renderMonthView(monthKey){
 
   <div class="pessoa-secao">
     <div class="pessoa-secao-header pessoa-pedro">
-      <div class="pessoa-avatar pessoa-avatar-pedro">PE</div>
-      <span class="pessoa-nome">pedro</span>
+      <div class="pessoa-nome-wrap">
+        <div class="pessoa-avatar pessoa-avatar-pedro">PE</div>
+        <input type="text" class="pessoa-nome" id="pessoa-nome-pedro" value="${escapeHtml(DATA.pessoaNomes.pedro)}">
+      </div>
       <div class="pessoa-receb-inputs">
         <label class="pessoa-receb-field">dia 18
           <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-pedia08" value="${round2(m.recebimentos.peDia08).toFixed(2)}"></span>
@@ -2472,6 +2491,18 @@ function attachMonthEvents(monthKey){
   const totalDia08LabelInput = content.querySelector('#total-dia08-label');
   if(totalDia08LabelInput) totalDia08LabelInput.addEventListener('change', e=>{
     m.totalDia08Label = e.target.value.trim() || 'total dia 08';
+    save(); renderContent();
+  });
+
+  const nomeThiagoInput = content.querySelector('#pessoa-nome-thiago');
+  if(nomeThiagoInput) nomeThiagoInput.addEventListener('change', e=>{
+    DATA.pessoaNomes.thiago = e.target.value.trim() || 'thiago';
+    save(); renderContent();
+  });
+
+  const nomePedroInput = content.querySelector('#pessoa-nome-pedro');
+  if(nomePedroInput) nomePedroInput.addEventListener('change', e=>{
+    DATA.pessoaNomes.pedro = e.target.value.trim() || 'pedro';
     save(); renderContent();
   });
 
