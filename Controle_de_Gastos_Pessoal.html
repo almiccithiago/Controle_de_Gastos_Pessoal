@@ -1717,15 +1717,17 @@ function monthTotals(m){
     (m.detalhamentos||[])
       .reduce((s,d)=>s + d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0)
   );
-  const despesasTotal = round2(dia18Total + dia08Total + detalhamentosLivresTotal);
-  const rendaTotal = round2(Number(m.recebimentos.thiDia08||0) + Number(m.recebimentos.peDia08||0) + Number(m.recebimentos.thiDia18||0));
   const reservaEmergencia = round2(Number(m.reservaEmergencia||0));
-  const saldo = round2(rendaTotal - despesasTotal - reservaEmergencia);
+  // a reserva entra no total de despesas (já era descontada do saldo antes;
+  // agora ela também conta pra "pago"/"pendente" quando o checkbox é marcado).
+  const despesasTotal = round2(dia18Total + dia08Total + detalhamentosLivresTotal + reservaEmergencia);
+  const rendaTotal = round2(Number(m.recebimentos.thiDia08||0) + Number(m.recebimentos.peDia08||0) + Number(m.recebimentos.thiDia18||0));
+  const saldo = round2(rendaTotal - despesasTotal);
   const pagoDetalhamentosLivres = round2(
     (m.detalhamentos||[])
       .reduce((s,d)=>s + d.items.filter(x=>x.pago).reduce((s2,x)=>s2+Number(x.valor||0),0), 0)
   );
-  const pago = round2([...m.dia18, ...m.dia08].filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0) + pagoDetalhamentosLivres);
+  const pago = round2([...m.dia18, ...m.dia08].filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0) + pagoDetalhamentosLivres + (m.reservaEmergenciaFeita ? reservaEmergencia : 0));
   const pendente = round2(despesasTotal - pago);
   return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente, reservaEmergencia };
 }
@@ -3353,7 +3355,7 @@ function relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalReserva,
     <tr>
       <td>${escapeHtml(x.mes)}</td>
       <td style="text-align:right;">R$ ${fmt(x.t.rendaTotal)}</td>
-      <td style="text-align:right;">R$ ${fmt(x.t.despesasTotal)}</td>
+      <td style="text-align:right;">R$ ${fmt(round2(x.t.despesasTotal - x.t.reservaEmergencia))}</td>
       <td style="text-align:right;">R$ ${fmt(x.t.reservaEmergencia)}</td>
       <td style="text-align:right; font-weight:700; color:${x.t.saldo>=0?'#15803D':'#DC2626'};">R$ ${fmt(x.t.saldo)}</td>
     </tr>`).join('');
@@ -3396,9 +3398,9 @@ function exportarRelatorioAnual(ano){
     })
     .filter(Boolean);
   const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
-  const totalDespesas = round2(meses.reduce((s,x)=>s+x.t.despesasTotal,0));
+  const totalDespesas = round2(meses.reduce((s,x)=>s+(x.t.despesasTotal - x.t.reservaEmergencia),0));
   const totalReserva = round2(meses.reduce((s,x)=>s+x.t.reservaEmergencia,0));
-  const totalSaldo = round2(totalRenda - totalDespesas - totalReserva);
+  const totalSaldo = round2(meses.reduce((s,x)=>s+x.t.saldo,0));
   abrirRelatorioEmNovaAba('Resumo anual · ' + ano, relatorioAnualHtml(ano, meses, totalRenda, totalDespesas, totalReserva, totalSaldo));
 }
 
@@ -3422,20 +3424,20 @@ function renderResumoAnualView(){
   anos.forEach(ano=>{
     const meses = grupos[ano];
     const totalRenda = round2(meses.reduce((s,x)=>s+x.t.rendaTotal,0));
-    const totalDespesas = round2(meses.reduce((s,x)=>s+x.t.despesasTotal,0));
+    const totalDespesas = round2(meses.reduce((s,x)=>s+(x.t.despesasTotal - x.t.reservaEmergencia),0));
     const totalReserva = round2(meses.reduce((s,x)=>s+x.t.reservaEmergencia,0));
-    const totalSaldo = round2(totalRenda - totalDespesas - totalReserva);
+    const totalSaldo = round2(meses.reduce((s,x)=>s+x.t.saldo,0));
 
     const rows = meses.map(x=>`
       <tr>
         <td>${escapeHtml(x.mes)}</td>
         <td class="num">R$ ${fmt(x.t.rendaTotal)}</td>
-        <td class="num">R$ ${fmt(x.t.despesasTotal)}</td>
+        <td class="num">R$ ${fmt(round2(x.t.despesasTotal - x.t.reservaEmergencia))}</td>
         <td class="num">R$ ${fmt(x.t.reservaEmergencia)}</td>
         <td class="num ${x.t.saldo>=0?'num-positive':'num-negative'}">R$ ${fmt(x.t.saldo)}</td>
       </tr>`).join('');
 
-    const chart = renderBarChart(meses.map(x=>({label:x.mes, value:x.t.despesasTotal})), `chart-${ano}`);
+    const chart = renderBarChart(meses.map(x=>({label:x.mes, value: round2(x.t.despesasTotal - x.t.reservaEmergencia)})), `chart-${ano}`);
 
     html += `
     <div class="section-card annual-card">
