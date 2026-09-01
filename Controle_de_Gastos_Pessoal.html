@@ -2294,7 +2294,7 @@ function renderMonthView(monthKey){
   // "Total Dia 08" = tudo que está na seção do Thiago, MENOS o(s) bloco(s) que
   // representam "a pagar - dia 18" (identificados pelo título, ex: isPagarDia18Titulo).
   const totalDia18BlocosThiago = detsThiago
-    .filter(o=>isPagarDia18Titulo(o.d.titulo))
+    .filter(o=>String(o.d.titulo||'').toLowerCase().includes('dia 18'))
     .reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
   const totalDia08 = round2(thiagoGastos - totalDia18BlocosThiago);
 
