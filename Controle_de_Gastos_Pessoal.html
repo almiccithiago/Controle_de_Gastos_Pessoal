@@ -301,6 +301,28 @@
     padding: 16px; display:flex; flex-direction:column;
   }
   .section-card.detail{ background: #FAFBFD; border-style:dashed; }
+  .section-card.goal-atingida{ background:#EEF0F3; }
+  .section-card.goal-atingida .detail-title-input,
+  .section-card.goal-atingida .goal-field,
+  .section-card.goal-atingida .rs-prefix,
+  .section-card.goal-atingida input{ color:#9CA3AF; opacity:0.7; }
+  .section-card.goal-atingida input{ cursor:not-allowed; }
+  .section-card.goal-atingida .goal-link-open{ opacity:1; cursor:pointer; }
+  .goal-archive-btn, .goal-unarchive-btn{
+    display:flex; align-items:center; gap:4px; border:none; border-radius:8px;
+    padding:5px 10px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Poppins', sans-serif;
+  }
+  .goal-archive-btn{ background:#F0F2F5; color:var(--muted); }
+  .goal-archive-btn:hover{ background:#E4E8EE; }
+  .goal-unarchive-btn{ background:#fff; border:1px solid var(--border); color:var(--blue); }
+  .goal-unarchive-btn:hover{ background:#F4F6F9; }
+  .section-card.goal-arquivada{ background:#FAFBFD; border-style:dashed; }
+  .metas-arquivadas-toggle{
+    display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; font-weight:700;
+    color:var(--muted); margin:12px 0 8px; user-select:none;
+  }
+  .metas-arquivadas-toggle .chev{ font-size:11px; transition:transform .15s ease; }
+  .metas-arquivadas-toggle.open .chev{ transform:rotate(180deg); }
   .section-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .section-header h3{ font-size:14.5px; margin:0; font-weight:700; }
   .detail-title-input{
@@ -683,6 +705,19 @@
   .goal-field .cell-currency{ background:#F4F6F9; border:1px solid var(--border); border-radius:8px; padding:5px 8px; }
   .goal-field .cell-currency input{ font-size:13px; font-weight:700; text-align:right; }
   .goal-field input[type=date]{ border:1px solid var(--border); border-radius:8px; padding:5px 8px; font-size:12.5px; }
+  .goal-link-wrap{
+    margin-top:4px; display:flex; align-items:center; gap:6px;
+    background:#F4F6F9; border:1px solid var(--border); border-radius:8px; padding:5px 8px;
+  }
+  .goal-link-icon{ font-size:13px; flex-shrink:0; }
+  .goal-link{
+    flex:1; min-width:0; border:none; background:transparent; font-size:12.5px;
+    color:var(--blue); font-family:'Poppins', sans-serif; outline:none;
+  }
+  .goal-link-open{
+    font-size:11.5px; font-weight:700; color:var(--purple); text-decoration:none; flex-shrink:0;
+  }
+  .goal-link-open:hover{ text-decoration:underline; }
 
   /* Exportação de relatório em PDF: o botão "exportar relatório" abre o
      relatório numa aba nova (função abrirRelatorioEmNovaAba), já com seu
@@ -3027,13 +3062,16 @@ function metaEconomiaCardHtml(goal, idx){
   const streakHtml = streak >= 2
     ? `<span class="pill" style="background:var(--amber);" title="Meses seguidos guardando mais do que no mês anterior">🔥 ${streak} meses seguidos</span>`
     : '';
+  const arquivada = !!goal.arquivada;
   return `
-  <div class="section-card" data-goal="${idx}">
+  <div class="section-card ${atingida ? 'goal-atingida' : ''} ${arquivada ? 'goal-arquivada' : ''}" data-goal="${idx}">
     <div class="section-header">
-      <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}">
+      <input type="text" class="detail-title-input goal-titulo" value="${escapeHtml(goal.titulo)}" ${atingida ? 'disabled' : ''}>
       <div class="section-header-actions">
         ${streakHtml}
         <span class="pill" style="background:${corBarra}">${atingida ? 'concluída 🎉' : pct.toFixed(0)+'%'}</span>
+        ${atingida && !arquivada ? `<button class="goal-archive-btn" title="Arquivar esta meta">📦 arquivar</button>` : ''}
+        ${arquivada ? `<button class="goal-unarchive-btn" title="Trazer esta meta de volta">↩ desarquivar</button>` : ''}
         <div class="move-btns">
           <button class="move-btn" data-move="left" data-meta-move="${idx}" title="Mover para a esquerda">◀</button>
           <button class="move-btn" data-move="up" data-meta-move="${idx}" title="Mover para cima">▲</button>
@@ -3045,15 +3083,22 @@ function metaEconomiaCardHtml(goal, idx){
     </div>
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px;">
       <label class="goal-field">valor alvo
-        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-alvo" value="${alvo.toFixed(2)}" style="width:110px;"></div>
+        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-alvo" value="${alvo.toFixed(2)}" style="width:110px;" ${atingida ? 'disabled' : ''}></div>
       </label>
       <label class="goal-field">já guardado
-        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-atual" value="${atual.toFixed(2)}" style="width:110px;"></div>
+        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-atual" value="${atual.toFixed(2)}" style="width:110px;" ${atingida ? 'disabled' : ''}></div>
       </label>
       <label class="goal-field">data alvo (opcional)
-        <div style="margin-top:4px;"><input type="date" class="goal-data" value="${goal.dataAlvo || ''}"></div>
+        <div style="margin-top:4px;"><input type="date" class="goal-data" value="${goal.dataAlvo || ''}" ${atingida ? 'disabled' : ''}></div>
       </label>
     </div>
+    <label class="goal-field" style="display:block; margin-bottom:8px;">link do produto (opcional)
+      <div class="goal-link-wrap">
+        <span class="goal-link-icon">🔗</span>
+        <input type="text" class="goal-link" placeholder="https://..." value="${escapeHtml(goal.link || '')}" ${atingida ? 'disabled' : ''}>
+        ${goal.link ? `<a href="${escapeHtml(goal.link)}" target="_blank" rel="noopener" class="goal-link-open">↗ abrir</a>` : ''}
+      </div>
+    </label>
     <div class="meta-bar-track"><div class="meta-bar-fill" style="width:${pct}%; background:${corBarra};"></div></div>
     <div class="meta-bar-text" style="color:${corBarra};">R$ ${fmt(atual)} de R$ ${fmt(alvo)}${!atingida ? ` · faltam R$ ${fmt(falta)}` : ''}</div>
     ${sugestaoHtml}
@@ -3099,17 +3144,32 @@ function moveMetaEconomia(idx, direction){
   save(); renderContent();
 }
 
+let metasArquivadasExpandido = false;
+
 function renderMetasEconomiaHtml(){
   const metas = DATA.metasEconomia || [];
+  const ativasComIdx = metas.map((g,idx)=>({g,idx})).filter(x=>!x.g.arquivada);
+  const arquivadasComIdx = metas.map((g,idx)=>({g,idx})).filter(x=>x.g.arquivada);
+  const arquivadasHtml = arquivadasComIdx.length
+    ? `
+    <div class="metas-arquivadas-toggle ${metasArquivadasExpandido ? 'open' : ''}" id="metas-arquivadas-toggle">
+      <span>📦 metas arquivadas (${arquivadasComIdx.length})</span>
+      <span class="chev">▾</span>
+    </div>
+    ${metasArquivadasExpandido
+      ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; align-items:start;">${arquivadasComIdx.map(x=>metaEconomiaCardHtml(x.g,x.idx)).join('')}</div>`
+      : ''}`
+    : '';
   return `
   <div class="section-card" style="margin-bottom:0.5cm;">
     <div class="section-header">
       <h3>metas de economia</h3>
       <button id="add-meta-economia-btn" class="add-block-btn" style="padding:6px 14px; font-size:12px;">+ nova meta</button>
     </div>
-    ${metas.length
-      ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; align-items:start;">${metas.map((g,idx)=>metaEconomiaCardHtml(g,idx)).join('')}</div>`
+    ${ativasComIdx.length
+      ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; align-items:start;">${ativasComIdx.map(x=>metaEconomiaCardHtml(x.g,x.idx)).join('')}</div>`
       : `<div class="empty-hint">Nenhuma meta cadastrada ainda — crie uma pra juntar dinheiro pra algo específico (viagem, reserva de emergência, etc).</div>`}
+    ${arquivadasHtml}
   </div>`;
 }
 
@@ -3168,11 +3228,32 @@ function attachMetasEconomiaEvents(){
       goal.dataAlvo = e.target.value || null;
       save(); renderContent();
     });
+    card.querySelector('.goal-link').addEventListener('blur', e=>{
+      const novoLink = e.target.value.trim();
+      goal.link = novoLink || null;
+      save(); renderContent();
+    });
     card.querySelector('.goal-remove').addEventListener('click', ()=>{
       if(!confirmarExclusaoComNome('a meta', goal.titulo)) return;
       DATA.metasEconomia.splice(idx, 1);
       save(); renderContent();
     });
+    const archiveBtn = card.querySelector('.goal-archive-btn');
+    if(archiveBtn) archiveBtn.addEventListener('click', ()=>{
+      goal.arquivada = true;
+      save(); renderContent();
+    });
+    const unarchiveBtn = card.querySelector('.goal-unarchive-btn');
+    if(unarchiveBtn) unarchiveBtn.addEventListener('click', ()=>{
+      goal.arquivada = false;
+      save(); renderContent();
+    });
+  });
+
+  const arquivadasToggle = content.querySelector('#metas-arquivadas-toggle');
+  if(arquivadasToggle) arquivadasToggle.addEventListener('click', ()=>{
+    metasArquivadasExpandido = !metasArquivadasExpandido;
+    renderContent();
   });
 
   // mover meta de economia (cima/baixo/esquerda/direita)
