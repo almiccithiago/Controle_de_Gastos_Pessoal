@@ -197,7 +197,7 @@
     display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom: 0.5cm;
   }
   @media (max-width: 900px){ .summary-grid{ grid-template-columns: repeat(2,1fr);} }
-  .insights-bar{ display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+  .insights-bar{ display:flex; flex-direction:column; gap:8px; margin-bottom:0.5cm; }
   .insight-card{
     display:flex; align-items:flex-start; gap:10px; border:1px solid; border-radius:12px;
     padding:10px 14px; font-size:13px; line-height:1.4;
@@ -206,37 +206,6 @@
   .insight-text{ flex:1; }
   .insight-dismiss{ cursor:pointer; opacity:0.55; font-size:14px; flex-shrink:0; }
   .insight-dismiss:hover{ opacity:1; }
-  .resumo-ia-card{
-    background:var(--card); border:1px solid var(--border); border-radius:12px;
-    padding:14px 16px; margin-bottom:0.5cm;
-  }
-  .resumo-ia-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; }
-  .resumo-ia-titulo{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; color:var(--text); }
-  .resumo-ia-icon{
-    width:24px; height:24px; border-radius:7px; flex-shrink:0;
-    background:linear-gradient(135deg, var(--teal), var(--blue));
-    display:flex; align-items:center; justify-content:center; font-size:12px;
-  }
-  .resumo-ia-data{ font-size:11px; color:var(--muted); flex-shrink:0; }
-  .resumo-ia-texto{ font-size:13.5px; line-height:1.6; color:var(--text); margin:0 0 12px 0; }
-  .resumo-ia-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
-  .resumo-ia-tag{ font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; }
-  .resumo-ia-tag.alta{ background:#FAECE7; color:#4A1B0C; }
-  .resumo-ia-tag.baixa{ background:#EAF3DE; color:#173404; }
-  .resumo-ia-tag.neutra{ background:#F1EFE8; color:#444441; }
-  .resumo-ia-footer{
-    border-top:1px solid var(--border); padding-top:10px; display:flex;
-    justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;
-  }
-  .resumo-ia-fonte{ font-size:11px; color:var(--muted); }
-  .resumo-ia-btn{
-    background:transparent; border:1px solid var(--border); color:var(--teal);
-    font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer;
-  }
-  .resumo-ia-btn:hover{ background:var(--teal); color:#fff; }
-  .resumo-ia-btn:disabled{ opacity:0.5; cursor:default; }
-  .resumo-ia-btn:disabled:hover{ background:transparent; color:var(--teal); }
-  .resumo-ia-erro{ font-size:12px; color:var(--red); margin-top:8px; }
   .summary-card{
     background: var(--card); border-radius: var(--radius); padding: 14px 16px;
     border: 1px solid var(--border);
@@ -2219,7 +2188,6 @@ function renderMonthView(monthKey){
   const saldoExibido = tf ? round2(t.rendaTotal - tf.despesasTotal - t.reservaEmergencia) : t.saldo;
   const sufixoFiltro = tf ? ` (${nomeExibicaoFiltro()})` : '';
   const saldoClass = saldoExibido >= 0 ? 'positive' : 'negative';
-  const bannerClass = t.saldo >= 0 ? 'pos' : 'neg';
   const oc = m.blocosOcultos;
 
   let compRenda = '', compDespesas = '', compMedia = '';
@@ -2248,7 +2216,6 @@ function renderMonthView(monthKey){
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
     </div>
   </div>
-  ${!isTemplate ? resumoIaHtml(monthKey) : ''}
   <div class="summary-grid">
     <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div>${compRenda}</div>
     <div class="summary-card accent-red"><div class="label">Total Despesas${sufixoFiltro}</div><div class="value">R$ ${fmt(despesasExibida)}</div>${tf ? '' : compDespesas}${tf ? '' : compMedia}</div>
@@ -2369,14 +2336,6 @@ function renderMonthView(monthKey){
   </div>
   `;
 
-  if(!isTemplate){
-    html += `
-    <div class="saldo-banner ${bannerClass}">
-      <span>${t.saldo>=0 ? 'Sobrou no mês' : 'Gastos maiores que a renda'}</span>
-      <span>R$ ${fmt(Math.abs(t.saldo))}</span>
-    </div>
-    `;
-  }
   return html;
 }
 
@@ -2396,8 +2355,6 @@ function attachMonthEvents(monthKey){
         btn.closest('.insight-card').remove();
       });
     });
-    const resumoIaBtn = content.querySelector('#resumo-ia-btn');
-    if(resumoIaBtn) resumoIaBtn.addEventListener('click', ()=>gerarResumoIA(monthKey));
   }
 
   const titleInput = content.querySelector('#month-title-input');
@@ -3043,11 +3000,11 @@ function projecaoSaldoFuturoHtml(){
   // Alerta: se a média guardada nos últimos meses for zero (ou o usuário parou de guardar),
   // avisa que a reserva não vai crescer no ritmo atual. Caso contrário, mostra a projeção final.
   const alertaHtml = mediaReserva <= 0
-    ? `<div class="receb-warning" style="margin-bottom:14px;">
+    ? `<div class="receb-warning" style="margin-bottom:0.5cm;">
         ⚠️ na média dos últimos ${ultimos.length} meses, você não guardou nada na reserva de emergência —
         no ritmo atual, ela não deve crescer nos próximos ${MESES_PROJETADOS} meses.
       </div>`
-    : `<div class="saldo-banner pos" style="margin-bottom:14px; padding:10px 16px; font-size:12.5px;">
+    : `<div class="saldo-banner pos" style="margin-bottom:0.5cm; padding:10px 16px; font-size:12.5px;">
         ✓ no ritmo atual, sua reserva de emergência deve chegar a R$ ${fmt(acumProj)} em ${MESES_PROJETADOS} meses.
       </div>`;
 
