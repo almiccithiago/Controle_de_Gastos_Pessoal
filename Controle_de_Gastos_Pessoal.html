@@ -493,6 +493,16 @@
   }
   .reserva-box input:focus{ outline:2px solid var(--blue); }
   .reserva-box .reserva-hint{ font-size:11.5px; color:var(--muted); font-family:'Poppins', sans-serif; }
+  .reserva-box .reserva-check{
+    width:20px; height:20px; accent-color: var(--blue); cursor:pointer; flex-shrink:0;
+  }
+  .reserva-box.feita{ background:#EEF0F3; }
+  .reserva-box.feita label,
+  .reserva-box.feita .reserva-hint,
+  .reserva-box.feita .rs-prefix{ color:#9CA3AF; opacity:0.6; }
+  .reserva-box.feita input[type=text]{
+    color:#9CA3AF; opacity:0.6; background:#F1F2F4; cursor:not-allowed;
+  }
 
   .section-total{
     display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 4px 0 4px;
@@ -1739,12 +1749,14 @@ function monthTotalsFiltrados(m){
 // que usa monthTotals (banner, resumo anual, PDF, resumo IA).
 function reservaEmergenciaBoxHtml(m){
   const valor = round2(Number(m.reservaEmergencia||0));
+  const feita = !!m.reservaEmergenciaFeita;
   return `
-  <div class="reserva-box">
+  <div class="reserva-box ${feita?'feita':''}">
+    <input type="checkbox" id="reserva-emergencia-check" class="reserva-check" ${feita?'checked':''} title="Marcar quando o depósito for feito">
     <label for="reserva-emergencia-input">🛟 Reserva de emergência guardada este mês:</label>
     <div class="reserva-input-wrap">
       <span class="rs-prefix">R$</span>
-      <input type="text" inputmode="decimal" id="reserva-emergencia-input" value="${valor.toFixed(2)}">
+      <input type="text" inputmode="decimal" id="reserva-emergencia-input" value="${valor.toFixed(2)}" ${feita?'disabled':''}>
     </div>
     <span class="reserva-hint">esse valor é descontado do saldo do mês</span>
   </div>`;
@@ -2435,6 +2447,13 @@ function attachMonthEvents(monthKey){
       return;
     }
     m.reservaEmergencia = round2(novoValor); save(); renderContent();
+  });
+
+  // checkbox "depósito feito" da reserva de emergência — só trava o campo
+  // visualmente, não mexe no valor nem em nenhum cálculo de saldo.
+  const reservaCheckEl = content.querySelector('#reserva-emergencia-check');
+  if(reservaCheckEl) reservaCheckEl.addEventListener('change', e=>{
+    m.reservaEmergenciaFeita = e.target.checked; save(); renderContent();
   });
 
   // anotações do mês (ou do Modelo) — salva ao sair do campo, sem re-renderizar
