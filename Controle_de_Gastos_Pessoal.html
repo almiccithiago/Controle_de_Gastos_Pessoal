@@ -344,37 +344,6 @@
     .pessoa-receb-inputs{ flex-basis:100%; }
     .pessoa-totais{ margin-left:0; flex-basis:100%; justify-content:space-between; }
   }
-  .transferencia-row{
-    display:flex; align-items:center; gap:10px; background:#FCEBE3; border:1px solid #F0C4AE;
-    border-radius:8px; padding:8px 14px; margin:0 0 8px 6px;
-  }
-  .transferencia-row input[type=checkbox]{
-    width:16px; height:16px; accent-color:#B5541F; cursor:pointer; flex-shrink:0;
-  }
-  input.transferencia-label{
-    font-size:12.5px; font-weight:600; color:#8A3E17; flex:1;
-    border:none; background:transparent; font-family:inherit; padding:2px 0;
-    -webkit-appearance:none; appearance:none;
-  }
-  input.transferencia-label:focus{ outline:none; text-decoration:underline; }
-  .transferencia-valor{ font-size:13px; font-weight:700; color:#8A3E17; flex-shrink:0; }
-  .transferencia-valor .rs-prefix{ font-size:12px; font-weight:600; color:#8A3E17; }
-  .transferencia-row.transferencia-feita{ background:#EEF0F3; border-color:var(--border); }
-  .transferencia-row.transferencia-feita input.transferencia-label,
-  .transferencia-row.transferencia-feita .transferencia-valor,
-  .transferencia-row.transferencia-feita .transferencia-valor .rs-prefix{ color:#9CA3AF; opacity:0.7; }
-  .total-dia08-row{
-    display:flex; align-items:center; gap:10px; background:#F5F5F3; border:1px solid #E5E4DF;
-    border-radius:8px; padding:8px 14px; margin:0 0 12px 6px;
-  }
-  input.total-dia08-label{
-    font-size:12.5px; font-weight:600; color:#444441; flex:1;
-    border:none; background:transparent; font-family:inherit; padding:2px 0;
-    -webkit-appearance:none; appearance:none;
-  }
-  input.total-dia08-label:focus{ outline:none; text-decoration:underline; }
-  .total-dia08-valor{ font-size:13px; font-weight:700; color:#2C2C2A; flex-shrink:0; }
-  .total-dia08-valor .rs-prefix{ font-size:12px; font-weight:600; color:#2C2C2A; }
   .pessoa-toggle{ display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
   .pessoa-btn{
     border:none; background:#fff; color:var(--muted); font-size:11px; font-weight:600;
@@ -483,10 +452,71 @@
   .item-link:hover{ color:var(--blue); }
   .item-link.has-link{ color:var(--blue); }
   .item-link svg{ width:15px; height:15px; }
+  .item-nota-view, .item-anexo-view{
+    border:none; background:transparent; color:var(--teal); cursor:pointer;
+    padding:2px 4px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  }
+  .item-nota-view:hover, .item-anexo-view:hover{ opacity:0.7; }
+  .item-nota-view svg, .item-anexo-view svg{ width:15px; height:15px; }
   .item-link-open{
     font-size:11.5px; font-weight:700; color:var(--purple); text-decoration:none; flex-shrink:0;
   }
   .item-link-open:hover{ text-decoration:underline; }
+
+  /* Popover flutuante do menu de anexos (link / texto / arquivo) e do balão
+     de nota — reaproveitado por todos os itens, criado/posicionado via JS. */
+  .anexo-popover{
+    background:var(--bg); border:1px solid var(--border-strong); border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.15); padding:10px; width:230px;
+    font-family:'Poppins', sans-serif;
+  }
+  .anexo-menu-opt{
+    display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+    padding:8px 8px; border:none; background:transparent; border-radius:6px;
+    cursor:pointer; font-size:12.5px; color:var(--text); font-family:inherit;
+  }
+  .anexo-menu-opt:hover{ background:#F1F3F6; }
+  .anexo-menu-opt svg{ width:15px; height:15px; flex-shrink:0; color:var(--muted); }
+  .anexo-menu-opt.anexo-menu-remove{ color:var(--red); }
+  .anexo-popover hr{ border:none; border-top:1px solid var(--border); margin:4px 0; }
+  .anexo-form-title{ font-size:12px; font-weight:700; margin-bottom:8px; color:var(--text); }
+  .anexo-form-input, .anexo-form-textarea{
+    width:100%; box-sizing:border-box; padding:7px 9px; border:1px solid var(--border-strong);
+    border-radius:6px; font-size:12.5px; margin-bottom:8px; font-family:inherit;
+  }
+  .anexo-form-textarea{ height:70px; resize:vertical; }
+  .anexo-form-actions{ display:flex; gap:8px; justify-content:flex-end; }
+  .anexo-form-actions button{
+    font-size:12px; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;
+    font-family:inherit;
+  }
+  .anexo-form-cancel, .anexo-modal-close, .anexo-modal-remove{ background:transparent; color:var(--muted); }
+  .anexo-form-save, .anexo-modal-download{ background:var(--blue); color:#fff; }
+  .anexo-form-save:disabled{ opacity:0.5; cursor:not-allowed; }
+  .anexo-form-dropzone{
+    display:block; border:1.5px dashed var(--border-strong); border-radius:8px; padding:16px;
+    text-align:center; font-size:12px; color:var(--muted); cursor:pointer; margin-bottom:8px;
+  }
+  .anexo-form-dropzone:hover{ border-color:var(--blue); color:var(--blue); }
+  .anexo-form-file-info{ font-size:11.5px; color:var(--text); margin:-4px 0 8px; word-break:break-all; }
+  .anexo-balao-texto{ font-size:12.5px; line-height:1.5; margin-bottom:8px; white-space:pre-wrap; word-break:break-word; }
+
+  .anexo-modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center;
+    justify-content:center; z-index:10000; padding:16px;
+  }
+  .anexo-modal{
+    background:var(--bg); border-radius:12px; padding:16px; width:100%; max-width:340px;
+    font-family:'Poppins', sans-serif; box-shadow:0 12px 32px rgba(0,0,0,0.2);
+  }
+  .anexo-modal-title{ font-size:12.5px; font-weight:700; margin-bottom:10px; }
+  .anexo-modal-preview{
+    background:#F4F6F9; border-radius:8px; min-height:140px; display:flex;
+    align-items:center; justify-content:center; margin-bottom:10px; overflow:hidden;
+  }
+  .anexo-modal-img{ max-width:100%; max-height:220px; display:block; }
+  .anexo-modal-icon{ font-size:40px; }
+  .anexo-modal-filename{ font-size:12px; color:var(--muted); margin-bottom:12px; word-break:break-all; }
 
   /* Em telas estreitas, checkbox+categoria+R$+valor+remover já ocupam quase toda
      a largura, então o input de descrição (flex:1 min-width:0) acaba espremido a
@@ -499,6 +529,8 @@
     .item-row .item-desc{ order:1; flex:1 1 auto; min-width:80px; }
     .item-row .item-categoria{ order:2; flex-basis:100%; margin-top:2px; }
     .item-row .item-link{ order:3; }
+    .item-row .item-nota-view{ order:3; }
+    .item-row .item-anexo-view{ order:3; }
     .item-row .item-link-open{ order:4; }
     .item-row .rs-prefix{ order:5; }
     .item-row .item-valor{ order:6; width:80px; }
@@ -1856,12 +1888,15 @@ function filtroCategoriaBarHtml(){
 
 function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   const listAttr = detailIdx===undefined ? listKey : `detail:${detailIdx}`;
+  const temAnexos = !!(item.link || item.nota || item.anexo);
   return `
   <div class="item-row ${item.pago?'paid':''}" data-list="${listAttr}" data-idx="${idx}">
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
-    <button class="item-link ${item.link ? 'has-link' : ''}" title="${item.link ? 'Editar link: ' + escapeHtml(item.link) : 'Adicionar link'}">${linkIconSvg()}</button>
     ${(() => { const u = item.link ? urlSeguraParaLink(item.link) : ''; return u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="item-link-open">↗ abrir</a>` : ''; })()}
+    ${item.nota ? `<button class="item-nota-view" title="Ver nota">${notaIconSvg()}</button>` : ''}
+    ${item.anexo ? `<button class="item-anexo-view" title="Ver anexo">${anexoIconSvg()}</button>` : ''}
+    <button class="item-link ${temAnexos ? 'has-link' : ''}" title="Adicionar link, texto ou anexo">${linkIconSvg()}</button>
     <span class="rs-prefix">R$</span>
     <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-remove" title="Remover item">×</button>
@@ -1870,6 +1905,219 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
 
 function linkIconSvg(){
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M11 6l.463-.536a5 5 0 0 1 7.071 7.072L18 13"/><path d="M13 18l-.397.534a5.068 5.068 0 0 1-7.127 0 4.972 4.972 0 0 1 0-7.071L6 11"/></svg>';
+}
+
+function notaIconSvg(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10M7 12h10M7 17h6"/></svg>';
+}
+
+function anexoIconSvg(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.48"/></svg>';
+}
+
+// ====================== MENU/POPOVER DE LINK, NOTA E ANEXO ======================
+// Reaproveitado por qualquer item-row (seções principais ou detalhamentos).
+// `item` é a referência direta ao objeto de dados (list[idx] ou
+// detail.items[idx]) — alterações feitas aqui já refletem em DATA.
+// `onChange` é chamado após qualquer alteração para salvar e re-renderizar.
+let anexoPopoverEl = null;
+const ANEXO_MAX_BYTES = 2 * 1024 * 1024; // 2MB — limite pensado para o armazenamento em base64 dentro do JSON
+
+function fecharAnexoPopover(){
+  if(anexoPopoverEl){ anexoPopoverEl.remove(); anexoPopoverEl = null; }
+  document.removeEventListener('mousedown', onDocClickFecharAnexoPopover, true);
+}
+function onDocClickFecharAnexoPopover(e){
+  if(anexoPopoverEl && !anexoPopoverEl.contains(e.target)) fecharAnexoPopover();
+}
+function posicionarAnexoPopover(el, triggerEl){
+  const r = triggerEl.getBoundingClientRect();
+  const largura = 230;
+  el.style.position = 'fixed';
+  el.style.top = Math.min(r.bottom + 6, window.innerHeight - 40) + 'px';
+  el.style.left = Math.max(8, Math.min(r.left, window.innerWidth - largura - 8)) + 'px';
+  el.style.zIndex = 9999;
+}
+
+function attachItemAnexoHandlers(row, item, onChange){
+  const linkBtn = row.querySelector('.item-link');
+  if(linkBtn) linkBtn.addEventListener('click', ()=> abrirMenuAnexoItem(linkBtn, item, onChange));
+  const notaBtn = row.querySelector('.item-nota-view');
+  if(notaBtn) notaBtn.addEventListener('click', ()=> abrirBalaoNotaItem(notaBtn, item, onChange));
+  const anexoBtn = row.querySelector('.item-anexo-view');
+  if(anexoBtn) anexoBtn.addEventListener('click', ()=> abrirModalAnexoItem(item, onChange));
+}
+
+function abrirMenuAnexoItem(triggerEl, item, onChange){
+  fecharAnexoPopover();
+  const el = document.createElement('div');
+  el.className = 'anexo-popover';
+  renderAnexoMenu(el, item, onChange);
+  document.body.appendChild(el);
+  anexoPopoverEl = el;
+  posicionarAnexoPopover(el, triggerEl);
+  setTimeout(()=> document.addEventListener('mousedown', onDocClickFecharAnexoPopover, true), 0);
+}
+
+function renderAnexoMenu(el, item, onChange){
+  el.innerHTML = `
+    <button class="anexo-menu-opt" data-opt="link">${linkIconSvg()} ${item.link ? 'Editar link' : 'Adicionar link'}</button>
+    <button class="anexo-menu-opt" data-opt="nota">${notaIconSvg()} ${item.nota ? 'Editar texto' : 'Adicionar texto'}</button>
+    <button class="anexo-menu-opt" data-opt="anexo">${anexoIconSvg()} ${item.anexo ? 'Trocar anexo' : 'Anexar imagem/documento'}</button>
+    ${(item.link || item.nota || item.anexo) ? '<hr>' : ''}
+    ${item.link ? '<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-link">Remover link</button>' : ''}
+    ${item.nota ? '<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-nota">Remover texto</button>' : ''}
+    ${item.anexo ? '<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-anexo">Remover anexo</button>' : ''}
+  `;
+  el.querySelectorAll('.anexo-menu-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const opt = btn.dataset.opt;
+      if(opt==='link') renderAnexoFormLink(el, item, onChange);
+      else if(opt==='nota') renderAnexoFormNota(el, item, onChange);
+      else if(opt==='anexo') renderAnexoFormArquivo(el, item, onChange);
+      else if(opt==='remove-link'){ item.link = null; onChange(); fecharAnexoPopover(); }
+      else if(opt==='remove-nota'){ item.nota = null; onChange(); fecharAnexoPopover(); }
+      else if(opt==='remove-anexo'){ item.anexo = null; onChange(); fecharAnexoPopover(); }
+    });
+  });
+}
+
+function renderAnexoFormLink(el, item, onChange){
+  el.innerHTML = `
+    <div class="anexo-form-title">Link para "${escapeHtml(item.desc)}"</div>
+    <input type="text" class="anexo-form-input" placeholder="https://...">
+    <div class="anexo-form-actions">
+      <button class="anexo-form-cancel">Voltar</button>
+      <button class="anexo-form-save">Salvar</button>
+    </div>
+  `;
+  const input = el.querySelector('.anexo-form-input');
+  input.value = item.link || '';
+  input.focus();
+  el.querySelector('.anexo-form-cancel').addEventListener('click', ()=> renderAnexoMenu(el, item, onChange));
+  const salvar = ()=>{
+    const v = input.value.trim();
+    item.link = v || null;
+    onChange(); fecharAnexoPopover();
+  };
+  el.querySelector('.anexo-form-save').addEventListener('click', salvar);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); salvar(); } });
+}
+
+function renderAnexoFormNota(el, item, onChange){
+  el.innerHTML = `
+    <div class="anexo-form-title">Nota para "${escapeHtml(item.desc)}"</div>
+    <textarea class="anexo-form-textarea" placeholder="Escreva uma observação..."></textarea>
+    <div class="anexo-form-actions">
+      <button class="anexo-form-cancel">Voltar</button>
+      <button class="anexo-form-save">Salvar</button>
+    </div>
+  `;
+  const textarea = el.querySelector('.anexo-form-textarea');
+  textarea.value = item.nota || '';
+  textarea.focus();
+  el.querySelector('.anexo-form-cancel').addEventListener('click', ()=> renderAnexoMenu(el, item, onChange));
+  el.querySelector('.anexo-form-save').addEventListener('click', ()=>{
+    const v = textarea.value.trim();
+    item.nota = v || null;
+    onChange(); fecharAnexoPopover();
+  });
+}
+
+function renderAnexoFormArquivo(el, item, onChange){
+  el.innerHTML = `
+    <div class="anexo-form-title">Anexo para "${escapeHtml(item.desc)}"</div>
+    <label class="anexo-form-dropzone">
+      <input type="file" class="anexo-form-file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:none;">
+      <span>📎 Clique para escolher um arquivo<br><span style="font-size:10.5px;">(máx. 2MB)</span></span>
+    </label>
+    <div class="anexo-form-file-info" style="display:none;"></div>
+    <div class="anexo-form-actions">
+      <button class="anexo-form-cancel">Voltar</button>
+      <button class="anexo-form-save" disabled>Salvar</button>
+    </div>
+  `;
+  const fileInput = el.querySelector('.anexo-form-file');
+  const info = el.querySelector('.anexo-form-file-info');
+  const saveBtn = el.querySelector('.anexo-form-save');
+  let novoAnexo = null;
+  fileInput.addEventListener('change', ()=>{
+    const file = fileInput.files[0];
+    if(!file) return;
+    if(file.size > ANEXO_MAX_BYTES){
+      alert('Arquivo muito grande (máximo 2MB). Escolha um arquivo menor.');
+      fileInput.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      novoAnexo = { nome: file.name, tipo: file.type, dados: reader.result };
+      info.style.display = 'block';
+      info.textContent = '✓ ' + file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+      saveBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  });
+  el.querySelector('.anexo-form-cancel').addEventListener('click', ()=> renderAnexoMenu(el, item, onChange));
+  saveBtn.addEventListener('click', ()=>{
+    if(novoAnexo){ item.anexo = novoAnexo; onChange(); fecharAnexoPopover(); }
+  });
+}
+
+function abrirBalaoNotaItem(triggerEl, item, onChange){
+  fecharAnexoPopover();
+  const el = document.createElement('div');
+  el.className = 'anexo-popover';
+  el.innerHTML = `
+    <div class="anexo-balao-texto">${escapeHtml(item.nota || '')}</div>
+    <div class="anexo-form-actions">
+      <button class="anexo-form-edit" style="background:transparent;color:var(--blue);">Editar</button>
+      <button class="anexo-form-cancel">Fechar</button>
+    </div>
+  `;
+  document.body.appendChild(el);
+  anexoPopoverEl = el;
+  posicionarAnexoPopover(el, triggerEl);
+  el.querySelector('.anexo-form-cancel').addEventListener('click', fecharAnexoPopover);
+  el.querySelector('.anexo-form-edit').addEventListener('click', ()=> renderAnexoFormNota(el, item, onChange));
+  setTimeout(()=> document.addEventListener('mousedown', onDocClickFecharAnexoPopover, true), 0);
+}
+
+function abrirModalAnexoItem(item, onChange){
+  const modal = document.createElement('div');
+  modal.className = 'anexo-modal-overlay';
+  const isImage = item.anexo && item.anexo.tipo && item.anexo.tipo.startsWith('image/');
+  modal.innerHTML = `
+    <div class="anexo-modal">
+      <div class="anexo-modal-title">Anexo de "${escapeHtml(item.desc)}"</div>
+      <div class="anexo-modal-preview">
+        ${isImage ? `<img src="${item.anexo.dados}" class="anexo-modal-img">` : `<div class="anexo-modal-icon">📄</div>`}
+      </div>
+      <div class="anexo-modal-filename">${escapeHtml(item.anexo ? item.anexo.nome : '')}</div>
+      <div class="anexo-form-actions">
+        <button class="anexo-modal-remove">Remover</button>
+        <button class="anexo-modal-download">Baixar / abrir</button>
+        <button class="anexo-modal-close">Fechar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.querySelector('.anexo-modal-close').addEventListener('click', ()=> modal.remove());
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+  modal.querySelector('.anexo-modal-download').addEventListener('click', ()=>{
+    const a = document.createElement('a');
+    a.href = item.anexo.dados;
+    a.download = item.anexo.nome;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+  modal.querySelector('.anexo-modal-remove').addEventListener('click', ()=>{
+    if(!confirm('Remover este anexo?')) return;
+    item.anexo = null;
+    modal.remove();
+    onChange();
+  });
 }
 
 function metaBarraHtml(gasto, meta){
@@ -2317,15 +2565,6 @@ function renderMonthView(monthKey){
       <button class="pessoa-toggle-btn" data-pessoa-toggle="thiago">${m.pessoaSecaoOculta.thiago ? 'mostrar ▸' : 'ocultar ▾'}</button>
     </div>
     ${!m.pessoaSecaoOculta.thiago ? `
-    <div class="transferencia-row ${m.transferenciaPedroFeita ? 'transferencia-feita' : ''}">
-      <input type="checkbox" id="transferencia-pedro-check" ${m.transferenciaPedroFeita ? 'checked' : ''}>
-      <input type="text" class="transferencia-label" id="transferencia-pedro-label" value="${escapeHtml(m.transferenciaPedroLabel || 'transferência pedro')}">
-      <span class="transferencia-valor"><span class="rs-prefix">R$</span> ${fmt(round2(Math.max(0, pedroGastos - pedroRecebido)))}</span>
-    </div>
-    <div class="total-dia08-row">
-      <input type="text" class="total-dia08-label" id="total-dia08-label" value="${escapeHtml(m.totalDia08Label || 'total dia 08')}">
-      <span class="total-dia08-valor"><span class="rs-prefix">R$</span> ${fmt(totalDia08)}</span>
-    </div>
     <div class="pessoa-secao-blocos">
       ${m.dia08Pessoa !== 'pedro' ? dia08Html : ''}
       ${detsThiago.map(o=>detailSectionHtml(monthKey, o.d, o.idx)).join('')}
@@ -2453,24 +2692,6 @@ function attachMonthEvents(monthKey){
       m.pessoaSecaoOculta[pessoa] = !m.pessoaSecaoOculta[pessoa];
       save(); renderContent();
     });
-  });
-
-  const transferenciaCheck = content.querySelector('#transferencia-pedro-check');
-  if(transferenciaCheck) transferenciaCheck.addEventListener('change', e=>{
-    m.transferenciaPedroFeita = e.target.checked;
-    save(); renderContent();
-  });
-
-  const transferenciaLabelInput = content.querySelector('#transferencia-pedro-label');
-  if(transferenciaLabelInput) transferenciaLabelInput.addEventListener('change', e=>{
-    m.transferenciaPedroLabel = e.target.value.trim() || 'transferência pedro';
-    save(); renderContent();
-  });
-
-  const totalDia08LabelInput = content.querySelector('#total-dia08-label');
-  if(totalDia08LabelInput) totalDia08LabelInput.addEventListener('change', e=>{
-    m.totalDia08Label = e.target.value.trim() || 'total dia 08';
-    save(); renderContent();
   });
 
   const nomeThiagoInput = content.querySelector('#pessoa-nome-thiago');
@@ -2653,14 +2874,7 @@ function attachMonthEvents(monthKey){
         }
         list[idx].valor = round2(novoValor); save(); renderContent();
       });
-      row.querySelector('.item-link').addEventListener('click', ()=>{
-        const atual = list[idx].link || '';
-        const novo = window.prompt('Link para "' + list[idx].desc + '" (deixe em branco para remover):', atual);
-        if(novo === null) return;
-        const limpo = novo.trim();
-        list[idx].link = limpo || null;
-        save(); renderContent();
-      });
+      attachItemAnexoHandlers(row, list[idx], ()=>{ save(); renderContent(); });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
         if(!confirm(`Remover "${list[idx].desc}"?`)) return;
         list.splice(idx,1); save(); renderContent();
@@ -2741,14 +2955,7 @@ function attachMonthEvents(monthKey){
         detail.items[idx].valor = round2(novoValor);
         save(); renderContent();
       });
-      row.querySelector('.item-link').addEventListener('click', ()=>{
-        const atual = detail.items[idx].link || '';
-        const novo = window.prompt('Link para "' + detail.items[idx].desc + '" (deixe em branco para remover):', atual);
-        if(novo === null) return;
-        const limpo = novo.trim();
-        detail.items[idx].link = limpo || null;
-        save(); renderContent();
-      });
+      attachItemAnexoHandlers(row, detail.items[idx], ()=>{ save(); renderContent(); });
       row.querySelector('.item-remove').addEventListener('click', ()=>{
         if(!confirm(`Remover "${detail.items[idx].desc}"?`)) return;
         detail.items.splice(idx,1);
