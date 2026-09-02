@@ -213,7 +213,6 @@
   }
   .summary-card .label{ font-size:11.5px; color:var(--muted); font-weight:600; text-transform:lowercase; letter-spacing:0.4px;}
   .summary-card .value{ font-size:20px; font-weight:800; margin-top:4px; }
-  .summary-card .comparativo{ font-size:11px; font-weight:700; margin-top:4px; }
   .summary-card.accent-teal{ border-top:3px solid var(--teal); }
   .summary-card.accent-blue{ border-top:3px solid var(--blue); }
   .summary-card.accent-green{ border-top:3px solid var(--green); }
@@ -2005,37 +2004,6 @@ function detailSectionHtml(monthKey, detail, dIdx){
 
 const MESES_ABREV = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
-function comparativoTexto(atual, anterior, aumentoEBom){
-  if(!anterior || anterior === 0) return '';
-  const diff = atual - anterior;
-  const pct = (diff/anterior)*100;
-  if(Math.abs(pct) < 0.5) return `<div class="comparativo" style="color:var(--muted);">· igual ao mês anterior</div>`;
-  const seta = diff>0 ? '↑' : '↓';
-  const aumentouEhBom = aumentoEBom ? diff>0 : diff<0;
-  const cor = aumentouEhBom ? 'var(--green)' : 'var(--red)';
-  return `<div class="comparativo" style="color:${cor};">${seta} ${Math.abs(pct).toFixed(0)}% vs mês anterior</div>`;
-}
-
-function mediaDespesasAnteriores(monthKey, qtd){
-  const idx = DATA.monthOrder.indexOf(monthKey);
-  if(idx <= 0) return null;
-  const inicio = Math.max(0, idx-qtd);
-  const chaves = DATA.monthOrder.slice(inicio, idx);
-  if(!chaves.length) return null;
-  const valores = chaves.map(k=>monthTotals(DATA.months[k]).despesasTotal);
-  return round2(valores.reduce((s,v)=>s+v,0) / valores.length);
-}
-
-function comparativoMediaTexto(atual, media){
-  if(!media || media === 0) return '';
-  const diff = atual - media;
-  const pct = (diff/media)*100;
-  if(Math.abs(pct) < 0.5) return `<div class="comparativo" style="color:var(--muted);">· igual à média</div>`;
-  const seta = diff>0 ? '↑' : '↓';
-  const cor = diff>0 ? 'var(--red)' : 'var(--green)';
-  return `<div class="comparativo" style="color:${cor};">${seta} ${Math.abs(pct).toFixed(0)}% vs média (R$ ${fmt(media)})</div>`;
-}
-
 // ============================= INSIGHTS AUTOMÁTICOS =============================
 // Compara o mês atual com o histórico e gera observações automáticas: alerta
 // (categoria subiu muito), elogio (categoria caiu bem) ou atenção (um item
@@ -2244,20 +2212,6 @@ function renderMonthView(monthKey){
   const saldoClass = saldoExibido >= 0 ? 'positive' : 'negative';
   const oc = m.blocosOcultos;
 
-  let compRenda = '', compDespesas = '', compMedia = '';
-  if(!isTemplate){
-    const idx = DATA.monthOrder.indexOf(monthKey);
-    const prevKey = idx > 0 ? DATA.monthOrder[idx-1] : null;
-    const prevM = prevKey ? DATA.months[prevKey] : null;
-    if(prevM){
-      const prevT = monthTotals(prevM);
-      compRenda = comparativoTexto(t.rendaTotal, prevT.rendaTotal, true);
-      compDespesas = comparativoTexto(t.despesasTotal, prevT.despesasTotal, false);
-    }
-    const media = mediaDespesasAnteriores(monthKey, 3);
-    compMedia = comparativoMediaTexto(t.despesasTotal, media);
-  }
-
   let html = `
   <div class="month-title-bar">
     ${isTemplate
@@ -2271,8 +2225,8 @@ function renderMonthView(monthKey){
     </div>
   </div>
   <div class="summary-grid">
-    <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div>${compRenda}</div>
-    <div class="summary-card accent-red"><div class="label">Total Despesas${sufixoFiltro}</div><div class="value">R$ ${fmt(despesasExibida)}</div>${tf ? '' : compDespesas}${tf ? '' : compMedia}</div>
+    <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div></div>
+    <div class="summary-card accent-red"><div class="label">Total Despesas${sufixoFiltro}</div><div class="value">R$ ${fmt(despesasExibida)}</div></div>
     <div class="summary-card ${saldoExibido>=0?'accent-green':'accent-red'}"><div class="label">Saldo do Mês${sufixoFiltro}</div><div class="value ${saldoClass}">R$ ${fmt(saldoExibido)}</div></div>
     <div class="summary-card accent-green"><div class="label">Pago${sufixoFiltro}</div><div class="value">R$ ${fmt(pagoExibido)}</div></div>
     <div class="summary-card accent-amber"><div class="label">Pendente${sufixoFiltro}</div><div class="value">R$ ${fmt(pendenteExibido)}</div></div>
