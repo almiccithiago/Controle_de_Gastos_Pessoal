@@ -496,10 +496,10 @@
     .item-row input[type=checkbox].chk-pago{ order:0; }
     .item-row .item-desc{ order:1; flex:1 1 auto; min-width:80px; }
     .item-row .item-categoria{ order:2; flex-basis:100%; margin-top:2px; }
-    .item-row .rs-prefix{ order:3; }
-    .item-row .item-valor{ order:4; width:80px; }
-    .item-row .item-link{ order:5; }
-    .item-row .item-link-open{ order:6; }
+    .item-row .item-link{ order:3; }
+    .item-row .item-link-open{ order:4; }
+    .item-row .rs-prefix{ order:5; }
+    .item-row .item-valor{ order:6; width:80px; }
     .item-row .item-remove{ order:7; margin-left:auto; }
   }
 
@@ -1858,10 +1858,10 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   <div class="item-row ${item.pago?'paid':''}" data-list="${listAttr}" data-idx="${idx}">
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
-    <span class="rs-prefix">R$</span>
-    <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-link ${item.link ? 'has-link' : ''}" title="${item.link ? 'Editar link: ' + escapeHtml(item.link) : 'Adicionar link'}">${linkIconSvg()}</button>
     ${(() => { const u = item.link ? urlSeguraParaLink(item.link) : ''; return u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="item-link-open">↗ abrir</a>` : ''; })()}
+    <span class="rs-prefix">R$</span>
+    <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-remove" title="Remover item">×</button>
   </div>`;
 }
