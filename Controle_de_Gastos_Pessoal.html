@@ -546,6 +546,7 @@
     font-family:'Poppins', sans-serif; box-shadow:0 20px 48px rgba(20,22,26,0.25);
   }
   .anexo-modal-title{ font-size:14.5px; font-weight:700; margin-bottom:14px; color:var(--text); }
+  .anexo-modal-title svg{ width:14px; height:14px; }
   .anexo-modal-preview{
     background:#F4F6F9; border-radius:12px; min-height:150px; display:flex;
     align-items:center; justify-content:center; margin-bottom:12px; overflow:hidden;
@@ -2127,6 +2128,7 @@ function abrirBalaoNotaItem(triggerEl, item, onChange){
   const el = document.createElement('div');
   el.className = 'anexo-popover';
   el.innerHTML = `
+    <div class="anexo-form-title"><span class="anexo-menu-icon">${notaIconSvg()}</span> Nota de "${escapeHtml(item.desc)}"</div>
     <div class="anexo-balao-texto">${escapeHtml(item.nota || '')}</div>
     <div class="anexo-form-actions">
       <button class="anexo-form-edit" style="background:transparent;color:var(--blue);font-weight:600;padding:8px 10px;">Editar</button>
@@ -2147,7 +2149,7 @@ function abrirModalAnexoItem(item, onChange){
   const isImage = item.anexo && item.anexo.tipo && item.anexo.tipo.startsWith('image/');
   modal.innerHTML = `
     <div class="anexo-modal">
-      <div class="anexo-modal-title">Anexo de "${escapeHtml(item.desc)}"</div>
+      <div class="anexo-modal-title" style="display:flex;align-items:center;gap:10px;"><span class="anexo-menu-icon" style="width:28px;height:28px;border-radius:9px;color:var(--blue);">${anexoIconSvg()}</span> Anexo de "${escapeHtml(item.desc)}"</div>
       <div class="anexo-modal-preview">
         ${isImage ? `<img src="${item.anexo.dados}" class="anexo-modal-img">` : `<div class="anexo-modal-icon">${fileIconSvg()}</div>`}
       </div>
