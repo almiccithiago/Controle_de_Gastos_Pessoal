@@ -243,6 +243,9 @@
     font-size:12.5px; font-weight:700; color:var(--text); width:80px; text-align:right;
   }
   .pessoa-receb-amount input:focus{ outline:2px solid var(--teal); }
+  .pessoa-receb-total{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-weight:600; }
+  .pessoa-receb-total .rs-prefix{ font-size:11px; font-weight:600; color:var(--muted); }
+  .pessoa-receb-total-valor{ font-size:13px; font-weight:800; color:var(--navy); }
   .pessoa-toggle-btn{
     border:none; background:transparent; color:var(--muted); font-size:11.5px; font-weight:600;
     cursor:pointer; font-family:'Poppins', sans-serif; padding:4px 8px; border-radius:6px; flex-shrink:0;
@@ -2350,6 +2353,9 @@ function renderMonthView(monthKey){
         <label class="pessoa-receb-field">dia 18
           <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-thidia18" value="${round2(m.recebimentos.thiDia18).toFixed(2)}"></span>
         </label>
+        <span class="pessoa-receb-total">total
+          <span class="pessoa-receb-total-valor"><span class="rs-prefix">R$</span> ${fmt(round2(Number(m.recebimentos.thiDia08||0) + Number(m.recebimentos.thiDia18||0)))}</span>
+        </span>
       </div>
       <div class="pessoa-totais">
         <span class="pessoa-total-label">gastos</span><span class="pessoa-total-valor" style="color:${thiagoGastoCor}">R$ ${fmt(round2(thiagoGastos))}</span>
