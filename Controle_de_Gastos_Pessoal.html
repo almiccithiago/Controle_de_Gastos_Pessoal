@@ -466,57 +466,97 @@
   /* Popover flutuante do menu de anexos (link / texto / arquivo) e do balão
      de nota — reaproveitado por todos os itens, criado/posicionado via JS. */
   .anexo-popover{
-    background:var(--bg); border:1px solid var(--border-strong); border-radius:10px;
-    box-shadow:0 8px 24px rgba(0,0,0,0.15); padding:10px; width:230px;
+    background:#fff; border:1px solid var(--border); border-radius:14px;
+    box-shadow:0 12px 32px rgba(20,22,26,0.14); padding:12px; width:250px;
     font-family:'Poppins', sans-serif;
   }
   .anexo-menu-opt{
-    display:flex; align-items:center; gap:8px; width:100%; text-align:left;
-    padding:8px 8px; border:none; background:transparent; border-radius:6px;
-    cursor:pointer; font-size:12.5px; color:var(--text); font-family:inherit;
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:9px 8px; border:none; background:transparent; border-radius:8px;
+    cursor:pointer; font-size:13px; font-weight:600; color:var(--text); font-family:inherit;
   }
-  .anexo-menu-opt:hover{ background:#F1F3F6; }
-  .anexo-menu-opt svg{ width:15px; height:15px; flex-shrink:0; color:var(--muted); }
+  .anexo-menu-opt:hover{ background:#F4F6F9; }
+  .anexo-menu-opt .anexo-menu-icon{
+    width:26px; height:26px; border-radius:8px; background:#EEF1F6; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .anexo-menu-opt svg{ width:14px; height:14px; flex-shrink:0; color:var(--blue); }
   .anexo-menu-opt.anexo-menu-remove{ color:var(--red); }
-  .anexo-popover hr{ border:none; border-top:1px solid var(--border); margin:4px 0; }
-  .anexo-form-title{ font-size:12px; font-weight:700; margin-bottom:8px; color:var(--text); }
+  .anexo-menu-opt.anexo-menu-remove svg{ color:var(--red); }
+  .anexo-menu-opt.anexo-menu-remove .anexo-menu-icon{ background:#FDECEC; }
+  .anexo-popover hr{ border:none; border-top:1px solid var(--border); margin:6px 2px; }
+  .anexo-form-title{
+    font-size:13px; font-weight:700; margin-bottom:10px; color:var(--text);
+    display:flex; align-items:center; gap:8px;
+  }
+  .anexo-form-title .anexo-menu-icon{
+    width:24px; height:24px; border-radius:7px; background:#EAF1FF; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .anexo-form-title svg{ width:13px; height:13px; color:var(--blue); }
   .anexo-form-input, .anexo-form-textarea{
-    width:100%; box-sizing:border-box; padding:7px 9px; border:1px solid var(--border-strong);
-    border-radius:6px; font-size:12.5px; margin-bottom:8px; font-family:inherit;
+    width:100%; box-sizing:border-box; padding:9px 11px; border:1px solid var(--border);
+    background:#F7F8FA; border-radius:9px; font-size:12.5px; margin-bottom:10px; font-family:inherit;
+    transition:border-color .15s;
   }
-  .anexo-form-textarea{ height:70px; resize:vertical; }
-  .anexo-form-actions{ display:flex; gap:8px; justify-content:flex-end; }
+  .anexo-form-input:focus, .anexo-form-textarea:focus{
+    outline:none; border-color:var(--blue); background:#fff;
+  }
+  .anexo-form-textarea{ height:72px; resize:vertical; }
+  .anexo-form-actions{ display:flex; align-items:center; gap:6px; justify-content:flex-end; }
   .anexo-form-actions button{
-    font-size:12px; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;
-    font-family:inherit;
+    font-size:12px; font-weight:600; padding:8px 14px; border:none; border-radius:99px;
+    cursor:pointer; font-family:inherit; transition:opacity .15s;
   }
-  .anexo-form-cancel, .anexo-modal-close, .anexo-modal-remove{ background:transparent; color:var(--muted); }
+  .anexo-form-cancel, .anexo-modal-close, .anexo-modal-remove{
+    background:transparent; color:var(--muted); padding:8px 10px;
+  }
+  .anexo-form-cancel:hover, .anexo-modal-close:hover, .anexo-modal-remove:hover{ color:var(--text); }
+  .anexo-modal-remove:hover{ color:var(--red); }
   .anexo-form-save, .anexo-modal-download{ background:var(--blue); color:#fff; }
-  .anexo-form-save:disabled{ opacity:0.5; cursor:not-allowed; }
+  .anexo-form-save:hover, .anexo-modal-download:hover{ opacity:0.9; }
+  .anexo-form-save:disabled{ opacity:0.4; cursor:not-allowed; }
   .anexo-form-dropzone{
-    display:block; border:1.5px dashed var(--border-strong); border-radius:8px; padding:16px;
-    text-align:center; font-size:12px; color:var(--muted); cursor:pointer; margin-bottom:8px;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    border:1.5px dashed var(--border-strong); border-radius:12px; padding:20px 12px;
+    text-align:center; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer;
+    margin-bottom:10px; background:#FBFBFC; transition:border-color .15s, background .15s;
   }
-  .anexo-form-dropzone:hover{ border-color:var(--blue); color:var(--blue); }
-  .anexo-form-file-info{ font-size:11.5px; color:var(--text); margin:-4px 0 8px; word-break:break-all; }
-  .anexo-balao-texto{ font-size:12.5px; line-height:1.5; margin-bottom:8px; white-space:pre-wrap; word-break:break-word; }
+  .anexo-form-dropzone:hover{ border-color:var(--blue); color:var(--blue); background:#F5F8FF; }
+  .anexo-form-dropzone .anexo-dropzone-icon{
+    width:34px; height:34px; border-radius:10px; background:#EAF1FF;
+    display:flex; align-items:center; justify-content:center; color:var(--blue);
+  }
+  .anexo-form-dropzone .anexo-dropzone-icon svg{ width:16px; height:16px; }
+  .anexo-form-dropzone .anexo-dropzone-hint{ font-size:10.5px; font-weight:500; color:var(--muted); }
+  .anexo-form-file-info{
+    display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:600;
+    color:var(--green); background:#EAF7EF; border-radius:9px; padding:8px 10px;
+    margin:-2px 0 10px; word-break:break-all;
+  }
+  .anexo-form-file-info svg{ width:14px; height:14px; flex-shrink:0; }
+  .anexo-balao-texto{ font-size:12.5px; line-height:1.6; margin-bottom:10px; white-space:pre-wrap; word-break:break-word; }
 
   .anexo-modal-overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center;
+    position:fixed; inset:0; background:rgba(20,22,26,0.5); display:flex; align-items:center;
     justify-content:center; z-index:10000; padding:16px;
   }
   .anexo-modal{
-    background:var(--bg); border-radius:12px; padding:16px; width:100%; max-width:340px;
-    font-family:'Poppins', sans-serif; box-shadow:0 12px 32px rgba(0,0,0,0.2);
+    background:#fff; border-radius:18px; padding:22px; width:100%; max-width:340px;
+    font-family:'Poppins', sans-serif; box-shadow:0 20px 48px rgba(20,22,26,0.25);
   }
-  .anexo-modal-title{ font-size:12.5px; font-weight:700; margin-bottom:10px; }
+  .anexo-modal-title{ font-size:14.5px; font-weight:700; margin-bottom:14px; color:var(--text); }
   .anexo-modal-preview{
-    background:#F4F6F9; border-radius:8px; min-height:140px; display:flex;
-    align-items:center; justify-content:center; margin-bottom:10px; overflow:hidden;
+    background:#F4F6F9; border-radius:12px; min-height:150px; display:flex;
+    align-items:center; justify-content:center; margin-bottom:12px; overflow:hidden;
   }
   .anexo-modal-img{ max-width:100%; max-height:220px; display:block; }
-  .anexo-modal-icon{ font-size:40px; }
-  .anexo-modal-filename{ font-size:12px; color:var(--muted); margin-bottom:12px; word-break:break-all; }
+  .anexo-modal-icon{
+    width:56px; height:56px; border-radius:14px; background:#EAF1FF;
+    display:flex; align-items:center; justify-content:center; color:var(--blue);
+  }
+  .anexo-modal-icon svg{ width:26px; height:26px; }
+  .anexo-modal-filename{ font-size:12px; color:var(--muted); margin-bottom:16px; word-break:break-all; }
 
   /* Em telas estreitas, checkbox+categoria+R$+valor+remover já ocupam quase toda
      a largura, então o input de descrição (flex:1 min-width:0) acaba espremido a
@@ -1919,6 +1959,18 @@ function anexoIconSvg(){
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.48"/></svg>';
 }
 
+function uploadIconSvg(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>';
+}
+
+function checkIconSvg(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+}
+
+function fileIconSvg(){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg>';
+}
+
 // ====================== MENU/POPOVER DE LINK, NOTA E ANEXO ======================
 // Reaproveitado por qualquer item-row (seções principais ou detalhamentos).
 // `item` é a referência direta ao objeto de dados (list[idx] ou
@@ -1965,13 +2017,13 @@ function abrirMenuAnexoItem(triggerEl, item, onChange){
 
 function renderAnexoMenu(el, item, onChange){
   el.innerHTML = `
-    <button class="anexo-menu-opt" data-opt="link">${linkIconSvg()} ${item.link ? 'Editar link' : 'Adicionar link'}</button>
-    <button class="anexo-menu-opt" data-opt="nota">${notaIconSvg()} ${item.nota ? 'Editar texto' : 'Adicionar texto'}</button>
-    <button class="anexo-menu-opt" data-opt="anexo">${anexoIconSvg()} ${item.anexo ? 'Trocar anexo' : 'Anexar imagem/documento'}</button>
+    <button class="anexo-menu-opt" data-opt="link"><span class="anexo-menu-icon">${linkIconSvg()}</span> ${item.link ? 'Editar link' : 'Adicionar link'}</button>
+    <button class="anexo-menu-opt" data-opt="nota"><span class="anexo-menu-icon">${notaIconSvg()}</span> ${item.nota ? 'Editar texto' : 'Adicionar texto'}</button>
+    <button class="anexo-menu-opt" data-opt="anexo"><span class="anexo-menu-icon">${anexoIconSvg()}</span> ${item.anexo ? 'Trocar anexo' : 'Anexar imagem/documento'}</button>
     ${(item.link || item.nota || item.anexo) ? '<hr>' : ''}
-    ${item.link ? '<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-link">Remover link</button>' : ''}
-    ${item.nota ? '<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-nota">Remover texto</button>' : ''}
-    ${item.anexo ? '<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-anexo">Remover anexo</button>' : ''}
+    ${item.link ? `<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-link"><span class="anexo-menu-icon">${linkIconSvg()}</span> Remover link</button>` : ''}
+    ${item.nota ? `<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-nota"><span class="anexo-menu-icon">${notaIconSvg()}</span> Remover texto</button>` : ''}
+    ${item.anexo ? `<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-anexo"><span class="anexo-menu-icon">${anexoIconSvg()}</span> Remover anexo</button>` : ''}
   `;
   el.querySelectorAll('.anexo-menu-opt').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -1988,7 +2040,7 @@ function renderAnexoMenu(el, item, onChange){
 
 function renderAnexoFormLink(el, item, onChange){
   el.innerHTML = `
-    <div class="anexo-form-title">Link para "${escapeHtml(item.desc)}"</div>
+    <div class="anexo-form-title"><span class="anexo-menu-icon">${linkIconSvg()}</span> Link para "${escapeHtml(item.desc)}"</div>
     <input type="text" class="anexo-form-input" placeholder="https://...">
     <div class="anexo-form-actions">
       <button class="anexo-form-cancel">Voltar</button>
@@ -2010,7 +2062,7 @@ function renderAnexoFormLink(el, item, onChange){
 
 function renderAnexoFormNota(el, item, onChange){
   el.innerHTML = `
-    <div class="anexo-form-title">Nota para "${escapeHtml(item.desc)}"</div>
+    <div class="anexo-form-title"><span class="anexo-menu-icon">${notaIconSvg()}</span> Nota para "${escapeHtml(item.desc)}"</div>
     <textarea class="anexo-form-textarea" placeholder="Escreva uma observação..."></textarea>
     <div class="anexo-form-actions">
       <button class="anexo-form-cancel">Voltar</button>
@@ -2030,10 +2082,12 @@ function renderAnexoFormNota(el, item, onChange){
 
 function renderAnexoFormArquivo(el, item, onChange){
   el.innerHTML = `
-    <div class="anexo-form-title">Anexo para "${escapeHtml(item.desc)}"</div>
+    <div class="anexo-form-title"><span class="anexo-menu-icon">${anexoIconSvg()}</span> Anexo para "${escapeHtml(item.desc)}"</div>
     <label class="anexo-form-dropzone">
       <input type="file" class="anexo-form-file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:none;">
-      <span>📎 Clique para escolher um arquivo<br><span style="font-size:10.5px;">(máx. 2MB)</span></span>
+      <span class="anexo-dropzone-icon">${uploadIconSvg()}</span>
+      <span>Clique para escolher um arquivo</span>
+      <span class="anexo-dropzone-hint">máx. 2MB</span>
     </label>
     <div class="anexo-form-file-info" style="display:none;"></div>
     <div class="anexo-form-actions">
@@ -2056,8 +2110,8 @@ function renderAnexoFormArquivo(el, item, onChange){
     const reader = new FileReader();
     reader.onload = ()=>{
       novoAnexo = { nome: file.name, tipo: file.type, dados: reader.result };
-      info.style.display = 'block';
-      info.textContent = '✓ ' + file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+      info.style.display = 'flex';
+      info.innerHTML = `${checkIconSvg()} ${escapeHtml(file.name)} (${(file.size/1024).toFixed(0)} KB)`;
       saveBtn.disabled = false;
     };
     reader.readAsDataURL(file);
@@ -2075,7 +2129,7 @@ function abrirBalaoNotaItem(triggerEl, item, onChange){
   el.innerHTML = `
     <div class="anexo-balao-texto">${escapeHtml(item.nota || '')}</div>
     <div class="anexo-form-actions">
-      <button class="anexo-form-edit" style="background:transparent;color:var(--blue);">Editar</button>
+      <button class="anexo-form-edit" style="background:transparent;color:var(--blue);font-weight:600;padding:8px 10px;">Editar</button>
       <button class="anexo-form-cancel">Fechar</button>
     </div>
   `;
@@ -2095,7 +2149,7 @@ function abrirModalAnexoItem(item, onChange){
     <div class="anexo-modal">
       <div class="anexo-modal-title">Anexo de "${escapeHtml(item.desc)}"</div>
       <div class="anexo-modal-preview">
-        ${isImage ? `<img src="${item.anexo.dados}" class="anexo-modal-img">` : `<div class="anexo-modal-icon">📄</div>`}
+        ${isImage ? `<img src="${item.anexo.dados}" class="anexo-modal-img">` : `<div class="anexo-modal-icon">${fileIconSvg()}</div>`}
       </div>
       <div class="anexo-modal-filename">${escapeHtml(item.anexo ? item.anexo.nome : '')}</div>
       <div class="anexo-form-actions">
