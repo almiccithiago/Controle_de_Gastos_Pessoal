@@ -2215,7 +2215,7 @@ function renderMonthView(monthKey){
   let html = `
   <div class="month-title-bar">
     ${isTemplate
-      ? `<div class="month-title-input" style="cursor:default;">modelo <span style="font-size:12px;color:var(--muted);font-weight:600;text-transform:none;">— usado como base ao criar um mês novo (não aparece no Resumo Anual)</span></div>`
+      ? `<div class="month-title-input" style="cursor:default;">modelo <span style="font-size:12px;color:var(--muted);font-weight:600;text-transform:none;">— usado como base</span></div>`
       : `<input type="text" class="month-title-input" id="month-title-input" value="${escapeHtml(monthKey)}" title="Clique para renomear este mês">`
     }
     <div class="month-title-actions">
