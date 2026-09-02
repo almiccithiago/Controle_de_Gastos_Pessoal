@@ -3661,6 +3661,7 @@ function renderResumoAnualView(){
       <div class="section-header">
         <h3>ano ${escapeHtml(ano)}</h3>
         <button class="toggle-all-btn export-anual-btn" data-export-ano="${escapeHtml(ano)}" style="padding:6px 12px; font-size:12px;">🖨️ exportar relatório</button>
+        <a href="#" class="goal-link-open abrir-relatorio-anual" data-abrir-ano="${escapeHtml(ano)}">↗ abrir</a>
       </div>
       <div class="annual-chart-wrap">${chart}</div>
       <table class="annual-table">
@@ -3684,6 +3685,12 @@ function attachResumoAnualEvents(){
   const content = document.getElementById('content');
   content.querySelectorAll('.export-anual-btn[data-export-ano]').forEach(btn=>{
     btn.addEventListener('click', ()=>exportarRelatorioAnual(btn.dataset.exportAno));
+  });
+  content.querySelectorAll('.abrir-relatorio-anual[data-abrir-ano]').forEach(link=>{
+    link.addEventListener('click', e=>{
+      e.preventDefault();
+      exportarRelatorioAnual(link.dataset.abrirAno);
+    });
   });
 }
 
