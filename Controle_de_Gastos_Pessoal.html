@@ -844,7 +844,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-08-21.5</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-09-03.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1708,6 +1708,14 @@ function round2(v){
   if(isNaN(n)) return 0;
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
+// Valor de um item pra fins de TOTAL DE DESPESAS: um item com valor negativo
+// é um estorno/reembolso e não deve ENTRAR como despesa negativa (o que faria
+// o total cair o dobro quando um item positivo virasse negativo — a diferença
+// antes+depois, não só o valor absoluto). Ele simplesmente some do total de
+// despesas (contribui 0), como se aquele gasto não tivesse mais acontecido.
+function valorDespesa(v){
+  return Math.max(0, Number(v||0));
+}
 // Interpreta valores digitados no formato brasileiro (vírgula decimal, ponto de milhar,
 // símbolo "R$" colado, etc.) sem depender da validação nativa do <input type="number">,
 // que costuma invalidar silenciosamente o campo quando a vírgula é usada.
@@ -1853,12 +1861,12 @@ function limparBlocosExcluidos(m){
 
 function monthTotals(m){
   limparBlocosExcluidos(m);
-  const dia18Total = round2(m.dia18.reduce((s,x)=>s+Number(x.valor||0),0));
-  const dia08Total = round2(m.dia08.reduce((s,x)=>s+Number(x.valor||0),0));
+  const dia18Total = round2(m.dia18.reduce((s,x)=>s+valorDespesa(x.valor),0));
+  const dia08Total = round2(m.dia08.reduce((s,x)=>s+valorDespesa(x.valor),0));
   // todo bloco de detalhamento é independente — soma sempre no total do mês.
   const detalhamentosLivresTotal = round2(
     (m.detalhamentos||[])
-      .reduce((s,d)=>s + d.items.reduce((s2,x)=>s2+Number(x.valor||0),0), 0)
+      .reduce((s,d)=>s + d.items.reduce((s2,x)=>s2+valorDespesa(x.valor),0), 0)
   );
   const reservaEmergencia = round2(Number(m.reservaEmergencia||0));
   // a reserva entra no total de despesas (já era descontada do saldo antes;
@@ -1868,9 +1876,9 @@ function monthTotals(m){
   const saldo = round2(rendaTotal - despesasTotal);
   const pagoDetalhamentosLivres = round2(
     (m.detalhamentos||[])
-      .reduce((s,d)=>s + d.items.filter(x=>x.pago).reduce((s2,x)=>s2+Number(x.valor||0),0), 0)
+      .reduce((s,d)=>s + d.items.filter(x=>x.pago).reduce((s2,x)=>s2+valorDespesa(x.valor),0), 0)
   );
-  const pago = round2([...m.dia18, ...m.dia08].filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0) + pagoDetalhamentosLivres + (m.reservaEmergenciaFeita ? reservaEmergencia : 0));
+  const pago = round2([...m.dia18, ...m.dia08].filter(x=>x.pago).reduce((s,x)=>s+valorDespesa(x.valor),0) + pagoDetalhamentosLivres + (m.reservaEmergenciaFeita ? reservaEmergencia : 0));
   const pendente = round2(despesasTotal - pago);
   return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente, reservaEmergencia };
 }
@@ -1883,8 +1891,8 @@ function todosItensDoMes(m){
 }
 function monthTotalsFiltrados(m){
   const itens = todosItensDoMes(m).filter(itemPassaNoFiltro);
-  const despesasTotal = round2(itens.reduce((s,x)=>s+Number(x.valor||0),0));
-  const pago = round2(itens.filter(x=>x.pago).reduce((s,x)=>s+Number(x.valor||0),0));
+  const despesasTotal = round2(itens.reduce((s,x)=>s+valorDespesa(x.valor),0));
+  const pago = round2(itens.filter(x=>x.pago).reduce((s,x)=>s+valorDespesa(x.valor),0));
   const pendente = round2(despesasTotal - pago);
   return { despesasTotal, pago, pendente };
 }
@@ -2195,7 +2203,7 @@ function metaBarraHtml(gasto, meta){
 
 function sectionHtml(monthKey, title, listKey, items, pillColor, meta, pessoa){
   const itemsVisiveis = categoriaFiltro ? items.filter(itemPassaNoFiltro) : items;
-  const total = round2(itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0));
+  const total = round2(itemsVisiveis.reduce((s,x)=>s+valorDespesa(x.valor),0));
   const rows = items.length
     ? items.map((it,idx)=> categoriaFiltro && !itemPassaNoFiltro(it) ? '' : itemRowHtml(monthKey, listKey, idx, it)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
@@ -2269,7 +2277,7 @@ function duplicarDetalhamento(m, dIdx){
 
 function detailSectionHtml(monthKey, detail, dIdx){
   const itemsVisiveis = categoriaFiltro ? detail.items.filter(itemPassaNoFiltro) : detail.items;
-  const total = round2(itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0));
+  const total = round2(itemsVisiveis.reduce((s,x)=>s+valorDespesa(x.valor),0));
   const rows = detail.items.length
     ? detail.items.map((it,idx)=> categoriaFiltro && !itemPassaNoFiltro(it) ? '' : itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
@@ -2576,7 +2584,7 @@ function renderMonthView(monthKey){
 
   const totalBlocoItems = (items) => {
     const itemsVisiveis = categoriaFiltro ? items.filter(itemPassaNoFiltro) : items;
-    return itemsVisiveis.reduce((s,x)=>s+Number(x.valor||0),0);
+    return itemsVisiveis.reduce((s,x)=>s+valorDespesa(x.valor),0);
   };
   let thiagoGastos = detsThiago.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
   let pedroGastos = detsPedro.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
@@ -3703,7 +3711,7 @@ function relatorioMesHtml(monthKey){
         <td style="text-align:right; font-weight:700;">R$ ${fmt(it.valor)}</td>
         <td style="text-align:center;"><span class="rel-status ${it.pago ? 'pago' : 'pendente'}">${it.pago ? 'Pago' : 'Pendente'}</span></td>
       </tr>`).join('');
-    const subtotal = round2(items.reduce((s,x)=>s+Number(x.valor||0),0));
+    const subtotal = round2(items.reduce((s,x)=>s+valorDespesa(x.valor),0));
     return `
     <div class="rel-section">
       <div class="rel-section-title"><span>${escapeHtml(titulo)}</span><span class="rel-section-total">R$ ${fmt(subtotal)}</span></div>
