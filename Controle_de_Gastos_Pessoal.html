@@ -365,7 +365,7 @@
   }
 
   /* Dois blocos por linha também no celular (menos rolagem), com respiro reduzido
-     nas bordas/paddings pra não ficar apertado, e categoria/valor mais compactos. */
+     nas bordas/paddings pra não ficar apertado, e valor mais compacto. */
   @media (max-width:700px){
     main{ padding:10px 8px 60px 8px; }
     .detalhamentos-grid{ grid-template-columns: 1fr 1fr; gap:8px; }
@@ -373,7 +373,6 @@
     .section-card{ padding:10px 8px; }
     .section-header{ flex-wrap:wrap; row-gap:4px; }
     .section-header .detail-title-input{ flex-basis:100%; font-size:13px; }
-    .item-categoria{ max-width:74px; font-size:9px; padding:3px 4px; }
     .item-valor{ width:58px; font-size:12px; }
     .rs-prefix{ font-size:10.5px; }
     .add-item-row{ gap:4px; }
@@ -559,16 +558,15 @@
   .anexo-modal-icon svg{ width:26px; height:26px; }
   .anexo-modal-filename{ font-size:12px; color:var(--muted); margin-bottom:16px; word-break:break-all; }
 
-  /* Em telas estreitas, checkbox+categoria+R$+valor+remover já ocupam quase toda
+  /* Em telas estreitas, checkbox+R$+valor+remover já ocupam quase toda
      a largura, então o input de descrição (flex:1 min-width:0) acaba espremido a
      poucos pixels — na prática invisível. Quebramos o item-row em duas linhas:
-     checkbox + descrição (largura cheia) na primeira, e categoria/valor/remover
+     checkbox + descrição (largura cheia) na primeira, e valor/remover
      na segunda, pra descrição sempre ter espaço legível. */
   @media (max-width:600px){
     .item-row{ flex-wrap:wrap; row-gap:4px; }
     .item-row input[type=checkbox].chk-pago{ order:0; }
     .item-row .item-desc{ order:1; flex:1 1 auto; min-width:80px; }
-    .item-row .item-categoria{ order:2; flex-basis:100%; margin-top:2px; }
     .item-row .item-link{ order:3; }
     .item-row .item-nota-view{ order:3; }
     .item-row .item-anexo-view{ order:3; }
@@ -577,44 +575,6 @@
     .item-row .item-valor{ order:6; width:80px; }
     .item-row .item-remove{ order:7; margin-left:auto; }
   }
-
-  .cat-tag{
-    font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px;
-    white-space:nowrap; flex-shrink:0; font-family:'Poppins', sans-serif;
-  }
-  .item-row.paid .cat-tag{ opacity:0.5; }
-  .item-categoria{
-    font-size:10px; font-weight:700; padding:3px 6px; border-radius:99px;
-    white-space:nowrap; flex-shrink:0; font-family:'Poppins', sans-serif;
-    border:1px solid transparent; cursor:pointer; max-width:112px;
-  }
-  .item-row.paid .item-categoria{ opacity:0.5; }
-  .cat-alimentacao{ background:#FDECEA; color:#B5442E; } /* vermelho */
-  .cat-transporte{ background:#EAF2FD; color:#2E5FB5; }  /* azul */
-  .cat-saude{ background:#EAFBEF; color:#2E8B57; }       /* verde */
-  .cat-moradia{ background:#FFF6E5; color:#F97316; }     /* laranja/âmbar */
-  .cat-lazer{ background:#F6EAFD; color:#8A45B5; }       /* roxo */
-  .cat-vestuario{ background:#FDEAF3; color:#B5308A; }   /* magenta/rosa forte */
-  .cat-educacao{ background:#E4F5F5; color:#1F8A8A; }    /* teal/ciano */
-  .cat-outros{ background:#EDEDED; color:#6B6B6B; }      /* cinza */
-  .cat-none{ background:#F0F2F5; color:var(--muted); border:1px dashed var(--border); }
-  .cat-custom{ background:#EEEAFD; color:#5B4EB5; }      /* índigo — categorias criadas por você */
-
-  .cat-filtro-bar{
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    background: var(--card); border:1px solid var(--border); border-radius:10px;
-    padding:10px 14px; margin-bottom:0.5cm;
-  }
-  .cat-filtro-bar label{ font-size:12.5px; font-weight:700; color:var(--muted); font-family:'Poppins', sans-serif; }
-  .cat-filtro-bar select{
-    font-size:13px; font-weight:600; padding:6px 10px; border-radius:8px; border:1px solid var(--border);
-    background:#fff; color:var(--text); font-family:'Poppins', sans-serif; cursor:pointer;
-  }
-  .cat-filtro-bar button{
-    font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; border:none;
-    background:#F0F2F5; color:var(--muted); cursor:pointer; font-family:'Poppins', sans-serif;
-  }
-  .cat-filtro-bar button:hover{ background:#E4E8EE; color:var(--text); }
 
   .reserva-box{
     display:flex; align-items:center; gap:10px; flex-wrap:wrap;
@@ -844,7 +804,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-09-03.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-09-03.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1059,18 +1019,6 @@ let agostoClonadoNestaCarga = false; // migração pontual (14/08): true quando 
 let colunaPagarDia18CorrigidaNestaCarga = false; // migração pontual (15/08): true quando a coluna dos blocos de detalhamento acabou de ser corrigida nesta carga
 let vencimentosAgostoOcultadoNestaCarga = false; // migração pontual (15/08): true quando o quadro Vencimentos (dia08) de Agosto/2026 acabou de ser ocultado nesta carga
 let currentPassword = '';
-let categoriaFiltro = ''; // '' = mostra todas as categorias; filtro é só visual, não altera dados
-const FILTRO_SEM_CATEGORIA = '__sem_categoria__'; // valor especial: filtra só os itens sem nenhuma categoria
-
-// Diz se um item deve aparecer com o filtro de categoria atual.
-function itemPassaNoFiltro(item){
-  if(!categoriaFiltro) return true;
-  if(categoriaFiltro === FILTRO_SEM_CATEGORIA) return categoriaEfetiva(item) === '';
-  return categoriaEfetiva(item) === categoriaFiltro;
-}
-function nomeExibicaoFiltro(){
-  return categoriaFiltro === FILTRO_SEM_CATEGORIA ? 'Sem categoria' : categoriaFiltro;
-}
 
 async function loadFromServer(){
   const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
@@ -1110,6 +1058,15 @@ function migrateData(data){
   }
   // migração: a aba "Categorias" foi removida
   delete data.categorias;
+  // migração: sistema de categoria por item foi removido — limpa qualquer
+  // dado residual (custom/excluídas e a categoria salva em cada item)
+  delete data.categoriasCustom;
+  delete data.categoriasExcluidas;
+  [...Object.values(data.months||{}), data.template].filter(Boolean).forEach(m=>{
+    const limpaCategoria = lista => (lista||[]).forEach(it=>{ delete it.categoria; });
+    limpaCategoria(m.dia18); limpaCategoria(m.dia08);
+    (m.detalhamentos||[]).forEach(d=>limpaCategoria(d.items));
+  });
 
   // migração: empréstimos agora usam saldoInicial + cálculo automático em vez de saldo manual por linha
   if(data.emprestimos){
@@ -1442,7 +1399,6 @@ function setSaveStatus(state){
 }
 
 async function save(){
-  _categoriaAprendidaCache = null;
   pendingSaves++;
   setSaveStatus('saving');
   try{
@@ -1495,216 +1451,6 @@ async function initApp(){
 function fmt(v){
   if(v === null || v === undefined || isNaN(v)) return "—";
   return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-// Categoria sugerida a partir da descrição do gasto — só visual, calculada na
-// hora de exibir. Não altera nem grava nada nos dados; por isso funciona igual
-// pra gastos novos e antigos, sem precisar mudar o formato salvo no servidor.
-const CATEGORIAS_DESC = [
-  { nome:'Alimentação', classe:'cat-alimentacao', palavras:['mercado','supermercado','feira','restaurante','lanche','ifood','padaria','acougue','hortifruti'] },
-  { nome:'Transporte', classe:'cat-transporte', palavras:['uber','99','gasolina','combustivel','estacionamento','onibus','metro','passagem','pedagio'] },
-  { nome:'Saúde', classe:'cat-saude', palavras:['farmacia','remedio','consulta','medico','dentista','exame','plano de saude','academia'] },
-  { nome:'Moradia', classe:'cat-moradia', palavras:['aluguel','condominio','iptu','luz','energia','agua','internet','gas','reforma'] },
-  { nome:'Lazer', classe:'cat-lazer', palavras:['cinema','streaming','netflix','spotify','viagem','show','bar','festa'] },
-  { nome:'Vestuário', classe:'cat-vestuario', palavras:['roupa','calcado','sapato','tenis','loja'] },
-  { nome:'Educação', classe:'cat-educacao', palavras:['curso','livro','faculdade','escola','material escolar'] },
-];
-function normalizeTexto(s){
-  return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
-}
-function categoriasExcluidas(){
-  return (DATA && Array.isArray(DATA.categoriasExcluidas)) ? DATA.categoriasExcluidas : [];
-}
-function detectCategoriaDesc(desc){
-  const alvo = normalizeTexto(desc);
-  if(!alvo) return null;
-  const excluidas = categoriasExcluidas();
-  for(const cat of CATEGORIAS_DESC){
-    if(excluidas.includes(cat.nome)) continue;
-    if(cat.palavras.some(p => alvo.includes(normalizeTexto(p)))) return cat;
-  }
-  return null;
-}
-function categoriaTagHtml(desc){
-  const cat = detectCategoriaDesc(desc);
-  if(!cat) return '';
-  return `<span class="cat-tag ${cat.classe}" title="Categoria sugerida com base na descrição">${cat.nome}</span>`;
-}
-
-// Lista fixa de categorias (nome -> classe visual). As categorias criadas pelo
-// próprio usuário ficam guardadas em DATA.categoriasCustom e são somadas a essa
-// lista fixa na hora de montar o menu — assim elas passam a valer pra qualquer
-// gasto, em qualquer mês, sem precisar de nenhuma tela extra de cadastro.
-// Categorias fixas que o usuário decidiu excluir ficam em DATA.categoriasExcluidas
-// (não dá pra apagar do código, então só marcamos como "escondida").
-const CATEGORIA_CLASSES = { '': 'cat-none', 'Outros': 'cat-outros' };
-CATEGORIAS_DESC.forEach(c => CATEGORIA_CLASSES[c.nome] = c.classe);
-
-function categoriasCustom(){
-  return (DATA && Array.isArray(DATA.categoriasCustom)) ? DATA.categoriasCustom : [];
-}
-function categoriaListaCompleta(){
-  const excluidas = categoriasExcluidas();
-  const nomes = [
-    ...CATEGORIAS_DESC.map(c=>c.nome).filter(n => !excluidas.includes(n)),
-    ...categoriasCustom(),
-    ...(excluidas.includes('Outros') ? [] : ['Outros']),
-  ];
-  nomes.sort((a,b)=>a.localeCompare(b, 'pt-BR', { sensitivity:'base' }));
-  return ['', ...nomes];
-}
-// Paleta extra pra categorias criadas por você — cada uma pega uma cor diferente
-// da lista abaixo, na ordem em que foram criadas (repete só se passar de 8).
-const PALETA_CUSTOM = [
-  { bg:'#EEEAFD', fg:'#5B4EB5' }, // índigo
-  { bg:'#FDF3E0', fg:'#B5872E' }, // dourado
-  { bg:'#E0F7F2', fg:'#1F8A6B' }, // verde-água
-  { bg:'#FDE9E0', fg:'#B5562E' }, // terracota
-  { bg:'#E0EEFD', fg:'#2E6FB5' }, // azul-petróleo
-  { bg:'#F5E0FD', fg:'#9E2EB5' }, // violeta
-  { bg:'#E9FDE0', fg:'#5FA62E' }, // verde-lima
-  { bg:'#FDE0EE', fg:'#B52E6F' }, // framboesa
-];
-function classeCategoria(nome){
-  if(!nome) return 'cat-none';
-  return CATEGORIA_CLASSES[nome] || 'cat-custom';
-}
-// Mesmas cores usadas nas tags de categoria (ver CSS .cat-*), só que em hex —
-// usado pra desenhar o gráfico de pizza em SVG (que não lê classes CSS).
-const CATEGORIA_HEX = {
-  'Alimentação':'#B5442E', 'Transporte':'#2E5FB5', 'Saúde':'#2E8B57', 'Moradia':'#F97316',
-  'Lazer':'#8A45B5', 'Vestuário':'#B5308A', 'Educação':'#1F8A8A', 'Outros':'#6B6B6B', '':'#6B7280'
-};
-function corCategoriaHex(nome){
-  if(CATEGORIA_HEX[nome]) return CATEGORIA_HEX[nome];
-  const idx = categoriasCustom().indexOf(nome);
-  if(idx > -1) return PALETA_CUSTOM[idx % PALETA_CUSTOM.length].fg;
-  return '#6B7280';
-}
-function estiloInlineCategoria(nome){
-  if(!nome || CATEGORIA_CLASSES[nome]) return '';
-  const idx = categoriasCustom().indexOf(nome);
-  if(idx === -1) return '';
-  const cor = PALETA_CUSTOM[idx % PALETA_CUSTOM.length];
-  return ` style="background:${cor.bg}; color:${cor.fg};"`;
-}
-
-// Aprendizado por histórico: olha pra todos os itens já categorizados (em
-// qualquer mês) e monta um mapa palavra -> {categoria: quantas vezes}. Não
-// grava nada em disco, é recalculado na hora a partir do que já existe.
-let _categoriaAprendidaCache = null;
-function categoriaAprendidaMapa(){
-  if(_categoriaAprendidaCache) return _categoriaAprendidaCache;
-  const mapa = {};
-  Object.values(DATA.months || {}).forEach(m=>{
-    todosItensDoMes(m).forEach(it=>{
-      if(!it.categoria) return;
-      normalizeTexto(it.desc).split(/[^a-z0-9]+/).filter(Boolean).forEach(palavra=>{
-        if(!mapa[palavra]) mapa[palavra] = {};
-        mapa[palavra][it.categoria] = (mapa[palavra][it.categoria] || 0) + 1;
-      });
-    });
-  });
-  _categoriaAprendidaCache = mapa;
-  return mapa;
-}
-// Sugere uma categoria pra uma descrição nova com base nas palavras que mais
-// vezes já caíram nessa categoria no histórico do usuário. Só sugere se o
-// sinal for forte o bastante (pelo menos 2 ocorrências), pra não "aprender"
-// com um único lançamento avulso.
-function categoriaAprendidaPorDesc(desc){
-  const palavras = normalizeTexto(desc).split(/[^a-z0-9]+/).filter(Boolean);
-  if(!palavras.length) return null;
-  const mapa = categoriaAprendidaMapa();
-  const pontuacao = {};
-  palavras.forEach(palavra=>{
-    const contagens = mapa[palavra];
-    if(!contagens) return;
-    Object.entries(contagens).forEach(([cat,n])=>{ pontuacao[cat] = (pontuacao[cat]||0) + n; });
-  });
-  let melhorCat = null, melhorScore = 0;
-  Object.entries(pontuacao).forEach(([cat,score])=>{
-    if(score > melhorScore){ melhorCat = cat; melhorScore = score; }
-  });
-  return melhorScore >= 2 ? melhorCat : null;
-}
-// Categoria "efetiva" de um item: se ele já tem categoria escolhida manualmente
-// (mesmo que já tenha sido salva antes), usa ela. Senão, tenta o aprendizado
-// por histórico; se não houver sinal suficiente, cai pra regra por palavra-chave.
-function categoriaEfetiva(item){
-  if(item && item.categoria) return item.categoria;
-  const aprendida = categoriaAprendidaPorDesc(item ? item.desc : '');
-  if(aprendida) return aprendida;
-  const detectada = detectCategoriaDesc(item ? item.desc : '');
-  return detectada ? detectada.nome : '';
-}
-function itemCategoriaSelectHtml(item){
-  const atual = categoriaEfetiva(item);
-  const classe = classeCategoria(atual);
-  const estiloInline = estiloInlineCategoria(atual);
-  const opcoes = categoriaListaCompleta().map(nome =>
-    `<option value="${escapeHtml(nome)}" ${nome === atual ? 'selected' : ''}>${escapeHtml(nome) || 'Sem categoria'}</option>`
-  ).join('') + `<option value="__nova__">+ Nova categoria…</option>`;
-  return `<select class="item-categoria ${classe}"${estiloInline} title="Categoria (você pode trocar, ou criar uma nova)">${opcoes}</select>`;
-}
-
-// Cria (se preciso) e aplica uma categoria nova digitada pelo usuário direto no
-// menu do item. Devolve o nome final escolhido, ou null se o usuário cancelou.
-function criarCategoriaViaPrompt(){
-  const nome = prompt('Nome da nova categoria:');
-  const nomeLimpo = (nome || '').trim();
-  if(!nomeLimpo) return null;
-  const jaExiste = categoriaListaCompleta().some(c => c && normalizeTexto(c) === normalizeTexto(nomeLimpo));
-  if(jaExiste){
-    alert(`Já existe uma categoria chamada "${nomeLimpo}" (ou bem parecida). Escolha ela na lista.`);
-    return null;
-  }
-  if(!Array.isArray(DATA.categoriasCustom)) DATA.categoriasCustom = [];
-  DATA.categoriasCustom.push(nomeLimpo);
-  return nomeLimpo;
-}
-
-// Tira uma categoria (nome) de todos os gastos que estavam usando ela, em todos
-// os meses e no Modelo — eles voltam pra "Sem categoria" (nunca ficam "perdidos").
-function limparCategoriaDeTodosOsItens(nome){
-  const limpa = lista => (lista || []).forEach(it => { if(it.categoria === nome) it.categoria = ''; });
-  limpa(DATA.template.dia18); limpa(DATA.template.dia08);
-  (DATA.template.detalhamentos || []).forEach(d => limpa(d.items));
-  Object.values(DATA.months || {}).forEach(m => {
-    limpa(m.dia18); limpa(m.dia08);
-    (m.detalhamentos || []).forEach(d => limpa(d.items));
-  });
-}
-
-// Pergunta qual categoria excluir (por nome, digitado) e remove ela da lista —
-// se for uma categoria criada pelo usuário, some de vez; se for uma das
-// categorias padrão do sistema, fica só "escondida" (guardado em
-// DATA.categoriasExcluidas), já que essa lista padrão vive no código.
-function excluirCategoriaViaPrompt(){
-  const disponiveis = categoriaListaCompleta().filter(nome => nome && nome !== 'Outros');
-  if(disponiveis.length === 0){
-    alert('Não há categorias pra excluir no momento.');
-    return;
-  }
-  const escolha = prompt(`Qual categoria excluir? Digite o nome exatamente como está na lista:\n\n${disponiveis.join('\n')}`);
-  const nomeLimpo = (escolha || '').trim();
-  if(!nomeLimpo) return;
-  const encontrada = disponiveis.find(n => normalizeTexto(n) === normalizeTexto(nomeLimpo));
-  if(!encontrada){
-    alert(`Não encontrei a categoria "${nomeLimpo}". Confira se digitou certinho.`);
-    return;
-  }
-  if(!confirm(`Excluir a categoria "${encontrada}"?\n\nOs gastos que estavam nela ficam sem categoria (você pode escolher outra depois).`)) return;
-
-  if(categoriasCustom().includes(encontrada)){
-    DATA.categoriasCustom = DATA.categoriasCustom.filter(n => n !== encontrada);
-  } else {
-    if(!Array.isArray(DATA.categoriasExcluidas)) DATA.categoriasExcluidas = [];
-    if(!DATA.categoriasExcluidas.includes(encontrada)) DATA.categoriasExcluidas.push(encontrada);
-  }
-  limparCategoriaDeTodosOsItens(encontrada);
-  if(categoriaFiltro === encontrada) categoriaFiltro = '';
-  save(); renderContent();
 }
 
 function round2(v){
@@ -1887,18 +1633,8 @@ function monthTotals(m){
   return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente, reservaEmergencia };
 }
 
-// Totais só da categoria filtrada — usado apenas pra exibir os cartões do topo
-// quando o filtro por categoria está ativo. Não mexe nos totais "de verdade"
-// (monthTotals), que continuam sendo usados no Resumo Anual e comparativos.
 function todosItensDoMes(m){
   return [...m.dia18, ...m.dia08, ...(m.detalhamentos||[]).flatMap(d=>d.items)];
-}
-function monthTotalsFiltrados(m){
-  const itens = todosItensDoMes(m).filter(itemPassaNoFiltro);
-  const despesasTotal = round2(itens.reduce((s,x)=>s+valorDespesa(x.valor),0));
-  const pago = round2(itens.filter(x=>x.pago).reduce((s,x)=>s+valorDespesa(x.valor),0));
-  const pendente = round2(despesasTotal - pago);
-  return { despesasTotal, pago, pendente };
 }
 
 // Box de reserva de emergência — valor guardado NESTE mês. Entra direto no
@@ -1919,45 +1655,6 @@ function reservaEmergenciaBoxHtml(m){
   </div>`;
 }
 
-// Barra de filtro por categoria — filtra só a exibição (quais itens aparecem e
-// o total de cada bloco); não altera nenhum dado salvo.
-function filtroCategoriaBarHtml(){
-  const opcoes = categoriaListaCompleta()
-    .filter(nome => nome !== '')
-    .map(nome => `<option value="${escapeHtml(nome)}" ${nome === categoriaFiltro ? 'selected' : ''}>${escapeHtml(nome)}</option>`)
-    .join('');
-  return `
-  <div class="cat-filtro-bar">
-    <label for="filtro-categoria">Filtrar por categoria:</label>
-    <select id="filtro-categoria">
-      <option value="" ${categoriaFiltro === '' ? 'selected' : ''}>Todas as categorias</option>
-      <option value="${FILTRO_SEM_CATEGORIA}" ${categoriaFiltro === FILTRO_SEM_CATEGORIA ? 'selected' : ''}>Sem categoria</option>
-      ${opcoes}
-    </select>
-    ${categoriaFiltro ? `<button id="limpar-filtro-categoria" type="button">Limpar filtro</button>` : ''}
-    <button id="excluir-categoria-btn" type="button" title="Excluir uma categoria da lista">🗑️ Excluir categoria</button>
-  </div>`;
-}
-
-// Handler compartilhado do <select class="item-categoria"> — usado tanto pros
-// itens de dia18/dia08 quanto pros itens de bloco de detalhamento ("a pagar").
-// "onSet" recebe o novo nome de categoria (ou '' pra "Sem categoria") já
-// validado; quem chama decide em qual objeto de item gravar.
-function attachItemCategoriaHandler(row, item, onSet){
-  const select = row.querySelector('.item-categoria');
-  if(!select) return;
-  select.addEventListener('change', e=>{
-    const valor = e.target.value;
-    if(valor === '__nova__'){
-      const criada = criarCategoriaViaPrompt();
-      if(!criada){ e.target.value = categoriaEfetiva(item); return; }
-      onSet(criada);
-      return;
-    }
-    onSet(valor);
-  });
-}
-
 function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   const listAttr = detailIdx===undefined ? listKey : `detail:${detailIdx}`;
   const temAnexos = !!(item.link || item.nota || item.anexo);
@@ -1965,7 +1662,6 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   <div class="item-row ${item.pago?'paid':''}" data-list="${listAttr}" data-idx="${idx}">
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
-    ${itemCategoriaSelectHtml(item)}
     ${(() => { const u = item.link ? urlSeguraParaLink(item.link) : ''; return u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="item-link-open">↗ abrir</a>` : ''; })()}
     ${item.nota ? `<button class="item-nota-view" title="Ver nota">${notaIconSvg()}</button>` : ''}
     ${item.anexo ? `<button class="item-anexo-view" title="Ver anexo">${anexoIconSvg()}</button>` : ''}
@@ -2226,13 +1922,10 @@ function metaBarraHtml(gasto, meta){
 }
 
 function sectionHtml(monthKey, title, listKey, items, pillColor, meta, pessoa){
-  const itemsVisiveis = categoriaFiltro ? items.filter(itemPassaNoFiltro) : items;
-  const total = round2(itemsVisiveis.reduce((s,x)=>s+valorDespesa(x.valor),0));
+  const total = round2(items.reduce((s,x)=>s+valorDespesa(x.valor),0));
   const rows = items.length
-    ? items.map((it,idx)=> categoriaFiltro && !itemPassaNoFiltro(it) ? '' : itemRowHtml(monthKey, listKey, idx, it)).join('')
+    ? items.map((it,idx)=> itemRowHtml(monthKey, listKey, idx, it)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
-  const semItemNaCategoria = items.length > 0 && itemsVisiveis.length === 0
-    ? `<div class="empty-hint">Nenhum item de "${escapeHtml(nomeExibicaoFiltro())}" neste bloco.</div>` : '';
   return `
   <div class="section-card" data-section="${listKey}">
     <div class="section-header">
@@ -2247,7 +1940,6 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta, pessoa){
       </div>
     </div>
     ${rows}
-    ${semItemNaCategoria}
     <div class="meta-row" data-meta-for="${listKey}">
       <span class="meta-label">Meta</span>
       <span class="rs-prefix">R$</span>
@@ -2300,13 +1992,10 @@ function duplicarDetalhamento(m, dIdx){
 }
 
 function detailSectionHtml(monthKey, detail, dIdx){
-  const itemsVisiveis = categoriaFiltro ? detail.items.filter(itemPassaNoFiltro) : detail.items;
-  const total = round2(itemsVisiveis.reduce((s,x)=>s+valorDespesa(x.valor),0));
+  const total = round2(detail.items.reduce((s,x)=>s+valorDespesa(x.valor),0));
   const rows = detail.items.length
-    ? detail.items.map((it,idx)=> categoriaFiltro && !itemPassaNoFiltro(it) ? '' : itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
+    ? detail.items.map((it,idx)=> itemRowHtml(monthKey, null, idx, it, dIdx)).join('')
     : `<div class="empty-hint">Nenhum item ainda.</div>`;
-  const semItemNaCategoria = detail.items.length > 0 && itemsVisiveis.length === 0
-    ? `<div class="empty-hint">Nenhum item de "${escapeHtml(nomeExibicaoFiltro())}" neste bloco.</div>` : '';
   const isPagarDia18 = isPagarDia18Titulo(detail.titulo);
   const cardStyle = isPagarDia18 ? ' style="border-style:solid; border-color:var(--red); border-width:2px;"' : '';
   const tituloStyle = isPagarDia18 ? ' style="color:var(--red);"' : '';
@@ -2332,7 +2021,6 @@ function detailSectionHtml(monthKey, detail, dIdx){
     </div>
     <div class="detail-note">Bloco independente; não sincroniza com nenhum outro item.</div>
     ${rows}
-    ${semItemNaCategoria}
     <div class="add-item-row" data-add-detail="${dIdx}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
@@ -2345,52 +2033,15 @@ function detailSectionHtml(monthKey, detail, dIdx){
 const MESES_ABREV = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
 // ============================= INSIGHTS AUTOMÁTICOS =============================
-// Compara o mês atual com o histórico e gera observações automáticas: alerta
-// (categoria subiu muito), elogio (categoria caiu bem) ou atenção (um item
-// específico veio bem mais caro que o normal pra ele). Não grava nada em
-// disco — os dispensados ficam só na memória da sessão atual.
+// Compara o mês atual com o histórico e gera observações automáticas sobre um
+// item específico que veio bem mais caro que o normal pra ele. Não grava nada
+// em disco — os dispensados ficam só na memória da sessão atual.
 const insightsDispensados = new Set();
-
-function despesasPorCategoria(m){
-  const mapa = {};
-  todosItensDoMes(m).forEach(it=>{
-    const cat = categoriaEfetiva(it) || 'Sem categoria';
-    mapa[cat] = round2((mapa[cat]||0) + Number(it.valor||0));
-  });
-  return mapa;
-}
-
-function mediaCategoriaAnteriores(monthKey, qtd, categoria){
-  const idx = DATA.monthOrder.indexOf(monthKey);
-  if(idx <= 0) return null;
-  const inicio = Math.max(0, idx-qtd);
-  const chaves = DATA.monthOrder.slice(inicio, idx);
-  if(!chaves.length) return null;
-  const valores = chaves.map(k=>despesasPorCategoria(DATA.months[k])[categoria] || 0);
-  return round2(valores.reduce((s,v)=>s+v,0)/valores.length);
-}
 
 function gerarInsightsMes(monthKey){
   const m = DATA.months[monthKey];
   if(!m) return [];
   const insights = [];
-
-  const porCategoria = despesasPorCategoria(m);
-  Object.entries(porCategoria).forEach(([categoria, valorAtual])=>{
-    if(!valorAtual) return;
-    const media = mediaCategoriaAnteriores(monthKey, 3, categoria);
-    if(!media || media === 0) return;
-    const variacao = ((valorAtual - media) / media) * 100;
-    const id = `cat_${monthKey}_${categoria}`;
-    if(insightsDispensados.has(id)) return;
-    if(variacao >= 25){
-      insights.push({ id, tipo:'alerta', score: variacao,
-        html: `gasto em <b>${escapeHtml(categoria.toLowerCase())}</b> subiu <b>${variacao.toFixed(0)}%</b> vs a média dos últimos meses (R$ ${fmt(media)} → R$ ${fmt(valorAtual)})` });
-    } else if(variacao <= -20){
-      insights.push({ id, tipo:'elogio', score: Math.abs(variacao),
-        html: `gasto em <b>${escapeHtml(categoria.toLowerCase())}</b> ficou <b>${Math.abs(variacao).toFixed(0)}% abaixo</b> da média — parabéns pela economia` });
-    }
-  });
 
   // item individual muito fora do padrão de gasto dele mesmo no histórico —
   // olha só pros meses ANTERIORES a este (senão comparar com meses futuros
@@ -2402,14 +2053,14 @@ function gerarInsightsMes(monthKey){
     const mm = DATA.months[k];
     if(!mm) return;
     todosItensDoMes(mm).forEach(it=>{
-      const chave = normalizeTexto(it.desc);
+      const chave = String(it.desc||'').trim().toLowerCase();
       if(!chave) return;
       if(!historicoItem[chave]) historicoItem[chave] = [];
       historicoItem[chave].push(Number(it.valor||0));
     });
   });
   todosItensDoMes(m).forEach(it=>{
-    const chave = normalizeTexto(it.desc);
+    const chave = String(it.desc||'').trim().toLowerCase();
     const valoresAnteriores = historicoItem[chave];
     if(!valoresAnteriores || valoresAnteriores.length < 2) return;
     const mediaItem = valoresAnteriores.reduce((s,v)=>s+v,0)/valoresAnteriores.length;
@@ -2446,25 +2097,14 @@ function insightsHtml(monthKey){
 }
 
 // ============================= RESUMO EM TEXTO GERADO POR IA =============================
-// Reaproveita os mesmos dados que já alimentam os insights (categoria vs média
-// de 3 meses) e as metas de economia, monta um payload compacto e pede pro
-// backend gerar uma leitura em texto corrido do mês. O texto fica guardado em
-// m.resumoIA (junto com o resto dos dados do mês, salvo no servidor) até o
-// usuário clicar em "Atualizar" de novo — não é gerado a cada render pra não
-// gastar chamada de API sem necessidade.
+// Reaproveita os mesmos dados que já alimentam as metas de economia, monta um
+// payload compacto e pede pro backend gerar uma leitura em texto corrido do
+// mês. O texto fica guardado em m.resumoIA (junto com o resto dos dados do
+// mês, salvo no servidor) até o usuário clicar em "Atualizar" de novo — não é
+// gerado a cada render pra não gastar chamada de API sem necessidade.
 function montarPayloadResumoIA(monthKey){
   const m = DATA.months[monthKey];
   const t = monthTotals(m);
-  const porCategoria = despesasPorCategoria(m);
-  const categorias = Object.entries(porCategoria)
-    .filter(([,valor])=>valor)
-    .map(([categoria, valorAtual])=>{
-      const media = mediaCategoriaAnteriores(monthKey, 3, categoria);
-      const variacaoPct = media ? round2(((valorAtual-media)/media)*100) : null;
-      return { categoria, valorAtual, mediaAnterior: media, variacaoPct };
-    })
-    .sort((a,b)=> Math.abs(b.variacaoPct||0) - Math.abs(a.variacaoPct||0))
-    .slice(0,6);
   const metas = (DATA.metasEconomia||[]).map(g=>({
     titulo: g.titulo,
     pct: g.valorAlvo>0 ? round2((Number(g.valorAtual)||0)/Number(g.valorAlvo)*100) : 0,
@@ -2480,7 +2120,7 @@ function montarPayloadResumoIA(monthKey){
     mes: monthKey,
     rendaTotal: t.rendaTotal, despesasTotal: t.despesasTotal, saldo: t.saldo,
     reservaEmergenciaMes: t.reservaEmergencia, reservaEmergenciaAcumulada: reservaAcumulada,
-    categorias, metas
+    metas
   };
 }
 
@@ -2540,15 +2180,11 @@ function renderMonthView(monthKey){
   if(!Array.isArray(m.detalhamentos)) m.detalhamentos = [];
   m.detalhamentos.forEach(d=>{ if(!d.pessoa) d.pessoa = 'thiago'; });
   const t = monthTotals(m);
-  // quando um filtro de categoria está ativo, os cartões do topo (despesas,
-  // saldo, pago, pendente) mostram só a soma daquela categoria — a renda
-  // continua sendo a real, porque recebimentos não têm categoria.
-  const tf = categoriaFiltro ? monthTotalsFiltrados(m) : null;
-  const despesasExibida = tf ? tf.despesasTotal : t.despesasTotal;
-  const pagoExibido = tf ? tf.pago : t.pago;
-  const pendenteExibido = tf ? tf.pendente : t.pendente;
-  const saldoExibido = tf ? round2(t.rendaTotal - tf.despesasTotal - t.reservaEmergencia) : t.saldo;
-  const sufixoFiltro = tf ? ` (${nomeExibicaoFiltro()})` : '';
+  const despesasExibida = t.despesasTotal;
+  const pagoExibido = t.pago;
+  const pendenteExibido = t.pendente;
+  const saldoExibido = t.saldo;
+  const sufixoFiltro = '';
   const saldoClass = saldoExibido >= 0 ? 'positive' : 'negative';
   const oc = m.blocosOcultos;
 
@@ -2606,10 +2242,7 @@ function renderMonthView(monthKey){
   const detsThiago = detsComIdx.filter(o=>pessoaOf(o.d) === 'thiago');
   const detsPedro = detsComIdx.filter(o=>pessoaOf(o.d) === 'pedro');
 
-  const totalBlocoItems = (items) => {
-    const itemsVisiveis = categoriaFiltro ? items.filter(itemPassaNoFiltro) : items;
-    return itemsVisiveis.reduce((s,x)=>s+valorDespesa(x.valor),0);
-  };
+  const totalBlocoItems = (items) => items.reduce((s,x)=>s+valorDespesa(x.valor),0);
   let thiagoGastos = detsThiago.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
   let pedroGastos = detsPedro.reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
   if(!oc.dia08){
@@ -2957,9 +2590,6 @@ function attachMonthEvents(monthKey){
         }
         list[idx].desc = novoDesc; save(); renderContent();
       });
-      attachItemCategoriaHandler(row, list[idx], novaCategoria=>{
-        list[idx].categoria = novaCategoria; save(); renderContent();
-      });
       row.querySelector('.item-valor').addEventListener('change', e=>{
         const novoValor = parseValorBR(e.target.value);
         if(isNaN(novoValor)){
@@ -3039,9 +2669,6 @@ function attachMonthEvents(monthKey){
           return;
         }
         detail.items[idx].desc = novoDesc; save(); renderContent();
-      });
-      attachItemCategoriaHandler(row, detail.items[idx], novaCategoria=>{
-        detail.items[idx].categoria = novaCategoria; save(); renderContent();
       });
       row.querySelector('.item-valor').addEventListener('change', e=>{
         const novoValor = parseValorBR(e.target.value);
@@ -3244,54 +2871,6 @@ function renderBarChart(items, chartId){
     <line x1="${padding}" y1="${h-40}" x2="${w-padding}" y2="${h-40}" stroke="#E4E8EE" stroke-width="1"/>
     ${bars}
   </svg>`;
-}
-
-// Soma o valor de todos os itens do mês agrupado por categoria efetiva —
-// usado só pra montar o gráfico de pizza (não altera nenhum dado salvo).
-function gastosPorCategoriaLista(m){
-  const mapa = {};
-  todosItensDoMes(m).forEach(item=>{
-    const nome = categoriaEfetiva(item) || '';
-    mapa[nome] = (mapa[nome]||0) + Number(item.valor||0);
-  });
-  return Object.keys(mapa)
-    .map(nome=>({ nome, valor: round2(mapa[nome]), cor: corCategoriaHex(nome) }))
-    .filter(f=>f.valor > 0)
-    .sort((a,b)=>b.valor-a.valor);
-}
-// Desenha um donut chart em SVG puro (sem lib externa) a partir de fatias
-// {nome, valor, cor}. Cada fatia vira um arco via stroke-dasharray/offset.
-function renderPizzaCategorias(fatias){
-  const total = fatias.reduce((s,f)=>s+f.valor,0);
-  if(total <= 0) return '';
-  const r = 52, cx = 62, cy = 62, circ = 2*Math.PI*r;
-  let acumulado = 0;
-  const arcos = fatias.map(f=>{
-    const dash = (f.valor/total) * circ;
-    const offset = -acumulado;
-    acumulado += dash;
-    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${f.cor}" stroke-width="22" stroke-dasharray="${dash.toFixed(2)} ${(circ-dash).toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"></circle>`;
-  }).join('');
-  return `<svg viewBox="0 0 124 124" width="124" height="124" style="transform:rotate(-90deg); flex-shrink:0;">${arcos}</svg>`;
-}
-function graficoCategoriaHtml(m){
-  const fatias = gastosPorCategoriaLista(m);
-  if(fatias.length === 0) return '';
-  const total = fatias.reduce((s,f)=>s+f.valor,0);
-  const legenda = fatias.map(f=>`
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-      <span style="width:10px;height:10px;border-radius:50%;background:${f.cor};flex-shrink:0;"></span>
-      <span style="font-size:12.5px; flex:1; min-width:0;">${escapeHtml(f.nome || 'Sem categoria')}</span>
-      <span style="font-size:12.5px; font-weight:700;">${Math.round(f.valor/total*100)}%</span>
-    </div>`).join('');
-  return `
-  <div class="section-card" style="margin-bottom:0.5cm;">
-    <div style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px; margin-bottom:14px;">gasto por categoria</div>
-    <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
-      ${renderPizzaCategorias(fatias)}
-      <div style="flex:1; min-width:160px;">${legenda}</div>
-    </div>
-  </div>`;
 }
 
 function parseMonthKey(key){
@@ -3704,7 +3283,6 @@ function relatorioEstiloHtml(){
     table.rel-table tbody tr:nth-child(even){ background:#FCFBF8; }
     table.rel-table tbody tr.pago td{ color:#9CA3AF; }
     table.rel-table tfoot td{ font-weight:800; border-top:2px solid #E5E7EB; border-bottom:none; background:#F5F6F8; }
-    .rel-cat-pill{ display:inline-block; font-size:9px; font-weight:700; padding:2px 7px; border-radius:99px; background:#EEF0F3; color:#6B6B6B; }
     .rel-status{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:99px; }
     .rel-status.pago{ background:#EAFBEF; color:#2E8B57; }
     .rel-status.pendente{ background:#FFF6E5; color:#F97316; }
@@ -3737,7 +3315,6 @@ function relatorioMesHtml(monthKey){
     const linhas = items.map(it=>`
       <tr class="${it.pago ? 'pago' : ''}">
         <td>${escapeHtml(it.desc)}</td>
-        <td>${categoriaEfetiva(it) ? `<span class="rel-cat-pill">${escapeHtml(categoriaEfetiva(it))}</span>` : '—'}</td>
         <td style="text-align:right; font-weight:700;">R$ ${fmt(it.valor)}</td>
         <td style="text-align:center;"><span class="rel-status ${it.pago ? 'pago' : 'pendente'}">${it.pago ? 'Pago' : 'Pendente'}</span></td>
       </tr>`).join('');
@@ -3746,7 +3323,7 @@ function relatorioMesHtml(monthKey){
     <div class="rel-section">
       <div class="rel-section-title"><span>${escapeHtml(titulo)}</span><span class="rel-section-total">R$ ${fmt(subtotal)}</span></div>
       <table class="rel-table">
-        <thead><tr><th>descrição</th><th>categoria</th><th style="text-align:right;">valor</th><th style="text-align:center;">status</th></tr></thead>
+        <thead><tr><th>descrição</th><th style="text-align:right;">valor</th><th style="text-align:center;">status</th></tr></thead>
         <tbody>${linhas}</tbody>
       </table>
     </div>`;
@@ -3808,7 +3385,6 @@ function relatorioPaginaHtml(titulo, conteudoHtml){
     }
     .rel-section-title{ background:#0B0C0F !important; color:#fff !important; }
     .rel-stat{ background:#F5F6F8 !important; }
-    .rel-cat-pill{ background:#EEF0F3 !important; color:#6B6B6B !important; }
     .rel-status.pago{ background:#EAFBEF !important; color:#2E8B57 !important; }
     .rel-status.pendente{ background:#FFF6E5 !important; color:#F97316 !important; }
     table.rel-table tbody tr:nth-child(even){ background:#FCFBF8 !important; }
