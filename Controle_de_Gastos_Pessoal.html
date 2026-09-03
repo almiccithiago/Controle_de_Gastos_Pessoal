@@ -844,7 +844,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-09-03.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-09-03.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1632,7 +1632,11 @@ function categoriaAprendidaPorDesc(desc){
 // (mesmo que já tenha sido salva antes), usa ela. Senão, tenta o aprendizado
 // por histórico; se não houver sinal suficiente, cai pra regra por palavra-chave.
 function categoriaEfetiva(item){
-  return '';
+  if(item && item.categoria) return item.categoria;
+  const aprendida = categoriaAprendidaPorDesc(item ? item.desc : '');
+  if(aprendida) return aprendida;
+  const detectada = detectCategoriaDesc(item ? item.desc : '');
+  return detectada ? detectada.nome : '';
 }
 function itemCategoriaSelectHtml(item){
   const atual = categoriaEfetiva(item);
@@ -1935,6 +1939,25 @@ function filtroCategoriaBarHtml(){
   </div>`;
 }
 
+// Handler compartilhado do <select class="item-categoria"> — usado tanto pros
+// itens de dia18/dia08 quanto pros itens de bloco de detalhamento ("a pagar").
+// "onSet" recebe o novo nome de categoria (ou '' pra "Sem categoria") já
+// validado; quem chama decide em qual objeto de item gravar.
+function attachItemCategoriaHandler(row, item, onSet){
+  const select = row.querySelector('.item-categoria');
+  if(!select) return;
+  select.addEventListener('change', e=>{
+    const valor = e.target.value;
+    if(valor === '__nova__'){
+      const criada = criarCategoriaViaPrompt();
+      if(!criada){ e.target.value = categoriaEfetiva(item); return; }
+      onSet(criada);
+      return;
+    }
+    onSet(valor);
+  });
+}
+
 function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   const listAttr = detailIdx===undefined ? listKey : `detail:${detailIdx}`;
   const temAnexos = !!(item.link || item.nota || item.anexo);
@@ -1942,6 +1965,7 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   <div class="item-row ${item.pago?'paid':''}" data-list="${listAttr}" data-idx="${idx}">
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
+    ${itemCategoriaSelectHtml(item)}
     ${(() => { const u = item.link ? urlSeguraParaLink(item.link) : ''; return u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="item-link-open">↗ abrir</a>` : ''; })()}
     ${item.nota ? `<button class="item-nota-view" title="Ver nota">${notaIconSvg()}</button>` : ''}
     ${item.anexo ? `<button class="item-anexo-view" title="Ver anexo">${anexoIconSvg()}</button>` : ''}
@@ -2933,6 +2957,9 @@ function attachMonthEvents(monthKey){
         }
         list[idx].desc = novoDesc; save(); renderContent();
       });
+      attachItemCategoriaHandler(row, list[idx], novaCategoria=>{
+        list[idx].categoria = novaCategoria; save(); renderContent();
+      });
       row.querySelector('.item-valor').addEventListener('change', e=>{
         const novoValor = parseValorBR(e.target.value);
         if(isNaN(novoValor)){
@@ -3012,6 +3039,9 @@ function attachMonthEvents(monthKey){
           return;
         }
         detail.items[idx].desc = novoDesc; save(); renderContent();
+      });
+      attachItemCategoriaHandler(row, detail.items[idx], novaCategoria=>{
+        detail.items[idx].categoria = novaCategoria; save(); renderContent();
       });
       row.querySelector('.item-valor').addEventListener('change', e=>{
         const novoValor = parseValorBR(e.target.value);
