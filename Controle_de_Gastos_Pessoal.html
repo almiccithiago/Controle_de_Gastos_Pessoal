@@ -218,29 +218,13 @@
   .summary-card.accent-green{ border-top:3px solid var(--green); }
   .summary-card.accent-red{ border-top:3px solid var(--red); }
   .summary-card.accent-amber{ border-top:3px solid var(--amber); }
-  .dia-totais-linha{
-    display:flex; align-items:center; flex-wrap:wrap; gap:8px 10px;
-    background: var(--card); border-radius: var(--radius); border:1px dashed var(--purple);
-    padding:10px 16px; margin: 10px 0 0.5cm 0; font-size:13.5px;
+  .dia-pill{
+    background:#EEEDFE; color:#3C3489; font-weight:700; font-size:12px;
+    padding:5px 12px; border-radius:999px; white-space:nowrap;
   }
-  .dia-totais-linha .rot{ font-weight:700; color:var(--purple); }
-  .dia-totais-linha .val{ font-weight:800; }
-  .dia-totais-linha .sep{ color:var(--border); }
   .value.negative{ color: var(--red); }
   .value.positive{ color: var(--green); }
 
-  .painel-extra{ margin-bottom:0.5cm; }
-  .painel-extra-header{
-    display:flex; align-items:center; justify-content:space-between;
-    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-    padding:12px 16px; margin-bottom:0.5cm;
-  }
-  .painel-extra-title{ font-size:13px; font-weight:700; color:var(--text); }
-  .painel-extra-toggle{
-    border:none; background:transparent; color:var(--muted); font-size:12px; font-weight:600;
-    cursor:pointer; font-family:'Poppins', sans-serif; padding:4px 8px; border-radius:6px;
-  }
-  .painel-extra-toggle:hover{ background:#F0F2F5; color:var(--text); }
   .pessoa-receb-inputs{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
   .pessoa-receb-field{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); font-weight:600; }
   .pessoa-receb-amount{ display:flex; align-items:center; gap:4px; }
@@ -399,24 +383,6 @@
     .block-remove{ padding:4px 4px; padding-left:8px; margin-left:3px; }
     .section-header .pill, .goal-header-top .pill{ font-size:10px; padding:3px 7px; }
   }
-  .notes-card{
-    background: var(--card); border-radius: var(--radius); border:1px solid var(--border);
-    border-top: 4px solid var(--amber);
-    padding:16px; margin-bottom:0.5cm;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  }
-  .notes-card h3{
-    font-size:14px; margin:0 0 10px 0; font-weight:700; color:var(--text);
-    text-transform:uppercase; letter-spacing:0.4px;
-  }
-  .notes-card h3::before{ content:"📝 "; }
-  .notes-textarea{
-    width:100%; min-height:auto; height:40px; resize:vertical; font-family:inherit; font-size:14px;
-    color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px 14px;
-    text-transform:none; line-height:1.6; background:#fff;
-  }
-  .notes-textarea:focus{ outline:2px solid var(--blue); }
-  .notes-textarea::placeholder{ color:var(--muted); }
   .add-detail-row{ margin:0.5cm 0; text-align:center; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .add-block-btn{
     background: var(--purple); color:#fff; border:none; border-radius:10px; padding:11px 20px;
@@ -2233,6 +2199,8 @@ function renderMonthView(monthKey){
       : `<input type="text" class="month-title-input" id="month-title-input" value="${escapeHtml(monthKey)}" title="Clique para renomear este mês">`
     }
     <div class="month-title-actions">
+      ${!isTemplate ? `<span class="dia-pill">dia 08 · R$ ${fmt(totalsDiaQuadros(m).totalDia08)}</span>` : ''}
+      ${!isTemplate ? `<span class="dia-pill">dia 18 · R$ ${fmt(totalsDiaQuadros(m).totalDia18)}</span>` : ''}
       ${!isTemplate ? `<button id="export-pdf-btn" class="toggle-all-btn" title="Gera um relatório deste mês pra salvar como PDF ou imprimir">🖨️ Exportar relatório</button>` : ''}
       ${!isTemplate ? `<button id="delete-month-btn" title="Excluir este mês">Excluir mês</button>` : ''}
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
@@ -2247,40 +2215,15 @@ function renderMonthView(monthKey){
   </div>
   `;
 
-  const td = totalsDiaQuadros(m);
   html += `
-  <div class="dia-totais-linha">
-    <span class="rot">Total Dia 08:</span><span class="val">R$ ${fmt(td.totalDia08)}</span>
-    <span class="sep">|</span>
-    <span class="rot">Total Dia 18:</span><span class="val">R$ ${fmt(td.totalDia18)}</span>
-  </div>
+  ${reservaEmergenciaBoxHtml(m)}
+
+  ${(!isTemplate && !oc.dia08 && Number(t.rendaTotal)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
+
+  ${oc.dia08 ? `<div class="blocos-ocultos-bar">
+    <button class="block-restore" data-restore="dia08">+ mostrar bloco Dia 08</button>
+  </div>` : ''}
   `;
-
-  const painelExtraAberto = !m.painelExtraOculto;
-  html += `
-  <div class="painel-extra ${painelExtraAberto ? '' : 'painel-extra-fechado'}">
-    <div class="painel-extra-header">
-      <span class="painel-extra-title">reserva e anotações</span>
-      <button id="toggle-painel-extra-btn" class="painel-extra-toggle">${painelExtraAberto ? 'ocultar tudo ▾' : 'mostrar tudo ▸'}</button>
-    </div>
-  `;
-
-  if(painelExtraAberto){
-    html += `
-    ${reservaEmergenciaBoxHtml(m)}
-
-    <div class="notes-card">
-      <h3>Anotações${isTemplate ? ' do modelo' : ''}</h3>
-      <textarea id="month-notes" class="notes-textarea" placeholder="Escreva uma observação sobre este mês...">${escapeHtml(m.anotacoes || '')}</textarea>
-    </div>
-
-    ${(!isTemplate && !oc.dia08 && Number(t.rendaTotal)===0) ? `<div class="receb-warning">⚠️ o recebimento está em R$ 0,00 — confira se não foi esquecido de preencher.</div>` : ''}
-
-    ${oc.dia08 ? `<div class="blocos-ocultos-bar">
-      <button class="block-restore" data-restore="dia08">+ mostrar bloco Dia 08</button>
-    </div>` : ''}
-    `;
-  }
 
   if(!m.detalhamentos) m.detalhamentos = [];
   const detsComIdx = m.detalhamentos.map((d,idx)=>({d,idx}));
@@ -2309,10 +2252,6 @@ function renderMonthView(monthKey){
     .filter(o=>String(o.d.titulo||'').toLowerCase().includes('dia 18'))
     .reduce((s,o)=>s+totalBlocoItems(o.d.items), 0);
   const totalDia08 = round2(thiagoGastos - totalDia18BlocosThiago);
-
-  html += `</div>
-
-  `;
 
   html += `
   <div class="pessoa-secao">
@@ -2457,12 +2396,6 @@ function attachMonthEvents(monthKey){
     m.recebimentos.thiDia18 = round2(novoValor); save(); renderContent();
   });
 
-  const togglePainelExtraBtn = content.querySelector('#toggle-painel-extra-btn');
-  if(togglePainelExtraBtn) togglePainelExtraBtn.addEventListener('click', ()=>{
-    m.painelExtraOculto = !m.painelExtraOculto;
-    save(); renderContent();
-  });
-
   const transferenciaPedroCheck = content.querySelector('#transferencia-pedro-check');
   if(transferenciaPedroCheck) transferenciaPedroCheck.addEventListener('change', e=>{
     m.transferenciaPedroFeita = e.target.checked;
@@ -2597,16 +2530,6 @@ function attachMonthEvents(monthKey){
   if(reservaCheckEl) reservaCheckEl.addEventListener('change', e=>{
     m.reservaEmergenciaFeita = e.target.checked; save(); renderContent();
   });
-
-  // anotações do mês (ou do Modelo) — salva ao sair do campo, sem re-renderizar
-  // pra não perder o foco/cursor do usuário no meio da digitação.
-  const notesEl = content.querySelector('#month-notes');
-  if(notesEl){
-    notesEl.addEventListener('change', e=>{
-      m.anotacoes = e.target.value;
-      save();
-    });
-  }
 
   // mover bloco de detalhamento (cima/baixo/esquerda/direita)
   content.querySelectorAll('.move-btn[data-detail-move]').forEach(btn=>{
