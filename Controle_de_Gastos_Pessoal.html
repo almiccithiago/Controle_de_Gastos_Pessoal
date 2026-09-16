@@ -658,6 +658,8 @@
   .loan-remove{ border:none;background:transparent;color:var(--red);cursor:pointer;font-size:15px;opacity:.6;}
   .loan-remove:hover{ opacity:1; }
   .loan-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+  .loan-totais{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+  .loan-total-pago{ font-size:12.5px; font-weight:700; color:var(--muted); }
   .loan-add-btn{
     background: var(--purple); color:#fff; border:none; border-radius:8px; padding:6px 12px;
     font-size:12.5px; font-weight:700; cursor:pointer;
@@ -2774,6 +2776,7 @@ function projecaoQuitacaoHtml(loan){
 
 function loanTableHtml(key, loan){
   computeLoanSaldos(loan);
+  const totalPago = round2(loan.parcelas.reduce((s,p)=> s + (p.valorPago !== null && p.valorPago !== undefined ? Number(p.valorPago) : 0), 0));
   const rows = loan.parcelas.map((p, idx)=>`
     <tr data-idx="${idx}" class="${p.pago?'paid':''}">
       <td><input type="text" class="loan-parcela" value="${escapeHtml(p.parcela)}"></td>
@@ -2806,7 +2809,10 @@ function loanTableHtml(key, loan){
     </div>
     <div class="loan-footer">
       <button class="loan-add-btn">+ Adicionar parcela</button>
-      <div class="loan-current">Saldo devedor atual: R$ ${fmt(loanCurrentBalance(loan))}</div>
+      <div class="loan-totais">
+        <div class="loan-total-pago">Total pago: R$ ${fmt(totalPago)}</div>
+        <div class="loan-current">Saldo devedor atual: R$ ${fmt(loanCurrentBalance(loan))}</div>
+      </div>
     </div>
   </div>`;
 }
