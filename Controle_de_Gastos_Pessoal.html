@@ -218,6 +218,14 @@
   .summary-card.accent-green{ border-top:3px solid var(--green); }
   .summary-card.accent-red{ border-top:3px solid var(--red); }
   .summary-card.accent-amber{ border-top:3px solid var(--amber); }
+  .dia-totais-linha{
+    display:flex; align-items:center; flex-wrap:wrap; gap:8px 10px;
+    background: var(--card); border-radius: var(--radius); border:1px dashed var(--purple);
+    padding:10px 16px; margin: 10px 0 0.5cm 0; font-size:13.5px;
+  }
+  .dia-totais-linha .rot{ font-weight:700; color:var(--purple); }
+  .dia-totais-linha .val{ font-weight:800; }
+  .dia-totais-linha .sep{ color:var(--border); }
   .value.negative{ color: var(--red); }
   .value.positive{ color: var(--green); }
 
@@ -1641,6 +1649,28 @@ function monthTotals(m){
   return { dia18Total, dia08Total, despesasTotal, rendaTotal, saldo, pago, pendente, reservaEmergencia };
 }
 
+// "Total Dia 08" = soma de todo quadro (o quadro fixo Dia 08 + qualquer
+// detalhamento) cujo título contenha "dia 08", "a pagar", "empresa" ou "noh".
+// "Total Dia 18" = soma de todo quadro cujo título contenha "dia 18".
+// Comparação é por trecho do título, sem diferenciar maiúsculas/minúsculas.
+function totalsDiaQuadros(m){
+  const quadros = [{ titulo: m.labels.secaoDia08, items: m.dia08 }].concat(m.detalhamentos || []);
+  const normaliza = s => String(s||'').toLowerCase();
+  const palavrasDia08 = ['dia 08','a pagar','empresa','noh'];
+  const palavrasDia18 = ['dia 18'];
+  let totalDia08 = 0, totalDia18 = 0;
+  quadros.forEach(q=>{
+    const titulo = normaliza(q.titulo);
+    const soma = (q.items||[]).reduce((s,x)=>s+valorDespesa(x.valor),0);
+    if(palavrasDia18.some(p=>titulo.includes(p))){
+      totalDia18 += soma;
+    } else if(palavrasDia08.some(p=>titulo.includes(p))){
+      totalDia08 += soma;
+    }
+  });
+  return { totalDia08: round2(totalDia08), totalDia18: round2(totalDia18) };
+}
+
 function todosItensDoMes(m){
   return [...m.dia18, ...m.dia08, ...(m.detalhamentos||[]).flatMap(d=>d.items)];
 }
@@ -2214,6 +2244,15 @@ function renderMonthView(monthKey){
     <div class="summary-card ${saldoExibido>=0?'accent-green':'accent-red'}"><div class="label">Saldo do Mês${sufixoFiltro}</div><div class="value ${saldoClass}">R$ ${fmt(saldoExibido)}</div></div>
     <div class="summary-card accent-green"><div class="label">Pago${sufixoFiltro}</div><div class="value">R$ ${fmt(pagoExibido)}</div></div>
     <div class="summary-card accent-amber"><div class="label">Pendente${sufixoFiltro}</div><div class="value">R$ ${fmt(pendenteExibido)}</div></div>
+  </div>
+  `;
+
+  const td = totalsDiaQuadros(m);
+  html += `
+  <div class="dia-totais-linha">
+    <span class="rot">Total Dia 08:</span><span class="val">R$ ${fmt(td.totalDia08)}</span>
+    <span class="sep">|</span>
+    <span class="rot">Total Dia 18:</span><span class="val">R$ ${fmt(td.totalDia18)}</span>
   </div>
   `;
 
