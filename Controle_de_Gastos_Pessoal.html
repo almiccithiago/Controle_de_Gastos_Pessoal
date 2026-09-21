@@ -1528,11 +1528,7 @@ function togglePinMonth(monthKey){
 
 function renderTabs(){
   const tabs = document.getElementById('tabs');
-  let mesesOrdenados = [...DATA.monthOrder];
-  if(DATA.pinnedMonth && mesesOrdenados.includes(DATA.pinnedMonth)){
-    mesesOrdenados = [DATA.pinnedMonth, ...mesesOrdenados.filter(m=>m!==DATA.pinnedMonth)];
-  }
-  const allTabs = [...mesesOrdenados, "Modelo", "Resumo Anual", "Obrigações"];
+  const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações"];
   const podeExcluirAtual = DATA.monthOrder.includes(currentTab);
   tabs.innerHTML = allTabs.map(t =>
     `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${t===DATA.pinnedMonth?'tab-pinned':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${escapeHtml(t)}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${DATA.monthOrder.includes(t) ? `<span class="pin-btn ${t===DATA.pinnedMonth?'pinned':''}" data-pin="${escapeHtml(t)}" title="${t===DATA.pinnedMonth?'Desafixar mês':'Fixar mês em evidência'}">📌</span>` : ''}${escapeHtml(t)}</button>`
