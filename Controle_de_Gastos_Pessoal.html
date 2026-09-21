@@ -1344,6 +1344,7 @@ function deleteMonth(monthKey){
   if(!confirmarExclusaoComNome('o mês', monthKey)) return;
   delete DATA.months[monthKey];
   DATA.monthOrder = DATA.monthOrder.filter(m=>m!==monthKey);
+  if(DATA.pinnedMonth === monthKey) DATA.pinnedMonth = null;
   save();
   currentTab = DATA.monthOrder[0] || "Obrigações";
   renderTabs();
@@ -1423,7 +1424,7 @@ async function save(){
 async function initApp(){
   try{
     DATA = await loadFromServer();
-    currentTab = DATA.monthOrder[0] || "Obrigações";
+    currentTab = (DATA.pinnedMonth && DATA.monthOrder.includes(DATA.pinnedMonth)) ? DATA.pinnedMonth : (DATA.monthOrder[0] || "Obrigações");
     dataReady = true;
     renderTabs();
     renderContent();
