@@ -2219,8 +2219,8 @@ function renderMonthView(monthKey){
       : `<input type="text" class="month-title-input" id="month-title-input" value="${escapeHtml(monthKey)}" title="Clique para renomear este mês">`
     }
     <div class="month-title-actions">
-      ${!isTemplate ? `<span class="dia-pill">dia 08 · R$ ${fmt(totalsDiaQuadros(m).totalDia08)}</span>` : ''}
-      ${!isTemplate ? `<span class="dia-pill">dia 18 · R$ ${fmt(totalsDiaQuadros(m).totalDia18)}</span>` : ''}
+      <span class="dia-pill">dia 08 · R$ ${fmt(totalsDiaQuadros(m).totalDia08)}</span>
+      <span class="dia-pill">dia 18 · R$ ${fmt(totalsDiaQuadros(m).totalDia18)}</span>
       ${!isTemplate ? `<button id="export-pdf-btn" class="toggle-all-btn" title="Gera um relatório deste mês pra salvar como PDF ou imprimir">🖨️ Exportar relatório</button>` : ''}
       ${!isTemplate ? `<button id="delete-month-btn" title="Excluir este mês">Excluir mês</button>` : ''}
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
