@@ -1960,7 +1960,7 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta, pessoa){
           <button class="pessoa-btn ${pessoa==='pedro'?'active':''}" data-pessoa="pedro">Pedro</button>
         </div>
         <span class="pill" style="background:${pillColor}">R$ ${fmt(total)}</span>
-        ${listKey === 'dia08' ? '' : `<button class="block-remove" data-block="${listKey}" title="Excluir este bloco do mês">×</button>`}
+        <button class="block-remove" data-block="${listKey}" title="Excluir este bloco do mês">×</button>
       </div>
     </div>
     ${rows}
