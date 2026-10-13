@@ -1530,12 +1530,10 @@ function togglePinMonth(monthKey){
 function renderTabs(){
   const tabs = document.getElementById('tabs');
   const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações"];
-  const podeExcluirAtual = DATA.monthOrder.includes(currentTab);
   tabs.innerHTML = allTabs.map(t =>
     `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${t===DATA.pinnedMonth?'tab-pinned':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${escapeHtml(t)}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${DATA.monthOrder.includes(t) ? `<span class="pin-btn ${t===DATA.pinnedMonth?'pinned':''}" data-pin="${escapeHtml(t)}" title="${t===DATA.pinnedMonth?'Desafixar mês':'Fixar mês em evidência'}">📌</span>` : ''}${escapeHtml(t)}</button>`
   ).join('')
-    + `<button id="add-month-tab" title="Criar o próximo mês a partir do Modelo">+ Novo Mês</button>`
-    + (podeExcluirAtual ? `<button id="delete-month-tab" title="Excluir o mês selecionado (${escapeHtml(currentTab)})">excluir mês</button>` : '');
+    + `<button id="add-month-tab" title="Criar o próximo mês a partir do Modelo">+ Novo Mês</button>`;
   tabs.querySelectorAll('button[data-tab]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ currentTab = btn.dataset.tab; renderTabs(); renderContent(); });
   });
