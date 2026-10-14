@@ -877,7 +877,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.5</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.6</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2869,19 +2869,23 @@ function attachMonthEvents(monthKey){
 }
 
 // ============================= EMPRÉSTIMOS =============================
+// Projeção de quitação pelo VALOR que falta (não pela quantidade de linhas):
+// saldo devedor atual ÷ média dos pagamentos já feitos = parcelas restantes,
+// contadas a partir do mês do pagamento mais recente.
 function projecaoQuitacao(loan){
-  const naoPagas = loan.parcelas.filter(p=>!p.pago);
-  if(naoPagas.length === 0) return { faltam:0, texto:'quitado' };
-  const pagasComData = loan.parcelas.filter(p=>p.pago && p.data);
-  let base;
-  if(pagasComData.length){
-    base = new Date(pagasComData[pagasComData.length-1].data+'T00:00:00');
-  } else {
-    base = new Date();
+  const saldo = loanCurrentBalance(loan);
+  if(saldo <= 0) return { faltam:0, texto:'quitado', media:0, estimada:false };
+  const pagas = loan.parcelas.filter(p=>p.pago && Number(p.valorPago) > 0);
+  if(pagas.length === 0){
+    return { faltam:null, texto:'sem pagamentos ainda', media:0, estimada:false };
   }
-  const prevista = new Date(base.getFullYear(), base.getMonth() + naoPagas.length, 1);
+  const media = round2(pagas.reduce((s,p)=>s + Number(p.valorPago), 0) / pagas.length);
+  const faltam = Math.ceil(round2(saldo / media));
+  const datas = pagas.map(p=>p.data).filter(Boolean).sort();
+  const base = datas.length ? new Date(datas[datas.length-1]+'T00:00:00') : new Date();
+  const prevista = new Date(base.getFullYear(), base.getMonth() + faltam, 1);
   const texto = `${MESES_ABREV[prevista.getMonth()]}/${prevista.getFullYear()}`;
-  return { faltam: naoPagas.length, texto };
+  return { faltam, texto, media, estimada:true };
 }
 
 function projecaoQuitacaoHtml(loan){
@@ -2889,9 +2893,12 @@ function projecaoQuitacaoHtml(loan){
   if(proj.faltam === 0){
     return `<div class="loan-inicial-row" style="margin-bottom:14px;"><span>Situação</span><span class="rs-prefix-dark" style="color:var(--green);">quitado</span></div>`;
   }
+  if(proj.faltam === null){
+    return `<div class="loan-inicial-row" style="margin-bottom:14px;"><span>Quitação prevista</span><span class="rs-prefix-dark">lance um pagamento para calcular</span></div>`;
+  }
   return `
   <div class="loan-inicial-row" style="margin-bottom:14px;">
-    <span>Faltam <b>${proj.faltam}</b> parcela${proj.faltam===1?'':'s'}</span>
+    <span>Faltam ~<b>${proj.faltam}</b> parcela${proj.faltam===1?'':'s'} <span style="font-weight:500; color:var(--muted);">(média de R$ ${fmt(proj.media)})</span></span>
     <span class="rs-prefix-dark">quitação prevista: ${proj.texto}</span>
   </div>`;
 }
@@ -3021,10 +3028,10 @@ function exportarObrigacaoPdf(key){
       <div class="card"><div class="l">saldo inicial</div><div class="v">R$ ${fmt(inicial)}</div></div>
       <div class="card g"><div class="l">total pago</div><div class="v">R$ ${fmt(totalPago)}</div></div>
       <div class="card"><div class="l">saldo devedor</div><div class="v">R$ ${fmt(saldoAtual)}</div></div>
-      <div class="card g"><div class="l">${proj.faltam===0?'situação':'quitação prevista'}</div><div class="v">${proj.faltam===0?'quitado':proj.texto}</div></div>
+      <div class="card g"><div class="l">${proj.faltam===0?'situação':'quitação prevista'}</div><div class="v">${proj.faltam===0?'quitado':(proj.faltam===null?'—':proj.texto)}</div></div>
     </div>
     <div class="prog">
-      <div class="row"><span>progresso do pagamento</span><span><b>${pct.toFixed(1).replace('.',',')}%</b> quitado${proj.faltam?` · faltam ${proj.faltam} parcela${proj.faltam===1?'':'s'}`:''}</span></div>
+      <div class="row"><span>progresso do pagamento</span><span><b>${pct.toFixed(1).replace('.',',')}%</b> quitado${proj.faltam?` · faltam ~${proj.faltam} parcela${proj.faltam===1?'':'s'} (média de R$ ${fmt(proj.media)})`:''}</span></div>
       <div class="bar"><span style="width:${pct}%"></span></div>
     </div>
     <h2>parcelas</h2>
