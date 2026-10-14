@@ -30,9 +30,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy: #14161A;
-    --navy-deep: #0B0C0F;
-    --navy-soft: #1E2128;
+    --navy: #0F2A4A;
+    --navy-deep: #0B1F38;
+    --navy-soft: #1B3A63;
     --teal: #16A34A;
     --blue: #2563EB;
     --purple: #7C3AED;
@@ -43,7 +43,7 @@
     --red: #DC2626;
     --bg: #F5F6F8;
     --card: #FFFFFF;
-    --text: #14161A;
+    --text: #0F223D;
     --muted: #6B7280;
     --border: #E5E7EB;
     --radius: 14px;
@@ -849,7 +849,9 @@
   #delete-month-btn, .anexo-modal-remove{ color:var(--red) !important; border-color:var(--red) !important; }
   #delete-month-btn:hover, .anexo-modal-remove:hover{ background:var(--red) !important; color:#fff !important; }
   .anexo-form-save:disabled{ opacity:.4 !important; cursor:not-allowed !important; background:#fff !important; color:var(--teal) !important; }
-  #lock-btn{ width:100% !important; }
+  #lock-btn{ width:100% !important;
+    background:var(--navy) !important; color:#fff !important; border-color:var(--navy) !important; }
+  #lock-btn:hover{ background:var(--navy-soft) !important; border-color:var(--navy-soft) !important; color:#fff !important; }
   .modal-btn-primary, .modal-btn-secondary{ flex:1 !important; }
 
   /* --- Botões de ícone (×, duplicar, mover, anexos): mesmo tamanho em tudo --- */
@@ -896,7 +898,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.12</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.13</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -3565,22 +3567,22 @@ function attachMetasEconomiaEvents(){
 function relatorioEstiloHtml(){
   return `
   <style>
-    .rel-doc{ font-family:'Poppins', Arial, Helvetica, sans-serif; color:#14161A; max-width:760px; margin:0 auto; }
+    .rel-doc{ font-family:'Poppins', Arial, Helvetica, sans-serif; color:#0F223D; max-width:760px; margin:0 auto; }
     .rel-doc *{ box-sizing:border-box; }
     .rel-header{ display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:0.5cm; border-bottom:3px solid #16A34A; }
     .rel-mark{ width:44px; height:44px; border-radius:11px; flex-shrink:0; background:linear-gradient(135deg,#16A34A,#2563EB); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:15px; letter-spacing:0.4px; }
-    .rel-header h1{ font-size:19px; margin:0; color:#0B0C0F; }
+    .rel-header h1{ font-size:19px; margin:0; color:#0B1F38; }
     .rel-header .rel-sub{ font-size:12px; color:#6B7280; margin-top:2px; }
     .rel-stats{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
     .rel-stat{ flex:1; min-width:110px; background:#F5F6F8; border:1px solid #E5E7EB; border-radius:10px; padding:10px 12px; border-top:3px solid #16A34A; }
     .rel-stat.saldo-pos{ border-top-color:#16A34A; }
     .rel-stat.saldo-neg{ border-top-color:#DC2626; }
     .rel-stat .rel-stat-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; color:#6B7280; font-weight:700; }
-    .rel-stat .rel-stat-value{ font-size:15px; font-weight:800; margin-top:3px; color:#14161A; }
+    .rel-stat .rel-stat-value{ font-size:15px; font-weight:800; margin-top:3px; color:#0F223D; }
     .rel-stat .rel-stat-value.neg{ color:#DC2626; }
     .rel-stat .rel-stat-value.pos{ color:#15803D; }
     .rel-section{ margin-bottom:18px; break-inside:avoid; }
-    .rel-section-title{ display:flex; align-items:center; justify-content:space-between; background:#0B0C0F; color:#fff; padding:7px 12px; border-radius:8px 8px 0 0; font-size:12.5px; font-weight:700; text-transform:lowercase; }
+    .rel-section-title{ display:flex; align-items:center; justify-content:space-between; background:#0B1F38; color:#fff; padding:7px 12px; border-radius:8px 8px 0 0; font-size:12.5px; font-weight:700; text-transform:lowercase; }
     .rel-section-title .rel-section-total{ font-family:'Poppins',sans-serif; font-weight:800; }
     table.rel-table{ width:100%; border-collapse:collapse; font-size:11.5px; border:1px solid #E5E7EB; border-top:none; }
     table.rel-table thead th{ text-align:left; font-size:9.5px; text-transform:uppercase; letter-spacing:0.3px; color:#6B7280; padding:6px 10px; border-bottom:1px solid #E5E7EB; background:#F5F6F8; }
@@ -3688,7 +3690,7 @@ function relatorioPaginaHtml(titulo, conteudoHtml){
       print-color-adjust: exact !important;
       color-adjust: exact !important;
     }
-    .rel-section-title{ background:#0B0C0F !important; color:#fff !important; }
+    .rel-section-title{ background:#0B1F38 !important; color:#fff !important; }
     .rel-stat{ background:#F5F6F8 !important; }
     .rel-status.pago{ background:#EAFBEF !important; color:#2E8B57 !important; }
     .rel-status.pendente{ background:#FFF6E5 !important; color:#F97316 !important; }
