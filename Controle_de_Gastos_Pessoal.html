@@ -630,6 +630,20 @@
   .loan-apagar{ white-space:nowrap; }
   .loan-apagar-valor{ font-size:13px; font-weight:700; color:var(--purple); padding:4px 2px; font-family:'Poppins', sans-serif; }
   .loan-apagar-vazio{ color:var(--muted); padding-left:6px; }
+  /* Tabela de parcelas: larguras fixas por coluna para nenhum valor ser cortado.
+     Se a tela for estreita, a tabela rola na horizontal em vez de esconder dados. */
+  table.loan-table{ table-layout:fixed; min-width:680px; }
+  table.loan-table col.c-parc{ width:26%; }
+  table.loan-table col.c-saldo{ width:17%; }
+  table.loan-table col.c-apagar{ width:15%; }
+  table.loan-table col.c-pago{ width:15%; }
+  table.loan-table col.c-data{ width:21%; }
+  table.loan-table col.c-x{ width:6%; }
+  table.loan-table th{ white-space:nowrap; }
+  table.loan-table td{ white-space:nowrap; }
+  table.loan-table .loan-parcela{ min-width:0 !important; text-overflow:ellipsis; }
+  table.loan-table .loan-saldo, table.loan-table .loan-valorpago{ min-width:0; font-variant-numeric:tabular-nums; }
+  table.loan-table .loan-data{ width:100%; min-width:0; }
   .loan-card{ background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:16px; }
   .loan-card h3{ margin:0 0 4px 0; font-size:15.5px; }
   .loan-title-input{
@@ -880,7 +894,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.8</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.9</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2948,6 +2962,7 @@ function loanTableHtml(key, loan){
     ${projecaoQuitacaoHtml(loan)}
     <div style="overflow-x:auto;">
     <table class="loan-table">
+      <colgroup><col class="c-parc"><col class="c-saldo"><col class="c-apagar"><col class="c-pago"><col class="c-data"><col class="c-x"></colgroup>
       <thead><tr><th>Parcela</th><th class="nowrap">Saldo Restante</th><th class="nowrap" title="Saldo devedor dividido igualmente entre as parcelas que faltam">A Pagar</th><th>Valor Pago</th><th>Data</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
