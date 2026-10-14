@@ -792,11 +792,92 @@
      próprio botão de imprimir/salvar PDF — não usa mais este documento
      principal pra imprimir, então nenhuma regra especial de @media print
      é necessária aqui. */
+
+  /* =====================================================================
+     DESIGN SYSTEM ÚNICO — vale para TODAS as telas (meses, modelo, resumo
+     anual, obrigações, modais, anexos, histórico e tela de senha).
+     Fica no fim do <style> com !important para sobrepor variações antigas.
+     ===================================================================== */
+
+  /* --- Botões de ação: um só formato e um só estilo (contorno verde) --- */
+  .toggle-all-btn, #delete-month-btn, .loan-add-btn, .add-block-btn, .btn-add,
+  .history-restore-btn, .goal-archive-btn, .goal-unarchive-btn,
+  .modal-btn-primary, .modal-btn-secondary, .resumo-ia-btn,
+  .anexo-form-save, .anexo-form-cancel, .anexo-form-edit, .block-restore,
+  #history-btn, #logout-btn, #lock-btn, .anexo-modal-download, .anexo-modal-close, .anexo-modal-remove{
+    display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:6px !important;
+    height:34px !important; min-height:34px !important; padding:0 14px !important; margin:0;
+    font-size:12.5px !important; font-weight:700 !important; line-height:1 !important;
+    border-radius:8px !important; font-family:'Poppins', Arial, sans-serif !important;
+    white-space:nowrap !important; box-sizing:border-box !important; cursor:pointer !important;
+    background:#fff !important; color:var(--teal) !important; border:1px solid var(--teal) !important;
+    opacity:1 !important; transition:background .15s ease, color .15s ease, border-color .15s ease !important;
+  }
+  .toggle-all-btn:hover, .loan-add-btn:hover, .add-block-btn:hover, .btn-add:hover,
+  .history-restore-btn:hover, .goal-unarchive-btn:hover, .modal-btn-primary:hover,
+  .resumo-ia-btn:hover, .anexo-form-save:hover, .anexo-form-edit:hover, .block-restore:hover,
+  #history-btn:hover, #logout-btn:hover, #lock-btn:hover, .anexo-modal-download:hover{
+    background:var(--teal) !important; color:#fff !important;
+  }
+  /* variação "cancelar / secundário": mesmo formato, em cinza */
+  .modal-btn-secondary, .anexo-form-cancel, .goal-archive-btn, .anexo-modal-close{
+    color:var(--muted) !important; border-color:var(--border-strong, #CBD2DC) !important;
+  }
+  .modal-btn-secondary:hover, .anexo-form-cancel:hover, .goal-archive-btn:hover, .anexo-modal-close:hover{
+    background:#F0F2F5 !important; color:var(--text) !important;
+  }
+  /* variação "excluir": mesmo formato, em vermelho */
+  #delete-month-btn, .anexo-modal-remove{ color:var(--red) !important; border-color:var(--red) !important; }
+  #delete-month-btn:hover, .anexo-modal-remove:hover{ background:var(--red) !important; color:#fff !important; }
+  .anexo-form-save:disabled{ opacity:.4 !important; cursor:not-allowed !important; background:#fff !important; color:var(--teal) !important; }
+  #lock-btn{ width:100% !important; }
+  .modal-btn-primary, .modal-btn-secondary{ flex:1 !important; }
+
+  /* --- Botões de ícone (×, duplicar, mover, anexos): mesmo tamanho em tudo --- */
+  .block-remove, .loan-remove, .item-remove, .goal-remove, .block-duplicate, .move-btn,
+  .item-link, .item-nota-view, .item-anexo-view{
+    display:inline-flex !important; align-items:center !important; justify-content:center !important;
+    width:28px !important; height:28px !important; min-width:28px !important; padding:0 !important;
+    margin:0 0 0 4px !important; border:none !important; border-radius:6px !important;
+    background:transparent !important; color:var(--muted) !important; font-size:14px !important;
+    line-height:1 !important; opacity:.75 !important; cursor:pointer !important; flex-shrink:0 !important;
+    box-sizing:border-box !important; transition:background .15s ease, color .15s ease, opacity .15s ease !important;
+  }
+  .block-duplicate:hover, .move-btn:hover, .item-link:hover, .item-nota-view:hover,
+  .item-anexo-view:hover{
+    background:#F0F2F5 !important; color:var(--text) !important; opacity:1 !important;
+  }
+  .block-remove:hover, .loan-remove:hover, .item-remove:hover, .goal-remove:hover{
+    background:#FDECEC !important; color:var(--red) !important; opacity:1 !important;
+  }
+  .item-link.has-link{ color:var(--blue) !important; opacity:1 !important; }
+
+  /* --- Cards / caixas: mesmo arredondamento e respiro em todas as telas --- */
+  .summary-card, .section-card, .reserva-box, .loan-card, .insight-card, .saldo-banner, .annual-card{
+    border-radius:var(--radius) !important; padding:16px !important;
+  }
+  .loan-inicial-row, .receb-warning{ border-radius:10px !important; }
+
+  /* --- Campos de formulário (fora das linhas de itens): mesmo tamanho --- */
+  .loan-inicial-row input, .meta-input, .goal-field input[type=date], .goal-field .cell-currency,
+  .reserva-box input, .pessoa-receb-amount input, #lock-input{
+    height:32px !important; box-sizing:border-box !important; border:1px solid var(--border) !important;
+    border-radius:8px !important; padding:0 10px !important; font-size:13px !important;
+    font-family:'Poppins', Arial, sans-serif !important;
+  }
+  .goal-field .cell-currency{ display:flex !important; align-items:center !important; }
+  .goal-field .cell-currency input{ border:none !important; height:auto !important; padding:0 2px !important; }
+
+  /* --- Pílulas de valor: mesmo formato --- */
+  .pill, .dia-pill{
+    font-size:11.5px !important; padding:4px 10px !important; border-radius:999px !important;
+    font-weight:700 !important; line-height:1.2 !important; white-space:nowrap !important;
+  }
 </style>
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.5</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1310,10 +1391,14 @@ function computeLoanSaldos(loan){
 }
 function loanCurrentBalance(loan){
   computeLoanSaldos(loan);
-  const next = loan.parcelas.find(p=>!p.pago);
-  if(next) return next.saldo;
-  const last = loan.parcelas[loan.parcelas.length-1];
-  return last ? round2(last.saldo - (Number(last.valorPago)||0)) : round2(Number(loan.saldoInicial)||0);
+  // saldo devedor = saldo depois da ÚLTIMA parcela paga. Antes usava a primeira
+  // parcela não paga — se houvesse uma parcela vazia no meio (ex: a 03 em branco
+  // e a 04 paga), os pagamentos posteriores eram ignorados no saldo devedor.
+  let ultimaPaga = null;
+  loan.parcelas.forEach(p=>{ if(p.pago) ultimaPaga = p; });
+  if(ultimaPaga) return round2(ultimaPaga.saldo - (Number(ultimaPaga.valorPago)||0));
+  if(loan.parcelas.length) return round2(loan.parcelas[0].saldo);
+  return round2(Number(loan.saldoInicial)||0);
 }
 
 function cloneMonthFromModelo(){
@@ -1392,7 +1477,19 @@ function setSaveStatus(state){
   }
 }
 
-async function save(){
+// Salvamentos em fila: nunca há dois POSTs ao mesmo tempo. Antes, edições
+// rápidas disparavam vários POSTs em paralelo e, se um mais antigo chegasse
+// ao servidor depois de um mais novo, a versão antiga sobrescrevia a nova.
+let saveEmAndamento = null, salvarDeNovo = false, ultimoSaveFalhou = false;
+function save(){
+  if(saveEmAndamento){ salvarDeNovo = true; return saveEmAndamento; }
+  saveEmAndamento = (async ()=>{
+    do{ salvarDeNovo = false; await saveUmaVez(); } while(salvarDeNovo);
+    saveEmAndamento = null;
+  })();
+  return saveEmAndamento;
+}
+async function saveUmaVez(){
   pendingSaves++;
   setSaveStatus('saving');
   try{
@@ -1404,7 +1501,8 @@ async function save(){
     // por isso só usamos keepalive quando os dados cabem nesse limite; do
     // contrário, mandamos sem keepalive (senão TODO salvamento passaria a falhar
     // assim que os dados do app crescessem além disso).
-    const usaKeepalive = body.length < 60000;
+    // limite do keepalive é em BYTES — acentos ocupam 2 bytes, então mede o tamanho real
+    const usaKeepalive = new Blob([body]).size < 60000;
     const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-app-password': currentPassword },
@@ -1413,10 +1511,13 @@ async function save(){
     });
     if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
     setSaveStatus('saved');
+    ultimoSaveFalhou = false;
   }catch(e){
     console.error('Falha ao salvar dados no servidor', e);
     setSaveStatus('error');
-    alert('Não foi possível salvar as alterações no servidor agora. Verifique sua internet e tente novamente.');
+    // avisa uma vez só (antes aparecia um alert a cada campo editado sem internet)
+    if(!ultimoSaveFalhou) alert('Não foi possível salvar as alterações no servidor agora. Verifique sua internet e tente novamente.');
+    ultimoSaveFalhou = true;
   }finally{
     pendingSaves--;
   }
@@ -1474,6 +1575,10 @@ function parseValorBR(str){
     s = s.replace(/\./g, '').replace(',', '.');
   } else if(temVirgula){
     s = s.replace(',', '.');
+  } else if(temPonto && /^-?\d{1,3}(\.\d{3})+$/.test(s)){
+    // só pontos, no formato de milhar brasileiro ("1.500", "12.345.678") → é milhar,
+    // não decimal. Antes "1.500" virava 1,50. "1000.00" / "1.5" continuam decimais.
+    s = s.replace(/\./g, '');
   }
   return parseFloat(s);
 }
@@ -2807,7 +2912,7 @@ function loanTableHtml(key, loan){
   <div class="loan-card" data-loan="${key}">
     <div style="display:flex; align-items:center; gap:8px;">
       <input type="text" class="loan-title-input" value="${escapeHtml(loan.titulo)}" style="flex:1; min-width:0;">
-      <button class="toggle-all-btn loan-pdf-btn" data-loan-pdf="${key}" title="Gera um relatório desta obrigação pra salvar como PDF ou imprimir" style="padding:6px 12px; font-size:12px;">🖨️ exportar relatório</button>
+      <button class="toggle-all-btn loan-pdf-btn" data-loan-pdf="${key}" title="Gera um relatório desta obrigação pra salvar como PDF ou imprimir">🖨️ exportar relatório</button>
       <button class="block-remove" data-loan-remove="${key}" title="Excluir esta obrigação">×</button>
     </div>
     <div class="loan-sub">Controle de obrigações</div>
@@ -3266,7 +3371,7 @@ function renderMetasEconomiaHtml(){
   <div class="section-card" style="margin-bottom:0.5cm;">
     <div class="section-header">
       <h3>metas de economia</h3>
-      <button id="add-meta-economia-btn" class="add-block-btn" style="padding:6px 14px; font-size:12px;">+ nova meta</button>
+      <button id="add-meta-economia-btn" class="add-block-btn">+ nova meta</button>
     </div>
     ${ativasComIdx.length
       ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; align-items:start;">${ativasComIdx.map(x=>metaEconomiaCardHtml(x.g,x.idx)).join('')}</div>`
@@ -3623,7 +3728,7 @@ function renderResumoAnualView(){
     <div class="section-card annual-card">
       <div class="section-header">
         <h3>ano ${escapeHtml(ano)}</h3>
-        <button class="toggle-all-btn export-anual-btn" data-export-ano="${escapeHtml(ano)}" style="padding:6px 12px; font-size:12px;">🖨️ exportar relatório</button>
+        <button class="toggle-all-btn export-anual-btn" data-export-ano="${escapeHtml(ano)}">🖨️ exportar relatório</button>
         <a href="#" class="goal-link-open abrir-relatorio-anual" data-abrir-ano="${escapeHtml(ano)}">↗ abrir</a>
       </div>
       <div class="annual-chart-wrap">${chart}</div>
@@ -3721,7 +3826,7 @@ function attachEmprestimosEvents(){
         p.pago = val !== null;
         save(); renderContent();
       });
-      tr.querySelector('.loan-data').addEventListener('change', e=>{ p.data = e.target.value || null; save(); });
+      tr.querySelector('.loan-data').addEventListener('change', e=>{ p.data = e.target.value || null; save(); renderContent(); });
       tr.querySelector('.loan-remove').addEventListener('click', ()=>{
         if(!confirm(`Remover "${p.parcela}"?`)) return;
         loan.parcelas.splice(idx,1); save(); renderContent();
