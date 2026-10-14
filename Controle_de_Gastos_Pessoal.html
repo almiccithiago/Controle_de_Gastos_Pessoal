@@ -626,12 +626,7 @@
   /* Emprestimos */
   .emprestimos-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
   @media (max-width:900px){ .emprestimos-grid{ grid-template-columns:1fr; } }
-  .loan-pdf-btn{
-    border:1px solid var(--border); background:#fff; color:var(--navy); cursor:pointer;
-    font-family:'Poppins', sans-serif; font-size:11.5px; font-weight:700; padding:6px 11px;
-    border-radius:8px; flex-shrink:0; white-space:nowrap; transition:background .15s, color .15s;
-  }
-  .loan-pdf-btn:hover{ background:var(--navy); color:#fff; }
+  .loan-pdf-btn{ flex-shrink:0; white-space:nowrap; }
   .loan-card{ background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:16px; }
   .loan-card h3{ margin:0 0 4px 0; font-size:15.5px; }
   .loan-title-input{
@@ -801,7 +796,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2812,7 +2807,7 @@ function loanTableHtml(key, loan){
   <div class="loan-card" data-loan="${key}">
     <div style="display:flex; align-items:center; gap:8px;">
       <input type="text" class="loan-title-input" value="${escapeHtml(loan.titulo)}" style="flex:1; min-width:0;">
-      <button class="loan-pdf-btn" data-loan-pdf="${key}" title="Exportar esta obrigação em PDF">exportar PDF</button>
+      <button class="toggle-all-btn loan-pdf-btn" data-loan-pdf="${key}" title="Gera um relatório desta obrigação pra salvar como PDF ou imprimir" style="padding:6px 12px; font-size:12px;">🖨️ exportar relatório</button>
       <button class="block-remove" data-loan-remove="${key}" title="Excluir esta obrigação">×</button>
     </div>
     <div class="loan-sub">Controle de obrigações</div>
