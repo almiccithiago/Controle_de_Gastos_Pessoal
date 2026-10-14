@@ -627,6 +627,9 @@
   .emprestimos-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
   @media (max-width:900px){ .emprestimos-grid{ grid-template-columns:1fr; } }
   .loan-pdf-btn{ flex-shrink:0; white-space:nowrap; }
+  .loan-apagar{ white-space:nowrap; }
+  .loan-apagar-valor{ font-size:13px; font-weight:700; color:var(--purple); padding:4px 2px; font-family:'Poppins', sans-serif; }
+  .loan-apagar-vazio{ color:var(--muted); padding-left:6px; }
   .loan-card{ background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:16px; }
   .loan-card h3{ margin:0 0 4px 0; font-size:15.5px; }
   .loan-title-input{
@@ -877,7 +880,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.6</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.8</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2906,10 +2909,22 @@ function projecaoQuitacaoHtml(loan){
 function loanTableHtml(key, loan){
   computeLoanSaldos(loan);
   const totalPago = round2(loan.parcelas.reduce((s,p)=> s + (p.valorPago !== null && p.valorPago !== undefined ? Number(p.valorPago) : 0), 0));
+  // "A pagar": saldo devedor atual dividido igualmente entre as parcelas ainda
+  // não pagas (a última absorve a diferença de centavos, pra fechar a conta).
+  const saldoDevedor = loanCurrentBalance(loan);
+  const idxNaoPagas = loan.parcelas.map((p,i)=>p.pago?null:i).filter(i=>i!==null);
+  const aPagar = {};
+  if(idxNaoPagas.length && saldoDevedor > 0){
+    const parte = Math.floor(saldoDevedor / idxNaoPagas.length * 100) / 100;
+    idxNaoPagas.forEach((i,k)=>{
+      aPagar[i] = k === idxNaoPagas.length-1 ? round2(saldoDevedor - parte*(idxNaoPagas.length-1)) : parte;
+    });
+  }
   const rows = loan.parcelas.map((p, idx)=>`
     <tr data-idx="${idx}" class="${p.pago?'paid':''}">
       <td><input type="text" class="loan-parcela" value="${escapeHtml(p.parcela)}"></td>
       <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-saldo" value="${round2(p.saldo).toFixed(2)}" title="Editar ajusta manualmente o saldo desta parcela em diante"></span></td>
+      <td class="loan-apagar">${aPagar[idx] !== undefined ? `<span class="cell-currency"><span class="rs-prefix">R$</span><span class="loan-apagar-valor">${fmt(aPagar[idx])}</span></span>` : '<span class="loan-apagar-vazio">—</span>'}</td>
       <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : ''}" placeholder="—"></span></td>
       <td><input type="date" class="loan-data" value="${p.data ?? ''}"></td>
       <td><button class="loan-remove" title="Remover parcela">×</button></td>
@@ -2933,7 +2948,7 @@ function loanTableHtml(key, loan){
     ${projecaoQuitacaoHtml(loan)}
     <div style="overflow-x:auto;">
     <table class="loan-table">
-      <thead><tr><th>Parcela</th><th class="nowrap">Saldo Restante</th><th>Valor Pago</th><th>Data</th><th></th></tr></thead>
+      <thead><tr><th>Parcela</th><th class="nowrap">Saldo Restante</th><th class="nowrap" title="Saldo devedor dividido igualmente entre as parcelas que faltam">A Pagar</th><th>Valor Pago</th><th>Data</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
     </div>
@@ -3054,6 +3069,45 @@ function exportarObrigacaoPdf(key){
     return;
   }
   win.document.open(); win.document.write(html); win.document.close();
+}
+
+// Ajusta as parcelas FUTURAS (linhas vazias do fim da tabela) à quantidade
+// prevista pela projeção. Só mexe em linhas totalmente vazias no fim —
+// sem valor pago, sem data e sem ajuste manual de saldo. Nada lançado é apagado.
+function sincronizarParcelasFuturas(loan){
+  const proj = projecaoQuitacao(loan);
+  if(proj.faltam === null) return;
+  const alvo = Math.min(proj.faltam, 120);
+  const vazia = p => (p.valorPago === null || p.valorPago === undefined) && !p.data &&
+                     (p.saldoOverride === null || p.saldoOverride === undefined);
+  let fim = loan.parcelas.length;
+  while(fim > 0 && vazia(loan.parcelas[fim-1])) fim--;
+  const base = loan.parcelas.slice(0, fim);
+  const ref = base[base.length-1];
+  const reMes = /(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\/(\d{2})\s*$/i;
+  let mesIdx = null, ano = null, molde = ref ? String(ref.parcela) : 'Parcela 01';
+  const m = ref && String(ref.parcela).match(reMes);
+  if(m){
+    mesIdx = MESES_ABREV.findIndex(x=>x.toLowerCase()===m[1].toLowerCase());
+    ano = 2000 + parseInt(m[2],10);
+  } else if(ref && ref.data){
+    const d = new Date(ref.data+'T00:00:00'); mesIdx = d.getMonth(); ano = d.getFullYear();
+  }
+  const novas = [];
+  for(let i=0; i<alvo; i++){
+    const num = String(base.length + i + 1).padStart(2,'0');
+    let nome;
+    if(/\d+/.test(molde)) nome = molde.replace(/\d+/, num); else nome = `Parcela ${num}`;
+    if(mesIdx !== null){
+      let mi = mesIdx + i + 1, an = ano + Math.floor(mi/12); mi = mi % 12;
+      const mesTxt = MESES_ABREV[mi], anoTxt = String(an).slice(-2);
+      const mm = nome.match(reMes);
+      const mesFmt = mm && mm[1] === mm[1].toLowerCase() ? mesTxt.toLowerCase() : mesTxt;
+      nome = mm ? nome.replace(reMes, `${mesFmt}/${anoTxt}`) : `${nome} · ${mesFmt}/${anoTxt}`;
+    }
+    novas.push({ parcela:nome, valorPago:null, data:null, pago:false, saldoOverride:null });
+  }
+  loan.parcelas = base.concat(novas);
 }
 
 function renderEmprestimosView(){
@@ -3794,7 +3848,7 @@ function attachEmprestimosEvents(){
         e.target.value = round2(loan.saldoInicial).toFixed(2);
         return;
       }
-      loan.saldoInicial = round2(novoValor); save(); renderContent();
+      loan.saldoInicial = round2(novoValor); sincronizarParcelasFuturas(loan); save(); renderContent();
     });
 
     card.querySelectorAll('tbody tr').forEach(tr=>{
@@ -3818,6 +3872,7 @@ function attachEmprestimosEvents(){
         if(raw === ''){
           p.valorPago = null;
           p.pago = false;
+          sincronizarParcelasFuturas(loan);
           save(); renderContent();
           return;
         }
@@ -3831,6 +3886,7 @@ function attachEmprestimosEvents(){
         p.valorPago = val;
         // marca automaticamente como pago quando um valor é informado, e desmarca quando é apagado
         p.pago = val !== null;
+        sincronizarParcelasFuturas(loan);
         save(); renderContent();
       });
       tr.querySelector('.loan-data').addEventListener('change', e=>{ p.data = e.target.value || null; save(); renderContent(); });
