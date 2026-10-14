@@ -626,6 +626,12 @@
   /* Emprestimos */
   .emprestimos-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
   @media (max-width:900px){ .emprestimos-grid{ grid-template-columns:1fr; } }
+  .loan-pdf-btn{
+    border:1px solid var(--border); background:#fff; color:var(--navy); cursor:pointer;
+    font-family:'Poppins', sans-serif; font-size:11.5px; font-weight:700; padding:6px 11px;
+    border-radius:8px; flex-shrink:0; white-space:nowrap; transition:background .15s, color .15s;
+  }
+  .loan-pdf-btn:hover{ background:var(--navy); color:#fff; }
   .loan-card{ background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:16px; }
   .loan-card h3{ margin:0 0 4px 0; font-size:15.5px; }
   .loan-title-input{
@@ -795,7 +801,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-09-04.11</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2806,6 +2812,7 @@ function loanTableHtml(key, loan){
   <div class="loan-card" data-loan="${key}">
     <div style="display:flex; align-items:center; gap:8px;">
       <input type="text" class="loan-title-input" value="${escapeHtml(loan.titulo)}" style="flex:1; min-width:0;">
+      <button class="loan-pdf-btn" data-loan-pdf="${key}" title="Exportar esta obrigação em PDF">exportar PDF</button>
       <button class="block-remove" data-loan-remove="${key}" title="Excluir esta obrigação">×</button>
     </div>
     <div class="loan-sub">Controle de obrigações</div>
@@ -2831,6 +2838,115 @@ function loanTableHtml(key, loan){
       </div>
     </div>
   </div>`;
+}
+
+// Exporta uma obrigação em PDF (abre em nova aba já com a janela de impressão
+// → "Salvar como PDF"). Layout: cabeçalho azul-marinho com detalhe verde.
+function exportarObrigacaoPdf(key){
+  const loan = DATA.emprestimos[key];
+  if(!loan) return;
+  computeLoanSaldos(loan);
+  const totalPago = round2(loan.parcelas.reduce((s,p)=> s + (p.valorPago !== null && p.valorPago !== undefined ? Number(p.valorPago) : 0), 0));
+  const saldoAtual = loanCurrentBalance(loan);
+  const inicial = round2(loan.saldoInicial) || 0;
+  const pct = inicial > 0 ? Math.min(100, Math.max(0, totalPago / inicial * 100)) : 0;
+  const proj = projecaoQuitacao(loan);
+  const pagas = loan.parcelas.filter(p=>p.pago).length;
+  const fmtData = d => d ? d.split('-').reverse().join('/') : '—';
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  // Só entram no PDF as parcelas já lançadas (com valor pago) — sem linhas em branco.
+  const linhas = loan.parcelas.filter(p=> p.valorPago !== null && p.valorPago !== undefined).map(p=>`
+    <tr class="${p.pago?'pago':''}">
+      <td>${escapeHtml(p.parcela)}</td>
+      <td class="num">R$ ${fmt(round2(p.saldo))}</td>
+      <td class="num">${p.valorPago !== null && p.valorPago !== undefined ? 'R$ ' + fmt(round2(p.valorPago)) : '—'}</td>
+      <td class="ctr">${fmtData(p.data)}</td>
+      <td class="ctr"><span class="st ${p.pago?'ok':'pend'}">${p.pago?'pago':'pendente'}</span></td>
+    </tr>`).join('');
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<title>${escapeHtml(loan.titulo)} · controle de obrigações</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page{ size:A4; margin:0; }
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  body{ margin:0; font-family:'Poppins',Arial,sans-serif; color:#1E293B; background:#E9EDF3; }
+  .page{ width:210mm; min-height:297mm; margin:0 auto; background:#fff; display:flex; flex-direction:column; }
+  .hdr{ background:#0F2A4A; color:#fff; padding:30px 40px 26px; position:relative; }
+  .hdr::after{ content:""; position:absolute; left:0; right:0; bottom:0; height:5px; background:#22C55E; }
+  .hdr .kicker{ font-size:10.5px; letter-spacing:2.5px; text-transform:uppercase; color:#86EFAC; font-weight:600; }
+  .hdr h1{ margin:6px 0 4px; font-size:26px; font-weight:700; }
+  .hdr .meta{ font-size:11.5px; color:#CBD5E1; }
+  .body{ padding:26px 40px 20px; flex:1; }
+  .cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
+  .card{ border:1px solid #E2E8F0; border-radius:10px; padding:11px 13px; border-top:3px solid #0F2A4A; }
+  .card.g{ border-top-color:#22C55E; }
+  .card .l{ font-size:9.5px; text-transform:uppercase; letter-spacing:1px; color:#64748B; font-weight:600; }
+  .card .v{ font-size:16px; font-weight:700; margin-top:3px; color:#0F2A4A; }
+  .card.g .v{ color:#15803D; }
+  .prog{ margin-bottom:20px; }
+  .prog .row{ display:flex; justify-content:space-between; font-size:11px; color:#475569; margin-bottom:6px; }
+  .prog .row b{ color:#0F2A4A; }
+  .bar{ height:9px; background:#E2E8F0; border-radius:99px; overflow:hidden; }
+  .bar span{ display:block; height:100%; background:linear-gradient(90deg,#22C55E,#16A34A); border-radius:99px; }
+  h2{ font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:#0F2A4A; margin:0 0 8px; border-left:4px solid #22C55E; padding-left:8px; }
+  table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  thead th{ background:#0F2A4A; color:#fff; font-weight:600; text-align:left; padding:8px 10px; font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; }
+  thead th:first-child{ border-radius:8px 0 0 0; } thead th:last-child{ border-radius:0 8px 0 0; }
+  td{ padding:7px 10px; border-bottom:1px solid #EEF2F6; }
+  tbody tr:nth-child(even) td{ background:#F8FAFC; }
+  tr.pago td{ color:#1E293B; }
+  tr:not(.pago) td{ color:#64748B; }
+  .num{ text-align:right; font-variant-numeric:tabular-nums; } .ctr{ text-align:center; }
+  th.num{ text-align:right; } th.ctr{ text-align:center; }
+  .st{ display:inline-block; padding:2px 9px; border-radius:99px; font-size:10px; font-weight:600; }
+  .st.ok{ background:#DCFCE7; color:#15803D; } .st.pend{ background:#F1F5F9; color:#64748B; }
+  .tot{ display:flex; justify-content:flex-end; gap:24px; margin-top:14px; font-size:12px; color:#475569; }
+  .tot .big{ background:#0F2A4A; color:#fff; padding:9px 16px; border-radius:9px; font-weight:700; font-size:13.5px; }
+  .tot .big span{ color:#86EFAC; font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:1px; margin-right:8px; }
+  .tot .pg{ align-self:center; } .tot .pg b{ color:#15803D; }
+  .ftr{ padding:12px 40px; border-top:1px solid #E2E8F0; font-size:9.5px; color:#94A3B8; display:flex; justify-content:space-between; }
+  .print-btn{ position:fixed; top:16px; right:16px; background:#22C55E; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-family:inherit; font-weight:700; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,.2); }
+  @media print{ body{ background:#fff; } .print-btn{ display:none; } .page{ margin:0; } }
+</style></head><body>
+<button class="print-btn" onclick="window.print()">salvar em PDF</button>
+<div class="page">
+  <div class="hdr">
+    <div class="kicker">controle de obrigações</div>
+    <h1>${escapeHtml(loan.titulo)}</h1>
+    <div class="meta">extrato emitido em ${hoje} · ${loan.parcelas.length} parcela${loan.parcelas.length===1?'':'s'} · ${pagas} paga${pagas===1?'':'s'}</div>
+  </div>
+  <div class="body">
+    <div class="cards">
+      <div class="card"><div class="l">saldo inicial</div><div class="v">R$ ${fmt(inicial)}</div></div>
+      <div class="card g"><div class="l">total pago</div><div class="v">R$ ${fmt(totalPago)}</div></div>
+      <div class="card"><div class="l">saldo devedor</div><div class="v">R$ ${fmt(saldoAtual)}</div></div>
+      <div class="card g"><div class="l">${proj.faltam===0?'situação':'quitação prevista'}</div><div class="v">${proj.faltam===0?'quitado':proj.texto}</div></div>
+    </div>
+    <div class="prog">
+      <div class="row"><span>progresso do pagamento</span><span><b>${pct.toFixed(1).replace('.',',')}%</b> quitado${proj.faltam?` · faltam ${proj.faltam} parcela${proj.faltam===1?'':'s'}`:''}</span></div>
+      <div class="bar"><span style="width:${pct}%"></span></div>
+    </div>
+    <h2>parcelas</h2>
+    <table>
+      <thead><tr><th>parcela</th><th class="num">saldo restante</th><th class="num">valor pago</th><th class="ctr">data</th><th class="ctr">status</th></tr></thead>
+      <tbody>${linhas || '<tr><td colspan="5" class="ctr">nenhuma parcela paga ainda</td></tr>'}</tbody>
+    </table>
+    <div class="tot">
+      <div class="pg">total pago: <b>R$ ${fmt(totalPago)}</b></div>
+      <div class="big"><span>saldo devedor atual</span>R$ ${fmt(saldoAtual)}</div>
+    </div>
+  </div>
+  <div class="ftr"><span>${escapeHtml(loan.titulo)} · controle de obrigações</span><span>gerado em ${hoje}</span></div>
+</div>
+<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),500));<\/script>
+</body></html>`;
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('Não consegui abrir uma nova aba — seu navegador deve estar bloqueando pop-ups pra este site. Permita pop-ups aqui e tente de novo.');
+    return;
+  }
+  win.document.open(); win.document.write(html); win.document.close();
 }
 
 function renderEmprestimosView(){
@@ -3561,6 +3677,8 @@ function attachEmprestimosEvents(){
       delete DATA.emprestimos[key];
       save(); renderContent();
     });
+
+    card.querySelector('.loan-pdf-btn[data-loan-pdf]').addEventListener('click', ()=> exportarObrigacaoPdf(key));
 
     card.querySelector('.loan-saldo-inicial').addEventListener('change', e=>{
       const novoValor = parseValorBR(e.target.value);
