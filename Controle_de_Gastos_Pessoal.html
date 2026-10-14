@@ -630,6 +630,7 @@
   @media (max-width:900px){ .emprestimos-grid{ grid-template-columns:1fr; } }
   .loan-pdf-btn{ flex-shrink:0; white-space:nowrap; }
   .loan-apagar{ white-space:nowrap; }
+  table.loan-table .loan-saldo-projetado{ color:var(--muted) !important; font-style:italic; }
   .loan-apagar-valor{ font-size:13px; font-weight:700; color:var(--purple); padding:4px 2px; font-family:'Poppins', sans-serif; }
   .loan-apagar-vazio{ color:var(--muted); padding-left:6px; }
   /* Tabela de parcelas: larguras fixas por coluna para nenhum valor ser cortado.
@@ -898,7 +899,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.13</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.14</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2927,18 +2928,28 @@ function loanTableHtml(key, loan){
   // "A pagar": saldo devedor atual dividido igualmente entre as parcelas ainda
   // não pagas (a última absorve a diferença de centavos, pra fechar a conta).
   const saldoDevedor = loanCurrentBalance(loan);
-  const idxNaoPagas = loan.parcelas.map((p,i)=>p.pago?null:i).filter(i=>i!==null);
-  const aPagar = {};
+  // Só as parcelas FUTURAS (depois da última paga) recebem valor a pagar, e o
+  // saldo restante delas é projetado debitando esses valores até zerar.
+  let ultimaPagaIdx = -1;
+  loan.parcelas.forEach((p,i)=>{ if(p.pago) ultimaPagaIdx = i; });
+  const idxNaoPagas = loan.parcelas.map((p,i)=>(!p.pago && i>ultimaPagaIdx)?i:null).filter(i=>i!==null);
+  const aPagar = {}, saldoProjetado = {};
   if(idxNaoPagas.length && saldoDevedor > 0){
     const parte = Math.floor(saldoDevedor / idxNaoPagas.length * 100) / 100;
+    let restante = saldoDevedor;
     idxNaoPagas.forEach((i,k)=>{
       aPagar[i] = k === idxNaoPagas.length-1 ? round2(saldoDevedor - parte*(idxNaoPagas.length-1)) : parte;
+      const p = loan.parcelas[i];
+      // respeita um ajuste manual de saldo, se houver
+      if(p.saldoOverride !== null && p.saldoOverride !== undefined) restante = round2(Number(p.saldoOverride));
+      saldoProjetado[i] = round2(restante);
+      restante = round2(restante - aPagar[i]);
     });
   }
   const rows = loan.parcelas.map((p, idx)=>`
     <tr data-idx="${idx}" class="${p.pago?'paid':''}">
       <td><input type="text" class="loan-parcela" value="${escapeHtml(p.parcela)}"></td>
-      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-saldo" value="${round2(p.saldo).toFixed(2)}" title="Editar ajusta manualmente o saldo desta parcela em diante"></span></td>
+      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-saldo${saldoProjetado[idx] !== undefined ? ' loan-saldo-projetado' : ''}" value="${round2(saldoProjetado[idx] !== undefined ? saldoProjetado[idx] : p.saldo).toFixed(2)}" title="${saldoProjetado[idx] !== undefined ? 'Saldo estimado, já descontando as parcelas a pagar anteriores. Editar ajusta manualmente o saldo desta parcela em diante' : 'Editar ajusta manualmente o saldo desta parcela em diante'}"></span></td>
       <td class="loan-apagar">${aPagar[idx] !== undefined ? `<span class="cell-currency"><span class="rs-prefix">R$</span><span class="loan-apagar-valor">${fmt(aPagar[idx])}</span></span>` : '<span class="loan-apagar-vazio">—</span>'}</td>
       <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : ''}" placeholder="—"></span></td>
       <td><input type="date" class="loan-data" value="${p.data ?? ''}"></td>
