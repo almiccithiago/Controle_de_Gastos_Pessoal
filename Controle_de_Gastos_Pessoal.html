@@ -624,7 +624,9 @@
   .saldo-banner.neg{ background: rgba(229,72,77,0.1); color: #b23337; border:1px solid rgba(229,72,77,0.3); }
 
   /* Emprestimos */
-  .emprestimos-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+  /* uma obrigação por linha, ocupando a largura toda — com 2 por linha cada
+     card ficava com ~520px e a tabela de 6 colunas não cabia (cortava a data) */
+  .emprestimos-grid{ display:grid; grid-template-columns: 1fr; gap:20px; }
   @media (max-width:900px){ .emprestimos-grid{ grid-template-columns:1fr; } }
   .loan-pdf-btn{ flex-shrink:0; white-space:nowrap; }
   .loan-apagar{ white-space:nowrap; }
@@ -632,13 +634,13 @@
   .loan-apagar-vazio{ color:var(--muted); padding-left:6px; }
   /* Tabela de parcelas: larguras fixas por coluna para nenhum valor ser cortado.
      Se a tela for estreita, a tabela rola na horizontal em vez de esconder dados. */
-  table.loan-table{ table-layout:fixed; min-width:680px; }
-  table.loan-table col.c-parc{ width:26%; }
-  table.loan-table col.c-saldo{ width:17%; }
-  table.loan-table col.c-apagar{ width:15%; }
-  table.loan-table col.c-pago{ width:15%; }
-  table.loan-table col.c-data{ width:21%; }
-  table.loan-table col.c-x{ width:6%; }
+  table.loan-table{ table-layout:fixed; min-width:600px; }
+  table.loan-table col.c-parc{ width:auto; }
+  table.loan-table col.c-saldo{ width:130px; }
+  table.loan-table col.c-apagar{ width:120px; }
+  table.loan-table col.c-pago{ width:120px; }
+  table.loan-table col.c-data{ width:150px; }
+  table.loan-table col.c-x{ width:40px; }
   table.loan-table th{ white-space:nowrap; }
   table.loan-table td{ white-space:nowrap; }
   table.loan-table .loan-parcela{ min-width:0 !important; text-overflow:ellipsis; }
@@ -894,7 +896,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.9</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.10</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
