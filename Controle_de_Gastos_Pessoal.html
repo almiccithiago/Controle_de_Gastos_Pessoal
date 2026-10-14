@@ -896,7 +896,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.11</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(0,0,0,0.25); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.12</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -3126,6 +3126,16 @@ function sincronizarParcelasFuturas(loan){
 
 function renderEmprestimosView(){
   const chaves = Object.keys(DATA.emprestimos);
+  // mantém as linhas futuras sempre alinhadas à projeção atual (inclusive em
+  // obrigações antigas e quando a regra de cálculo muda), sem esperar uma edição.
+  let mudou = false;
+  chaves.forEach(k=>{
+    const loan = DATA.emprestimos[k];
+    const antes = JSON.stringify(loan.parcelas);
+    sincronizarParcelasFuturas(loan);
+    if(JSON.stringify(loan.parcelas) !== antes) mudou = true;
+  });
+  if(mudou) setTimeout(()=>save(), 0);
   return `
   <div class="emprestimos-grid">
     ${chaves.map(k => loanTableHtml(k, DATA.emprestimos[k])).join('')}
