@@ -839,21 +839,17 @@
   #history-btn:hover, #logout-btn:hover, #lock-btn:hover, .anexo-modal-download:hover{
     background:var(--teal) !important; color:#fff !important;
   }
-  /* variação "cancelar / secundário": mesmo formato, em cinza */
-  .modal-btn-secondary, .anexo-form-cancel, .goal-archive-btn, .anexo-modal-close{
-    color:var(--muted) !important; border-color:var(--border-strong, #CBD2DC) !important;
-  }
+  /* secundários (cancelar, voltar, fechar, arquivar): mesmo padrão dos botões da home */
   .modal-btn-secondary:hover, .anexo-form-cancel:hover, .goal-archive-btn:hover, .anexo-modal-close:hover{
-    background:#F0F2F5 !important; color:var(--text) !important;
+    background:var(--teal) !important; color:#fff !important;
   }
   /* variação "excluir": mesmo formato, em vermelho */
   #delete-month-btn, .anexo-modal-remove{ color:var(--red) !important; border-color:var(--red) !important; }
   #delete-month-btn:hover, .anexo-modal-remove:hover{ background:var(--red) !important; color:#fff !important; }
   .anexo-form-save:disabled{ opacity:.4 !important; cursor:not-allowed !important; background:#fff !important; color:var(--teal) !important; }
-  #lock-btn{ width:100% !important;
-    background:var(--navy) !important; color:#fff !important; border-color:var(--navy) !important; }
-  #lock-btn:hover{ background:var(--navy-soft) !important; border-color:var(--navy-soft) !important; color:#fff !important; }
+  #lock-btn{ width:100% !important; }
   .modal-btn-primary, .modal-btn-secondary{ flex:1 !important; }
+  #replicate-modal .modal-card{ width:360px; }
 
   /* --- Botões de ícone (×, duplicar, mover, anexos): mesmo tamanho em tudo --- */
   .block-remove, .loan-remove, .item-remove, .goal-remove, .block-duplicate, .move-btn,
@@ -899,7 +895,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-14.15</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-16.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -954,7 +950,7 @@
     <div class="modal-actions" style="flex-direction:column; gap:8px;">
       <button id="replicate-btn-replicate" class="modal-btn-primary">Adicionar aqui e nos meses seguintes</button>
       <button id="replicate-btn-only" class="modal-btn-secondary">Adicionar só neste mês</button>
-      <button id="replicate-btn-cancel" class="modal-btn-secondary" style="background:transparent; color:var(--muted);">Cancelar (não adicionar)</button>
+      <button id="replicate-btn-cancel" class="modal-btn-secondary">Cancelar (não adicionar)</button>
     </div>
   </div>
 </div>
@@ -2009,7 +2005,7 @@ function abrirBalaoNotaItem(triggerEl, item, onChange){
     <div class="anexo-form-title"><span class="anexo-menu-icon">${notaIconSvg()}</span> Nota de "${escapeHtml(item.desc)}"</div>
     <div class="anexo-balao-texto">${escapeHtml(item.nota || '')}</div>
     <div class="anexo-form-actions">
-      <button class="anexo-form-edit" style="background:transparent;color:var(--blue);font-weight:600;padding:8px 10px;">Editar</button>
+      <button class="anexo-form-edit">Editar</button>
       <button class="anexo-form-cancel">Fechar</button>
     </div>
   `;
@@ -3055,7 +3051,8 @@ function exportarObrigacaoPdf(key){
   .tot .big span{ color:#86EFAC; font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:1px; margin-right:8px; }
   .tot .pg{ align-self:center; } .tot .pg b{ color:#15803D; }
   .ftr{ padding:12px 40px; border-top:1px solid #E2E8F0; font-size:9.5px; color:#94A3B8; display:flex; justify-content:space-between; }
-  .print-btn{ position:fixed; top:16px; right:16px; background:#22C55E; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-family:inherit; font-weight:700; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,.2); }
+  .print-btn{ position:fixed; top:16px; right:16px; display:inline-flex; align-items:center; justify-content:center; height:34px; padding:0 14px; background:#fff; color:#16A34A; border:1px solid #16A34A; border-radius:8px; font-family:'Poppins', Arial, sans-serif; font-weight:700; font-size:12.5px; line-height:1; cursor:pointer; transition:background .15s ease, color .15s ease; }
+  .print-btn:hover{ background:#16A34A; color:#fff; }
   @media print{ body{ background:#fff; } .print-btn{ display:none; } .page{ margin:0; } }
 </style></head><body>
 <button class="print-btn" onclick="window.print()">salvar em PDF</button>
@@ -3687,8 +3684,8 @@ function relatorioPaginaHtml(titulo, conteudoHtml){
 <title>${escapeHtml(titulo)}</title>
 <style>
   body{ margin:0; padding:28px 20px 40px; background:#f4f1ea; }
-  .rel-print-btn{ position:fixed; top:16px; right:16px; background:#16A34A; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-family:'Poppins',Arial,sans-serif; font-weight:700; cursor:pointer; font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,0.18); z-index:10; }
-  .rel-print-btn:hover{ background:#2f5a0d; }
+  .rel-print-btn{ position:fixed; top:16px; right:16px; display:inline-flex; align-items:center; justify-content:center; height:34px; padding:0 14px; background:#fff; color:#16A34A; border:1px solid #16A34A; border-radius:8px; font-family:'Poppins',Arial,sans-serif; font-weight:700; font-size:12.5px; line-height:1; cursor:pointer; z-index:10; transition:background .15s ease, color .15s ease; }
+  .rel-print-btn:hover{ background:#16A34A; color:#fff; }
   @media print{
     body{ background:#fff; padding:0; }
     .rel-print-btn{ display:none; }
