@@ -413,6 +413,9 @@
   .item-row.paid .item-desc,
   .item-row.paid .item-valor,
   .item-row.paid .rs-prefix{ color:#9CA3AF; opacity:0.6; }
+  .item-row.paid .item-desc,
+  .item-row.paid .item-valor,
+  .item-row.paid .rs-prefix{ text-decoration:line-through; }
   .item-row input[type=checkbox]{
     width:20px; height:20px; accent-color: var(--green); cursor:pointer; flex-shrink:0;
   }
@@ -2881,9 +2884,11 @@ function attachMonthEvents(monthKey){
         ...(m.detalhamentos||[]).reduce((acc,d)=>acc.concat(d.items), [])
       ];
       if(todosItens.length === 0) return;
-      const todosMarcados = todosItens.every(it=>it.pago);
+      // a transferência do Pedro entra no marcar/desmarcar tudo junto com os itens
+      const todosMarcados = todosItens.every(it=>it.pago) && m.transferenciaPedroFeita === true;
       const novoValor = !todosMarcados;
       todosItens.forEach(it=>{ it.pago = novoValor; });
+      m.transferenciaPedroFeita = novoValor;
       save(); renderContent();
     });
   }
