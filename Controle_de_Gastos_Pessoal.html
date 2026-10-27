@@ -2956,7 +2956,7 @@ function loanTableHtml(key, loan){
       <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-saldo${saldoProjetado[idx] !== undefined ? ' loan-saldo-projetado' : ''}" value="${round2(saldoProjetado[idx] !== undefined ? saldoProjetado[idx] : p.saldo).toFixed(2)}" title="${saldoProjetado[idx] !== undefined ? 'Saldo estimado, já descontando as parcelas a pagar anteriores. Editar ajusta manualmente o saldo desta parcela em diante' : 'Editar ajusta manualmente o saldo desta parcela em diante'}"></span></td>
       <td class="loan-apagar">${aPagar[idx] !== undefined ? `<span class="cell-currency"><span class="rs-prefix">R$</span><span class="loan-apagar-valor">${fmt(aPagar[idx])}</span></span>` : '<span class="loan-apagar-vazio">—</span>'}</td>
       <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : ''}" placeholder="—"></span></td>
-      <td><input type="date" class="loan-data" value="${p.data ?? ''}"></td>
+      <td><input type="date" class="loan-data" max="9999-12-31" value="${p.data ?? ''}"></td>
       <td><button class="loan-remove" title="Remover parcela">×</button></td>
     </tr>`).join('');
 
@@ -3399,7 +3399,7 @@ function metaEconomiaCardHtml(goal, idx){
         <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-atual" value="${atual.toFixed(2)}" style="width:110px;"></div>
       </label>
       <label class="goal-field">data alvo (opcional)
-        <div style="margin-top:4px;"><input type="date" class="goal-data" value="${goal.dataAlvo || ''}"></div>
+        <div style="margin-top:4px;"><input type="date" class="goal-data" max="9999-12-31" value="${goal.dataAlvo || ''}"></div>
       </label>
     </div>
     <label class="goal-field" style="display:block; margin-bottom:8px;">link do produto (opcional)
@@ -3931,7 +3931,11 @@ function attachEmprestimosEvents(){
         sincronizarParcelasFuturas(loan);
         save(); renderContent();
       });
-      tr.querySelector('.loan-data').addEventListener('change', e=>{ p.data = e.target.value || null; save(); renderContent(); });
+      tr.querySelector('.loan-data').addEventListener('blur', e=>{
+        const novaData = e.target.value || null;
+        if(novaData === (p.data ?? null)) return;
+        p.data = novaData; save(); renderContent();
+      });
       tr.querySelector('.loan-remove').addEventListener('click', ()=>{
         if(!confirm(`Remover "${p.parcela}"?`)) return;
         loan.parcelas.splice(idx,1); save(); renderContent();
