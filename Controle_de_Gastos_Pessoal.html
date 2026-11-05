@@ -992,12 +992,20 @@
   .vg-cartotal-v{ font-size:22px; font-weight:800; }
   .vg-check{ display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; }
   .vg-seccard{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  /* correção: botões não podem ser espremidos pelos campos ao lado */
+  .vg-btn, .vg-chip, .vg-sec, .vg-link, .vg-x, .vg-dot{ flex:0 0 auto; min-width:auto; white-space:nowrap; }
+  .vg-addline input[type=text], .vg-linkrow input[type=text]{ flex:1 1 auto; width:auto; min-width:0; }
+  .vg-addline{ align-items:stretch; flex-wrap:wrap; }
+  .vg-addline input[type=text]{ min-width:120px; }
+  .vg-ck{ padding:4px 6px; border-radius:8px; transition:background .15s ease; }
+  .vg-ck.done{ background:#EEF0F3; }
+  #vg-root .vg-ck.done input[type=text]{ border-color:transparent; background:transparent; color:#9CA3AF; text-decoration:line-through; opacity:0.6; }
   .vg-empty{ padding:28px 0; text-align:center; color:var(--muted); font-size:14px; }
 </style>
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-05.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-05.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4233,7 +4241,7 @@ function vgCapa(t){
   const c = vgContagem(t);
   const feitos = t.checklist.filter(x=>x.ok).length, tot = t.checklist.length;
   const pct = tot ? Math.round(feitos / tot * 100) : 0;
-  const lista = t.checklist.map((x, i)=>`<div class="vg-ck"><input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}"><button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const lista = t.checklist.map((x, i)=>`<div class="vg-ck ${x.ok ? 'done' : ''}"><input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}"><button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
   const frases = t.frases.map((x, i)=>`<div class="vg-fr"><input type="text" data-fr="${i}" data-f="es" placeholder="Na língua local" value="${escapeHtml(x.es)}"><input type="text" data-fr="${i}" data-f="pt" placeholder="Em português" value="${escapeHtml(x.pt)}"><button type="button" class="vg-x" data-act="fr-rm" data-i="${i}" aria-label="Remover frase">×</button></div>`).join('');
   const diario = t.diario.map((e, i)=>({e, i})).reverse().map(({e, i})=>`<div class="vg-diary"><div class="vg-diary-top"><input type="date" data-di="${i}" data-f="d" value="${escapeHtml(e.d || '')}"><button type="button" class="vg-x" data-act="di-rm" data-i="${i}" aria-label="Remover entrada">×</button></div><textarea rows="3" data-di="${i}" data-f="txt" placeholder="Como foi o dia?">${escapeHtml(e.txt || '')}</textarea><div class="vg-nota"><span>Nota do dia</span><input type="range" min="0" max="10" step="1" data-di="${i}" data-f="nota" value="${vgNum(e.nota)}"><b data-nota="${i}">${vgNum(e.nota)}</b></div></div>`).join('');
   const link = (campo, rotulo)=>{
@@ -4456,6 +4464,10 @@ function vgAplicar(el){
 function vgOnInput(e){
   const el = e.target;
   if(!vgAplicar(el)) return;
+  if(el.dataset.ck !== undefined && el.dataset.f === 'ok'){
+    const linha = el.closest('.vg-ck');
+    if(linha) linha.classList.toggle('done', el.checked);
+  }
   if(el.dataset.di !== undefined && el.dataset.f === 'nota'){
     const b = document.querySelector(`[data-nota="${el.dataset.di}"]`);
     if(b) b.textContent = String(vgNum(el.value));
