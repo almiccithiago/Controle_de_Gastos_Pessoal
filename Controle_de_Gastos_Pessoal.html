@@ -897,11 +897,107 @@
     font-size:11.5px !important; padding:4px 10px !important; border-radius:999px !important;
     font-weight:700 !important; line-height:1.2 !important; white-space:nowrap !important;
   }
+  /* ===== Viagens ===== */
+  nav.tabs button.tab-viagens{ color:#fff; font-weight:700; }
+  nav.tabs button.restore-tab{ color:#BFD0E8; font-weight:600; font-size:12px; margin-left:2px; opacity:0.85; }
+  nav.tabs button.restore-tab:hover{ opacity:1; color:#86EFAC; }
+  .aba-acoes-bar{ display:flex; justify-content:flex-end; margin-bottom:10px; }
+  #delete-tab-btn{
+    background:transparent; border:1px solid var(--red); color:var(--red);
+    border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+  #delete-tab-btn:hover{ background:var(--red); color:#fff; }
+  .vg-folders{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .vg-chip{
+    background:var(--card); border:1px solid var(--border); border-radius:10px; padding:8px 14px;
+    font-family:inherit; font-size:13px; font-weight:600; color:var(--text); cursor:pointer;
+  }
+  .vg-chip.active{ background:#ECFDF3; border-color:var(--teal); color:#15803D; }
+  .vg-chip-add{ border-style:dashed; color:var(--muted); }
+  .vg-secs{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid var(--border); }
+  .vg-sec{
+    background:var(--card); border:1px solid var(--border); border-radius:10px; padding:7px 13px;
+    font-family:inherit; font-size:13px; font-weight:600; color:var(--text); cursor:pointer;
+  }
+  .vg-sec.active{ background:#EFF6FF; border-color:var(--blue); color:var(--blue); }
+  .vg-spacer{ flex:1; }
+  .vg-btn{
+    display:inline-flex; align-items:center; background:transparent; border:1px solid var(--teal); color:var(--teal);
+    border-radius:8px; padding:6px 12px; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; text-decoration:none;
+  }
+  .vg-btn:hover{ background:var(--teal); color:#fff; }
+  .vg-btn.danger{ border-color:var(--red); color:var(--red); }
+  .vg-btn.danger:hover{ background:var(--red); color:#fff; }
+  .vg-link{ background:transparent; border:none; color:var(--blue); font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; padding:4px 2px; }
+  .vg-hero{ border-radius:var(--radius); color:#fff; padding:18px 22px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:12px; }
+  .vg-kicker{ font-size:12.5px; opacity:0.85; }
+  .vg-hero-name{ font-size:30px; font-weight:800; line-height:1.15; }
+  .vg-hero-sub{ font-size:13px; opacity:0.9; }
+  .vg-count{ text-align:center; }
+  .vg-count-big{ font-size:46px; font-weight:800; line-height:1; }
+  .vg-row{ display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px; }
+  .vg-row label, .vg-label, .vg-form-grid label, .vg-linkrow label{ display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); font-weight:600; }
+  .vg-note{ font-size:13px; color:var(--muted); align-self:center; }
+  #vg-root input[type=text], #vg-root input[type=date], #vg-root input[type=time], #vg-root select, #vg-root textarea{
+    border:1px solid var(--border); border-radius:8px; padding:7px 9px; font-family:inherit; font-size:13px;
+    background:#fff; color:var(--text); width:100%;
+  }
+  #vg-root input:focus, #vg-root select:focus, #vg-root textarea:focus{ outline:2px solid var(--blue); outline-offset:-1px; }
+  #vg-root .vg-row input[type=text], #vg-root .vg-row input[type=date]{ width:auto; min-width:140px; }
+  #vg-root input[type=checkbox]{ width:18px; height:18px; accent-color:var(--teal); cursor:pointer; }
+  #vg-root input[type=range]{ flex:1; accent-color:var(--blue); }
+  .vg-right{ text-align:right; }
+  .vg-colors{ display:flex; gap:6px; align-items:center; }
+  .vg-dot{ width:24px; height:24px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px var(--border); cursor:pointer; padding:0; }
+  .vg-dot.on{ box-shadow:0 0 0 2px var(--navy); }
+  .vg-plan{ margin-bottom:14px; }
+  .vg-plan-top{ display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-bottom:4px; }
+  .vg-bar{ height:8px; background:#E5E7EB; border-radius:4px; overflow:hidden; }
+  .vg-bar-fill{ height:100%; background:var(--green); border-radius:4px; transition:width .2s ease; }
+  .vg-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+  .vg-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+  .vg-card-wide{ grid-column:1 / -1; }
+  .vg-card-title{ font-size:14px; font-weight:700; margin-bottom:8px; display:flex; justify-content:space-between; gap:8px; align-items:baseline; }
+  .vg-muted{ color:var(--muted); font-size:12.5px; }
+  .vg-ck, .vg-fr{ display:flex; align-items:center; gap:8px; padding:3px 0; }
+  .vg-fr input{ flex:1; }
+  .vg-x{ border:none; background:transparent; color:var(--muted); cursor:pointer; font-size:18px; line-height:1; padding:2px 6px; font-family:inherit; }
+  .vg-x:hover{ color:var(--red); }
+  .vg-addline{ display:flex; gap:8px; margin-top:8px; }
+  .vg-diary{ border-top:1px solid var(--border); padding:8px 0; }
+  .vg-diary-top{ display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+  .vg-diary-top input{ max-width:170px; }
+  .vg-nota{ display:flex; align-items:center; gap:10px; margin-top:6px; font-size:12.5px; color:var(--muted); }
+  .vg-nota b{ color:var(--text); min-width:18px; text-align:right; }
+  .vg-linkrow{ display:flex; gap:8px; align-items:flex-end; margin-bottom:8px; }
+  .vg-linkrow label{ flex:1; }
+  .vg-next .name{ font-size:18px; font-weight:700; }
+  .vg-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+  .vg-stat{ background:#F8FAFC; border-radius:10px; padding:10px 12px; }
+  .vg-stat .l{ font-size:11.5px; color:var(--muted); font-weight:600; }
+  .vg-stat .v{ font-size:15px; font-weight:700; }
+  .vg-day{ margin-bottom:16px; }
+  .vg-day-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); margin-bottom:4px; font-size:14px; font-weight:700; }
+  .vg-scroll{ overflow-x:auto; }
+  table.vg-table{ width:100%; min-width:600px; border-collapse:collapse; table-layout:fixed; font-size:13px; }
+  table.vg-table th{ text-align:left; font-weight:600; font-size:11.5px; color:var(--muted); padding:3px 4px; }
+  table.vg-table th.r{ text-align:right; }
+  table.vg-table th.c, table.vg-table td.c{ text-align:center; }
+  table.vg-table td{ padding:3px 2px; }
+  .vg-addbar{ margin:4px 0 4px; }
+  .vg-group{ margin-bottom:16px; }
+  .vg-group-title{ font-size:13px; font-weight:700; margin-bottom:8px; }
+  .vg-form-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .vg-cartotal{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; background:#F8FAFC; border-radius:var(--radius); padding:12px 16px; margin-top:12px; }
+  .vg-cartotal-v{ font-size:22px; font-weight:800; }
+  .vg-check{ display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; }
+  .vg-seccard{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .vg-empty{ padding:28px 0; text-align:center; color:var(--muted); font-size:14px; }
 </style>
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-10-16.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-05.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1368,6 +1464,7 @@ function migrateData(data){
     (m.detalhamentos||[]).forEach(d=>{ if(Array.isArray(d.items)) sortItemsByDesc(d.items); });
   });
 
+  vgMigrar(data);
   return data;
 }
 function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
@@ -1456,7 +1553,7 @@ function deleteMonth(monthKey){
   DATA.monthOrder = DATA.monthOrder.filter(m=>m!==monthKey);
   if(DATA.pinnedMonth === monthKey) DATA.pinnedMonth = null;
   save();
-  currentTab = DATA.monthOrder[0] || "Obrigações";
+  currentTab = primeiraAbaVisivel();
   renderTabs();
   renderContent();
 }
@@ -1550,7 +1647,7 @@ async function saveUmaVez(){
 async function initApp(){
   try{
     DATA = await loadFromServer();
-    currentTab = (DATA.pinnedMonth && DATA.monthOrder.includes(DATA.pinnedMonth)) ? DATA.pinnedMonth : (DATA.monthOrder[0] || "Obrigações");
+    currentTab = (DATA.pinnedMonth && DATA.monthOrder.includes(DATA.pinnedMonth)) ? DATA.pinnedMonth : primeiraAbaVisivel();
     dataReady = true;
     renderTabs();
     renderContent();
@@ -1659,11 +1756,12 @@ function togglePinMonth(monthKey){
 
 function renderTabs(){
   const tabs = document.getElementById('tabs');
-  const allTabs = [...DATA.monthOrder, "Modelo", "Resumo Anual", "Obrigações"];
+  const allTabs = [...DATA.monthOrder, ...abasVisiveis(), "Viagens"];
   tabs.innerHTML = allTabs.map(t =>
-    `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${t===DATA.pinnedMonth?'tab-pinned':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${escapeHtml(t)}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${DATA.monthOrder.includes(t) ? `<span class="pin-btn ${t===DATA.pinnedMonth?'pinned':''}" data-pin="${escapeHtml(t)}" title="${t===DATA.pinnedMonth?'Desafixar mês':'Fixar mês em evidência'}">📌</span>` : ''}${escapeHtml(t)}</button>`
+    `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${t==="Viagens"?'tab-viagens':''} ${t===DATA.pinnedMonth?'tab-pinned':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${escapeHtml(t)}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${DATA.monthOrder.includes(t) ? `<span class="pin-btn ${t===DATA.pinnedMonth?'pinned':''}" data-pin="${escapeHtml(t)}" title="${t===DATA.pinnedMonth?'Desafixar mês':'Fixar mês em evidência'}">📌</span>` : ''}${t==="Viagens" ? '✈ ' : ''}${escapeHtml(t)}</button>`
   ).join('')
-    + `<button id="add-month-tab" title="Criar o próximo mês a partir do Modelo">+ Novo Mês</button>`;
+    + `<button id="add-month-tab" title="Criar o próximo mês a partir do Modelo">+ Novo Mês</button>`
+    + (DATA.abasOcultas||[]).map(t=>`<button class="restore-tab" data-restore="${escapeHtml(t)}" title="Trazer de volta a aba ${escapeHtml(t)}">↺ ${escapeHtml(t)}</button>`).join('');
   tabs.querySelectorAll('button[data-tab]').forEach(btn=>{
     btn.addEventListener('click', ()=>{ currentTab = btn.dataset.tab; renderTabs(); renderContent(); });
   });
@@ -1671,6 +1769,7 @@ function renderTabs(){
     el.addEventListener('click', (e)=>{ e.stopPropagation(); togglePinMonth(el.dataset.pin); });
   });
   tabs.querySelector('#add-month-tab').addEventListener('click', addMonth);
+  tabs.querySelectorAll('.restore-tab').forEach(b=>b.addEventListener('click', ()=>restaurarAba(b.dataset.restore)));
   const delBtn = tabs.querySelector('#delete-month-tab');
   if(delBtn) delBtn.addEventListener('click', ()=>deleteMonth(currentTab));
   initTabDragReorder(tabs);
@@ -1712,6 +1811,7 @@ function initTabDragReorder(tabs){
 }
 
 function renderContent(){
+  if(currentTab !== "Viagens" && !DATA.monthOrder.includes(currentTab) && !abasVisiveis().includes(currentTab)) currentTab = primeiraAbaVisivel();
   renderTabs();
   const content = document.getElementById('content');
   if(currentTab === "Modelo"){
@@ -1726,7 +1826,12 @@ function renderContent(){
   } else if(currentTab === "Resumo Anual"){
     content.innerHTML = renderResumoAnualView();
     attachResumoAnualEvents();
+  } else if(currentTab === "Viagens"){
+    content.innerHTML = renderViagensView();
+    attachViagensEvents();
+    vgRefresh();
   }
+  if(["Modelo","Resumo Anual","Obrigações"].includes(currentTab)) inserirBarraExcluirAba(content, currentTab);
 }
 
 // ============================= MÊS =============================
@@ -3963,6 +4068,606 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
 }
 
+// ============================= VIAGENS =============================
+// Aba protegida (não pode ser excluída). Cada viagem é uma "pasta" com seções:
+// Capa, Resumo, Passeios (agrupados por dia) e Aluguel de carro.
+const VG_CORES = ["#2563EB","#16A34A","#7C3AED","#F97316","#DB2777","#0D9488"];
+const VG_CHECKLIST_PADRAO = ["Documentos (passaporte ou RG)","Seguro viagem","Reservas salvas no celular","Carregador e adaptador de tomada","Cartão e dinheiro na moeda local","Roupas para o clima"];
+const VG_FRASES = {
+  "Espanhol": [["¿Cuánto cuesta?","Quanto custa?"],["La cuenta, por favor.","A conta, por favor."],["¿Dónde está el baño?","Onde fica o banheiro?"],["Muchas gracias.","Muito obrigado(a)."],["No entiendo, ¿puede repetir?","Não entendi, pode repetir?"]],
+  "Inglês": [["How much is it?","Quanto custa?"],["The check, please.","A conta, por favor."],["Where is the restroom?","Onde fica o banheiro?"],["Thank you very much.","Muito obrigado(a)."],["Could you repeat that, please?","Pode repetir, por favor?"]]
+};
+const VG_SECOES = [["capa","🧭 Capa"],["resumo","📊 Resumo"],["passeios","📍 Passeios"],["car","🚗 Aluguel de carro"]];
+const VG_CAR_NUM = ["diarias","valorDiaria","seguro","taxas","comb"];
+let viagemAtual = null;
+let viagemSecao = 'capa';
+let viagemRetroPrevia = false;
+
+// ---------- utilitários ----------
+function vgNum(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
+function vgMoney(n){ return vgNum(n) ? fmt(vgNum(n)) : ''; }
+function vgCot(n){ return vgNum(n) ? vgNum(n).toLocaleString('pt-BR', {maximumFractionDigits:6}) : ''; }
+function vgHojeISO(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function vgParseISO(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+}
+function vgDiasEntre(aISO, bISO){
+  const a = vgParseISO(aISO), b = vgParseISO(bISO);
+  if(!a || !b) return null;
+  return Math.round((b - a) / 86400000);
+}
+function vgDataBR(iso){ return iso ? iso.split('-').reverse().join('/') : ''; }
+function vgSemana(iso){
+  const d = vgParseISO(iso);
+  if(!d) return '';
+  const s = d.toLocaleDateString('pt-BR', {weekday:'long'});
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function vgUrlSegura(u){
+  u = String(u || '').trim();
+  if(!u) return '';
+  if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  try{
+    const x = new URL(u);
+    return (x.protocol === 'http:' || x.protocol === 'https:') ? x.href : '';
+  }catch(e){ return ''; }
+}
+function vgPeriodo(t){
+  if(t.inicio && t.fim) return `${vgDataBR(t.inicio)} a ${vgDataBR(t.fim)}`;
+  if(t.inicio) return `a partir de ${vgDataBR(t.inicio)}`;
+  return 'Defina as datas de ida e volta';
+}
+
+// ---------- dados ----------
+function vgNovaViagem(){
+  return {
+    inicio:'', fim:'', orcamento:0, moeda:'', cotacao:0, cor:VG_CORES[0], idioma:'',
+    checklist: VG_CHECKLIST_PADRAO.map(t=>({t, ok:false})),
+    passeios:[], frases:[], diario:[], playlist:'', galeria:'',
+    car:{ locadora:'', codigo:'', link:'', localR:'', dataR:'', horaR:'', localD:'', dataD:'', horaD:'', diarias:0, valorDiaria:0, seguro:0, taxas:0, comb:0, pago:false }
+  };
+}
+function vgNormalizar(t){
+  const base = vgNovaViagem();
+  Object.keys(base).forEach(k=>{
+    if(t[k] === undefined || t[k] === null) t[k] = (k === 'checklist') ? [] : base[k];
+  });
+  Object.keys(base.car).forEach(k=>{ if(t.car[k] === undefined || t.car[k] === null) t.car[k] = base.car[k]; });
+  ['checklist','passeios','frases','diario'].forEach(k=>{ if(!Array.isArray(t[k])) t[k] = []; });
+  return t;
+}
+function vgMigrar(data){
+  if(!data.viagens || typeof data.viagens !== 'object') data.viagens = {};
+  if(!Array.isArray(data.viagens.ordem)) data.viagens.ordem = [];
+  if(!data.viagens.itens || typeof data.viagens.itens !== 'object') data.viagens.itens = {};
+  data.viagens.ordem = data.viagens.ordem.filter(n=>data.viagens.itens[n]);
+  Object.keys(data.viagens.itens).forEach(n=>{
+    vgNormalizar(data.viagens.itens[n]);
+    if(!data.viagens.ordem.includes(n)) data.viagens.ordem.push(n);
+  });
+  if(!Array.isArray(data.abasOcultas)) data.abasOcultas = [];
+  data.abasOcultas = data.abasOcultas.filter(t=>["Modelo","Resumo Anual","Obrigações"].includes(t));
+  return data;
+}
+
+// ---------- cálculos ----------
+function vgTotais(t){
+  let p = 0, pp = 0;
+  t.passeios.forEach(x=>{ const v = vgNum(x.v); p += v; if(x.pago) pp += v; });
+  const c = vgNum(t.car.diarias) * vgNum(t.car.valorDiaria) + vgNum(t.car.seguro) + vgNum(t.car.taxas) + vgNum(t.car.comb);
+  const total = p + c, pago = pp + (t.car.pago ? c : 0);
+  return { p:round2(p), c:round2(c), total:round2(total), pago:round2(pago), aPagar:round2(total - pago) };
+}
+function vgOrdem(t){
+  return t.passeios.map((_, i)=>i).sort((a, b)=>{
+    const A = t.passeios[a], B = t.passeios[b];
+    const da = A.d || '9999', db = B.d || '9999';
+    if(da !== db) return da < db ? -1 : 1;
+    return String(A.h || '').localeCompare(String(B.h || ''));
+  });
+}
+function vgProximo(t){
+  const hoje = vgHojeISO(), agora = new Date();
+  const hm = `${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}`;
+  for(const i of vgOrdem(t)){
+    const x = t.passeios[i];
+    if(!x.d) continue;
+    if(x.d > hoje || (x.d === hoje && (x.h || '23:59') >= hm)) return x;
+  }
+  return null;
+}
+function vgContagem(t){
+  const hoje = vgHojeISO();
+  if(!t.inicio) return { big:'—', label:'defina as datas da viagem' };
+  const ate = vgDiasEntre(hoje, t.inicio);
+  if(ate > 0) return { big:String(ate), label: ate === 1 ? 'dia para embarcar' : 'dias para embarcar' };
+  const fim = t.fim || t.inicio;
+  if(vgDiasEntre(fim, hoje) > 0) return { big:'✓', label:'viagem concluída' };
+  const dia = vgDiasEntre(t.inicio, hoje) + 1, total = vgDiasEntre(t.inicio, fim) + 1;
+  return { big:String(dia), label:`dia ${dia} de ${total} · boa viagem!` };
+}
+
+// ---------- telas ----------
+function vgCard(label, liveKey, valor, extra){
+  return `<div class="summary-card"><div class="label">${label}</div><div class="value" data-live="${liveKey}">${valor}</div>${extra || ''}</div>`;
+}
+function vgProximoHTML(t){
+  const x = vgProximo(t);
+  const titulo = `<div class="vg-card-title">📍 Próximo passeio</div>`;
+  if(!x) return titulo + `<p class="vg-muted">${t.passeios.length ? 'Nenhum passeio pela frente.' : 'Cadastre os passeios na seção Passeios.'}</p>`;
+  return titulo + `<div class="vg-next"><div class="name">${escapeHtml(x.n || 'Sem nome')}</div><div class="vg-muted">${escapeHtml(vgSemana(x.d))}, ${vgDataBR(x.d)}${x.h ? ' às ' + escapeHtml(x.h) : ''}</div><div style="font-weight:700;margin-top:4px;">R$ ${fmt(vgNum(x.v))}</div></div>`;
+}
+function vgRetroHTML(t){
+  const liberada = (t.fim && vgDiasEntre(t.fim, vgHojeISO()) > 0) || viagemRetroPrevia;
+  const titulo = `<div class="vg-card-title">🏆 Retrospectiva da viagem</div>`;
+  if(!liberada){
+    return titulo + `<p class="vg-muted">Libera quando a viagem terminar${t.fim ? ' (' + vgDataBR(t.fim) + ')' : ' — defina a data de volta acima'}. Ela resume gastos, passeios e notas em poucos números.</p><button type="button" class="vg-btn" data-act="retro-previa">Ver prévia</button>`;
+  }
+  const T = vgTotais(t), orc = vgNum(t.orcamento);
+  const porDia = {};
+  t.passeios.forEach(x=>{ if(x.d) porDia[x.d] = (porDia[x.d] || 0) + vgNum(x.v); });
+  let diaCaro = null;
+  Object.keys(porDia).sort().forEach(d=>{ if(diaCaro === null || porDia[d] > porDia[diaCaro]) diaCaro = d; });
+  let passCaro = null;
+  t.passeios.forEach(x=>{ if(vgNum(x.v) > 0 && (!passCaro || vgNum(x.v) > vgNum(passCaro.v))) passCaro = x; });
+  const notas = t.diario.map(e=>Number(e.nota)).filter(n=>!isNaN(n));
+  const media = notas.length ? (notas.reduce((a, b)=>a + b, 0) / notas.length).toLocaleString('pt-BR', {maximumFractionDigits:1}) : '—';
+  const dur = (t.inicio && t.fim) ? vgDiasEntre(t.inicio, t.fim) + 1 : null;
+  const stat = (l, v)=>`<div class="vg-stat"><div class="l">${l}</div><div class="v">${v}</div></div>`;
+  return titulo + `<div class="vg-stats">`
+    + stat('Total gasto', 'R$ ' + fmt(T.total))
+    + stat('Gasto vs. orçamento', orc > 0 ? Math.round(T.total / orc * 100) + '%' : '—')
+    + stat('Dias de viagem', dur !== null ? String(dur) : '—')
+    + stat('Passeios', String(t.passeios.length))
+    + stat('Dia mais caro', diaCaro ? `${vgDataBR(diaCaro).slice(0,5)} · R$ ${fmt(round2(porDia[diaCaro]))}` : '—')
+    + stat('Passeio mais caro', passCaro ? escapeHtml(passCaro.n || 'Sem nome') : '—')
+    + stat('Aluguel de carro', 'R$ ' + fmt(T.c))
+    + stat('Média das notas', media)
+    + `</div>` + (viagemRetroPrevia && !(t.fim && vgDiasEntre(t.fim, vgHojeISO()) > 0) ? `<button type="button" class="vg-btn" style="margin-top:10px;" data-act="retro-previa">Ocultar prévia</button>` : '');
+}
+function vgCapa(t){
+  const c = vgContagem(t);
+  const feitos = t.checklist.filter(x=>x.ok).length, tot = t.checklist.length;
+  const pct = tot ? Math.round(feitos / tot * 100) : 0;
+  const lista = t.checklist.map((x, i)=>`<div class="vg-ck"><input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}"><button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const frases = t.frases.map((x, i)=>`<div class="vg-fr"><input type="text" data-fr="${i}" data-f="es" placeholder="Na língua local" value="${escapeHtml(x.es)}"><input type="text" data-fr="${i}" data-f="pt" placeholder="Em português" value="${escapeHtml(x.pt)}"><button type="button" class="vg-x" data-act="fr-rm" data-i="${i}" aria-label="Remover frase">×</button></div>`).join('');
+  const diario = t.diario.map((e, i)=>({e, i})).reverse().map(({e, i})=>`<div class="vg-diary"><div class="vg-diary-top"><input type="date" data-di="${i}" data-f="d" value="${escapeHtml(e.d || '')}"><button type="button" class="vg-x" data-act="di-rm" data-i="${i}" aria-label="Remover entrada">×</button></div><textarea rows="3" data-di="${i}" data-f="txt" placeholder="Como foi o dia?">${escapeHtml(e.txt || '')}</textarea><div class="vg-nota"><span>Nota do dia</span><input type="range" min="0" max="10" step="1" data-di="${i}" data-f="nota" value="${vgNum(e.nota)}"><b data-nota="${i}">${vgNum(e.nota)}</b></div></div>`).join('');
+  const link = (campo, rotulo)=>{
+    const url = vgUrlSegura(t[campo]);
+    return `<div class="vg-linkrow"><label>${rotulo}<input type="text" data-k="${campo}" value="${escapeHtml(t[campo])}" placeholder="Cole o link aqui"></label>${url ? `<a class="vg-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir</a>` : ''}</div>`;
+  };
+  return `
+  <div class="vg-hero" style="background:linear-gradient(135deg,var(--navy),${t.cor});">
+    <div>
+      <div class="vg-kicker">✈ Próxima aventura</div>
+      <div class="vg-hero-name">${escapeHtml(viagemAtual)}</div>
+      <div class="vg-hero-sub">${escapeHtml(vgPeriodo(t))}</div>
+    </div>
+    <div class="vg-count"><div class="vg-count-big" data-live="count-big">${c.big}</div><div data-live="count-label">${escapeHtml(c.label)}</div></div>
+  </div>
+  <div class="vg-row">
+    <label>Ida<input type="date" data-k="inicio" value="${escapeHtml(t.inicio)}"></label>
+    <label>Volta<input type="date" data-k="fim" value="${escapeHtml(t.fim)}"></label>
+    <span class="vg-colors" role="group" aria-label="Cor da viagem">${VG_CORES.map(cor=>`<button type="button" class="vg-dot ${cor === t.cor ? 'on' : ''}" style="background:${cor}" data-act="cor" data-cor="${cor}" aria-label="Cor ${cor}"></button>`).join('')}</span>
+  </div>
+  <div class="vg-plan">
+    <div class="vg-plan-top"><span>Planejamento</span><span data-live="plan-pct">${pct}%</span></div>
+    <div class="vg-bar"><div class="vg-bar-fill" data-live="plan-bar" style="width:${pct}%"></div></div>
+  </div>
+  <div class="vg-grid">
+    <div class="vg-card">
+      <div class="vg-card-title">✅ Checklist de mala <span class="vg-muted" data-live="ck-count">${feitos} de ${tot}</span></div>
+      ${lista}
+      <div class="vg-addline"><input type="text" id="vg-ck-new" placeholder="Novo item"><button type="button" class="vg-btn" data-act="ck-add">Adicionar</button></div>
+    </div>
+    <div class="vg-card" data-live="next">${vgProximoHTML(t)}</div>
+    <div class="vg-card">
+      <div class="vg-card-title">🗣 Frases úteis</div>
+      <label class="vg-label">Idioma
+        <select data-k="idioma">${['', 'Espanhol', 'Inglês', 'Outro'].map(o=>`<option value="${o}" ${t.idioma === o ? 'selected' : ''}>${o || 'Escolha o idioma'}</option>`).join('')}</select>
+      </label>
+      ${frases}
+      <div class="vg-addline"><button type="button" class="vg-btn" data-act="fr-add">+ Frase</button></div>
+    </div>
+    <div class="vg-card">
+      <div class="vg-card-title">📓 Diário da viagem</div>
+      ${diario || '<p class="vg-muted">Um registro por dia, para ler depois.</p>'}
+      <div class="vg-addline"><button type="button" class="vg-btn" data-act="di-add">+ Nova entrada</button></div>
+    </div>
+    <div class="vg-card">
+      <div class="vg-card-title">🔗 Links da viagem</div>
+      ${link('playlist', 'Playlist (Spotify, YouTube…)')}
+      ${link('galeria', 'Galeria de fotos (álbum)')}
+    </div>
+    <div class="vg-card vg-card-wide" data-live="retro">${vgRetroHTML(t)}</div>
+  </div>`;
+}
+function vgResumo(t){
+  const T = vgTotais(t);
+  const secCard = (icone, nome, valor, liveKey, sub, destino)=>`<div class="summary-card vg-seccard"><div><div class="label">${icone} ${nome}</div><div class="value" data-live="${liveKey}">R$ ${fmt(valor)}</div><div class="vg-muted" data-live="${liveKey}-sub">${sub}</div></div><button type="button" class="vg-btn" data-act="secao" data-s="${destino}">Abrir</button></div>`;
+  const nP = t.passeios.length;
+  return `
+  <div class="summary-grid">
+    ${secCard('📍', 'passeios', T.p, 'p-total', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`, 'passeios')}
+    ${secCard('🚗', 'aluguel de carro', T.c, 'c-total', t.car.dataR && t.car.dataD ? `${vgDataBR(t.car.dataR).slice(0,5)} a ${vgDataBR(t.car.dataD).slice(0,5)}` : 'sem datas', 'car')}
+  </div>
+  <div class="vg-row">
+    <label>Orçamento da viagem (R$)<input type="text" inputmode="decimal" data-k="orcamento" value="${vgMoney(t.orcamento)}" placeholder="0,00" class="vg-right"></label>
+    <span class="vg-note" data-live="note"></span>
+  </div>
+  <div class="vg-bar" style="margin-bottom:14px;"><div class="vg-bar-fill" data-live="bar" style="width:0;"></div></div>
+  <div class="summary-grid">
+    ${vgCard('total da viagem', 'total', 'R$ ' + fmt(T.total))}
+    ${vgCard('já pago', 'pago', 'R$ ' + fmt(T.pago))}
+    ${vgCard('a pagar', 'apagar', 'R$ ' + fmt(T.aPagar))}
+  </div>
+  <div class="vg-card" style="margin-top:12px;">
+    <div class="vg-card-title">💱 Câmbio</div>
+    <div class="vg-row">
+      <label>Moeda local<input type="text" data-k="moeda" value="${escapeHtml(t.moeda)}" placeholder="Ex.: CLP, MXN"></label>
+      <label>1 R$ equivale a<input type="text" inputmode="decimal" data-k="cotacao" value="${vgCot(t.cotacao)}" placeholder="0,00" class="vg-right"></label>
+      <span class="vg-note" data-live="cambio"></span>
+    </div>
+  </div>`;
+}
+function vgPasseios(t){
+  const grupos = [], mapa = {};
+  vgOrdem(t).forEach(i=>{
+    const d = t.passeios[i].d || '';
+    if(!mapa[d]){ mapa[d] = {d, itens:[]}; grupos.push(mapa[d]); }
+    mapa[d].itens.push(i);
+  });
+  let seq = 0, html = '';
+  grupos.forEach(g=>{
+    let titulo;
+    if(!g.d){ titulo = 'Sem data'; }
+    else {
+      seq++;
+      const n = t.inicio ? vgDiasEntre(t.inicio, g.d) + 1 : seq;
+      titulo = `${n >= 1 ? 'Dia ' + n + ' · ' : ''}${vgSemana(g.d)}, ${vgDataBR(g.d)}`;
+    }
+    const sub = round2(g.itens.reduce((s, i)=>s + vgNum(t.passeios[i].v), 0));
+    const linhas = g.itens.map(i=>{
+      const x = t.passeios[i];
+      return `<tr>
+        <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
+        <td><input type="date" data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
+        <td><input type="time" data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"></td>
+        <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
+        <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
+        <td class="c"><button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
+      </tr>`;
+    }).join('');
+    html += `<div class="vg-day">
+      <div class="vg-day-head"><span>${escapeHtml(titulo)}</span><span class="vg-muted">Subtotal <b data-sub="${escapeHtml(g.d)}">R$ ${fmt(sub)}</b></span></div>
+      <div class="vg-scroll"><table class="vg-table"><colgroup><col style="width:32%"><col style="width:20%"><col style="width:14%"><col style="width:20%"><col style="width:7%"><col style="width:7%"></colgroup>
+      <thead><tr><th>Passeio</th><th>Data</th><th>Hora</th><th class="r">Valor (R$)</th><th class="c">Pago</th><th></th></tr></thead>
+      <tbody>${linhas}</tbody></table></div>
+      <button type="button" class="vg-link" data-act="p-add" data-d="${escapeHtml(g.d)}">+ Passeio neste dia</button>
+    </div>`;
+  });
+  if(!grupos.length) html = `<p class="vg-muted">Nenhum passeio ainda. Use "Adicionar passeio".</p>`;
+  const T = vgTotais(t), n = t.passeios.length;
+  return html + `<div class="vg-addbar"><button type="button" class="vg-btn" data-act="p-add" data-d="">+ Adicionar passeio</button></div>
+    <div class="summary-card" style="margin-top:12px;"><div class="label">total de passeios</div><div class="value" data-live="p-total">R$ ${fmt(T.p)}</div><div class="vg-muted" data-live="p-count">${n} ${n === 1 ? 'passeio' : 'passeios'}</div></div>`;
+}
+function vgCar(t){
+  const c = t.car, T = vgTotais(t);
+  const campo = (f, rotulo, tipo, ph)=>{
+    const ehNum = VG_CAR_NUM.includes(f);
+    const valor = ehNum ? (f === 'diarias' ? (vgNum(c[f]) || '') : vgMoney(c[f])) : escapeHtml(c[f] || '');
+    return `<label>${rotulo}<input type="${tipo}" ${ehNum ? 'inputmode="decimal" class="vg-right"' : ''} data-car="${f}" value="${valor}" placeholder="${ph || ''}"></label>`;
+  };
+  const grupo = (titulo, inner)=>`<div class="vg-group"><div class="vg-group-title">${titulo}</div><div class="vg-form-grid">${inner}</div></div>`;
+  const url = vgUrlSegura(c.link);
+  return grupo('Reserva', campo('locadora', 'Locadora', 'text', 'Nome da locadora') + campo('codigo', 'Código da reserva', 'text', 'Opcional')
+      + `<div class="vg-linkrow">${campo('link', 'Link da reserva', 'text', 'Cole o link aqui')}${url ? `<a class="vg-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir</a>` : ''}</div>`)
+    + grupo('Retirada', campo('localR', 'Local', 'text', 'Aeroporto ou loja') + campo('dataR', 'Data', 'date') + campo('horaR', 'Hora', 'time'))
+    + grupo('Devolução', campo('localD', 'Local', 'text', 'Aeroporto ou loja') + campo('dataD', 'Data', 'date') + campo('horaD', 'Hora', 'time'))
+    + grupo('Valores', campo('diarias', 'Diárias', 'text', '0') + campo('valorDiaria', 'Valor da diária (R$)', 'text', '0,00') + campo('seguro', 'Seguro (R$)', 'text', '0,00') + campo('taxas', 'Taxas (R$)', 'text', '0,00') + campo('comb', 'Combustível e pedágios (R$)', 'text', '0,00'))
+    + `<button type="button" class="vg-btn" data-act="calc-diarias">Calcular diárias pelas datas</button>
+    <div class="vg-cartotal">
+      <label class="vg-check"><input type="checkbox" data-car="pago" ${c.pago ? 'checked' : ''}> Reserva paga</label>
+      <div style="text-align:right;"><div class="vg-muted">Total do aluguel</div><div class="vg-cartotal-v" data-live="c-total">R$ ${fmt(T.c)}</div></div>
+    </div>`;
+}
+function renderViagensView(){
+  const V = DATA.viagens;
+  if(!V.itens[viagemAtual]) viagemAtual = V.ordem[0] || null;
+  const t = viagemAtual ? V.itens[viagemAtual] : null;
+  let html = `<div id="vg-root"><div class="month-title-bar"><h2>✈ Viagens</h2></div>`;
+  html += `<div class="vg-folders">${V.ordem.map(n=>`<button type="button" class="vg-chip ${n === viagemAtual ? 'active' : ''}" data-act="pasta" data-nome="${escapeHtml(n)}">📁 ${escapeHtml(n)}</button>`).join('')}<button type="button" class="vg-chip vg-chip-add" data-act="nova">+ Nova viagem</button></div>`;
+  if(!t){
+    return html + `<div class="vg-empty">Nenhuma viagem ainda. Crie a primeira em "+ Nova viagem" — por exemplo, Chile ou México.</div></div>`;
+  }
+  html += `<div class="vg-secs">${VG_SECOES.map(([k, nome])=>`<button type="button" class="vg-sec ${k === viagemSecao ? 'active' : ''}" data-act="secao" data-s="${k}">${nome}</button>`).join('')}
+    <span class="vg-spacer"></span>
+    <button type="button" class="vg-btn" data-act="renomear">Renomear</button>
+    <button type="button" class="vg-btn" data-act="pdf">PDF</button>
+    <button type="button" class="vg-btn danger" data-act="excluir">Excluir viagem</button></div>`;
+  html += viagemSecao === 'resumo' ? vgResumo(t) : (viagemSecao === 'passeios' ? vgPasseios(t) : (viagemSecao === 'car' ? vgCar(t) : vgCapa(t)));
+  return html + `</div>`;
+}
+
+// ---------- atualização ao vivo (sem redesenhar os campos) ----------
+function vgRefresh(){
+  const t = DATA.viagens.itens[viagemAtual];
+  const root = document.getElementById('vg-root');
+  if(!t || !root) return;
+  const T = vgTotais(t);
+  const set = (k, v)=>{ root.querySelectorAll(`[data-live="${k}"]`).forEach(el=>{ el.textContent = v; }); };
+  set('total', 'R$ ' + fmt(T.total)); set('pago', 'R$ ' + fmt(T.pago)); set('apagar', 'R$ ' + fmt(T.aPagar));
+  set('p-total', 'R$ ' + fmt(T.p)); set('c-total', 'R$ ' + fmt(T.c));
+  const nP = t.passeios.length;
+  set('p-count', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`); set('p-total-sub', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`);
+  const orc = vgNum(t.orcamento), ratio = orc > 0 ? T.total / orc : 0;
+  root.querySelectorAll('[data-live="bar"]').forEach(el=>{
+    el.style.width = Math.min(100, Math.round(ratio * 100)) + '%';
+    el.style.background = ratio > 1 ? 'var(--red)' : (ratio >= 0.8 ? 'var(--amber)' : 'var(--green)');
+  });
+  root.querySelectorAll('[data-live="note"]').forEach(el=>{
+    el.textContent = orc > 0 ? (ratio > 1 ? `Estourou em R$ ${fmt(round2(T.total - orc))}` : `Restam R$ ${fmt(round2(orc - T.total))} (${Math.round(ratio * 100)}% usado)`) : 'Defina um orçamento para acompanhar quanto já usou.';
+    el.style.color = ratio > 1 ? 'var(--red)' : 'var(--muted)';
+  });
+  const cot = vgNum(t.cotacao), moeda = String(t.moeda || '').trim();
+  set('cambio', (cot > 0 && moeda) ? `Total ≈ ${(T.total * cot).toLocaleString('pt-BR', {maximumFractionDigits:0})} ${moeda}` : 'Informe a moeda e a cotação para ver a conversão.');
+  root.querySelectorAll('[data-sub]').forEach(el=>{
+    const dd = el.dataset.sub;
+    el.textContent = 'R$ ' + fmt(round2(t.passeios.reduce((s, x)=>s + ((x.d || '') === dd ? vgNum(x.v) : 0), 0)));
+  });
+  const feitos = t.checklist.filter(x=>x.ok).length, tot = t.checklist.length, pct = tot ? Math.round(feitos / tot * 100) : 0;
+  set('plan-pct', pct + '%'); set('ck-count', `${feitos} de ${tot}`);
+  root.querySelectorAll('[data-live="plan-bar"]').forEach(el=>{ el.style.width = pct + '%'; });
+  const c = vgContagem(t);
+  set('count-big', c.big); set('count-label', c.label);
+  const nx = root.querySelector('[data-live="next"]'); if(nx) nx.innerHTML = vgProximoHTML(t);
+  const rt = root.querySelector('[data-live="retro"]'); if(rt) rt.innerHTML = vgRetroHTML(t);
+}
+
+// ---------- eventos ----------
+function vgAplicar(el){
+  const t = DATA.viagens.itens[viagemAtual];
+  if(!t) return false;
+  const d = el.dataset;
+  const val = el.type === 'checkbox' ? el.checked : el.value;
+  if(d.p !== undefined){
+    const x = t.passeios[+d.p]; if(!x) return false;
+    x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : (d.f === 'pago' ? !!val : val);
+  } else if(d.ck !== undefined){
+    const x = t.checklist[+d.ck]; if(!x) return false;
+    x[d.f] = d.f === 'ok' ? !!val : val;
+  } else if(d.fr !== undefined){
+    const x = t.frases[+d.fr]; if(!x) return false;
+    x[d.f] = val;
+  } else if(d.di !== undefined){
+    const x = t.diario[+d.di]; if(!x) return false;
+    x[d.f] = d.f === 'nota' ? vgNum(val) : val;
+  } else if(d.car !== undefined){
+    t.car[d.car] = VG_CAR_NUM.includes(d.car) ? vgNum(parseValorBR(val)) : (d.car === 'pago' ? !!val : val);
+  } else if(d.k !== undefined){
+    t[d.k] = (d.k === 'orcamento' || d.k === 'cotacao') ? vgNum(parseValorBR(val)) : val;
+  } else { return false; }
+  return true;
+}
+function vgOnInput(e){
+  const el = e.target;
+  if(!vgAplicar(el)) return;
+  if(el.dataset.di !== undefined && el.dataset.f === 'nota'){
+    const b = document.querySelector(`[data-nota="${el.dataset.di}"]`);
+    if(b) b.textContent = String(vgNum(el.value));
+  }
+  vgRefresh();
+}
+function vgOnChange(e){
+  const el = e.target, d = el.dataset;
+  if(!vgAplicar(el)) return;
+  const t = DATA.viagens.itens[viagemAtual];
+  if(d.p !== undefined && d.f === 'v') el.value = vgMoney(t.passeios[+d.p].v);
+  if(d.car !== undefined && VG_CAR_NUM.includes(d.car) && d.car !== 'diarias') el.value = vgMoney(t.car[d.car]);
+  if(d.k === 'orcamento') el.value = vgMoney(t.orcamento);
+  if(d.k === 'cotacao') el.value = vgCot(t.cotacao);
+  if(d.k === 'idioma' && !t.frases.length && VG_FRASES[t.idioma]){
+    t.frases = VG_FRASES[t.idioma].map(([es, pt])=>({es, pt}));
+  }
+  save();
+  const estrutural = (d.p !== undefined && (d.f === 'd' || d.f === 'h'))
+    || ['idioma','playlist','galeria','inicio','fim'].includes(d.k) || d.car === 'link';
+  if(estrutural) vgRender(); else vgRefresh();
+}
+function vgRender(){
+  const content = document.getElementById('content');
+  if(!content || currentTab !== 'Viagens') return;
+  content.innerHTML = renderViagensView();
+  attachViagensEvents();
+  vgRefresh();
+}
+function vgNomeValido(nome, ignorar){
+  nome = String(nome || '').trim();
+  if(!nome) return '';
+  const existe = DATA.viagens.ordem.some(n=>n !== ignorar && n.trim().toLowerCase() === nome.toLowerCase());
+  if(existe){ alert(`Já existe uma viagem chamada "${nome}".`); return ''; }
+  return nome;
+}
+function vgOnClick(e){
+  const b = e.target.closest('[data-act]');
+  if(!b) return;
+  const V = DATA.viagens, t = V.itens[viagemAtual], d = b.dataset;
+  switch(d.act){
+    case 'pasta': viagemAtual = d.nome; vgRender(); return;
+    case 'secao': viagemSecao = d.s; vgRender(); return;
+    case 'nova': {
+      const nome = vgNomeValido(window.prompt('Nome da viagem (ex.: Chile):'));
+      if(!nome) return;
+      V.itens[nome] = vgNovaViagem(); V.ordem.push(nome);
+      viagemAtual = nome; viagemSecao = 'capa';
+      save(); vgRender(); return;
+    }
+    case 'renomear': {
+      if(!t) return;
+      const nome = vgNomeValido(window.prompt('Novo nome da viagem:', viagemAtual), viagemAtual);
+      if(!nome || nome === viagemAtual) return;
+      V.itens[nome] = V.itens[viagemAtual]; delete V.itens[viagemAtual];
+      V.ordem = V.ordem.map(n=>n === viagemAtual ? nome : n);
+      viagemAtual = nome; save(); vgRender(); return;
+    }
+    case 'excluir': {
+      if(!t || !confirmarExclusaoComNome('a viagem', viagemAtual)) return;
+      delete V.itens[viagemAtual];
+      V.ordem = V.ordem.filter(n=>n !== viagemAtual);
+      viagemAtual = V.ordem[0] || null;
+      save(); vgRender(); return;
+    }
+    case 'pdf': if(t) vgExportarPdf(viagemAtual); return;
+  }
+  if(!t) return;
+  switch(d.act){
+    case 'cor': t.cor = d.cor; break;
+    case 'ck-add': {
+      const inp = document.getElementById('vg-ck-new');
+      const txt = inp ? inp.value.trim() : '';
+      if(!txt){ if(inp) inp.focus(); return; }
+      t.checklist.push({t:txt, ok:false}); break;
+    }
+    case 'ck-rm': t.checklist.splice(+d.i, 1); break;
+    case 'fr-add': t.frases.push({es:'', pt:''}); break;
+    case 'fr-rm': t.frases.splice(+d.i, 1); break;
+    case 'di-add': t.diario.push({d:vgHojeISO(), txt:'', nota:8}); break;
+    case 'di-rm':
+      if(t.diario[+d.i] && t.diario[+d.i].txt && !confirm('Remover esta entrada do diário?')) return;
+      t.diario.splice(+d.i, 1); break;
+    case 'p-add': t.passeios.push({n:'', d:d.d || '', h:'', v:0, pago:false}); break;
+    case 'p-rm':
+      if(t.passeios[+d.i] && t.passeios[+d.i].n && !confirm('Remover este passeio?')) return;
+      t.passeios.splice(+d.i, 1); break;
+    case 'calc-diarias': {
+      const c = t.car;
+      if(!c.dataR || !c.dataD){ alert('Preencha a data de retirada e a de devolução.'); return; }
+      const ms = new Date(`${c.dataD}T${c.horaD || '00:00'}`) - new Date(`${c.dataR}T${c.horaR || '00:00'}`);
+      if(!(ms > 0)){ alert('A devolução precisa ser depois da retirada.'); return; }
+      c.diarias = Math.max(1, Math.ceil(ms / 86400000)); break;
+    }
+    case 'retro-previa': viagemRetroPrevia = !viagemRetroPrevia; vgRefresh(); return;
+    default: return;
+  }
+  save();
+  vgRender();
+  if(d.act === 'ck-add'){ const i = document.getElementById('vg-ck-new'); if(i) i.focus(); }
+  if(d.act === 'p-add'){
+    const i = document.querySelector(`[data-p="${t.passeios.length - 1}"][data-f="n"]`);
+    if(i) i.focus();
+  }
+}
+function attachViagensEvents(){
+  const root = document.getElementById('vg-root');
+  if(!root) return;
+  root.addEventListener('input', vgOnInput);
+  root.addEventListener('change', vgOnChange);
+  root.addEventListener('click', vgOnClick);
+  root.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' && e.target.id === 'vg-ck-new'){ e.preventDefault(); vgOnClick({target: root.querySelector('[data-act="ck-add"]')}); }
+  });
+}
+
+// ---------- PDF ----------
+function vgExportarPdf(nome){
+  const t = DATA.viagens.itens[nome];
+  if(!t) return;
+  const T = vgTotais(t), hoje = new Date().toLocaleDateString('pt-BR'), orc = vgNum(t.orcamento);
+  const grupos = [], mapa = {};
+  vgOrdem(t).forEach(i=>{ const d = t.passeios[i].d || ''; if(!mapa[d]){ mapa[d] = {d, itens:[]}; grupos.push(mapa[d]); } mapa[d].itens.push(t.passeios[i]); });
+  const dias = grupos.map(g=>{
+    const sub = round2(g.itens.reduce((s, x)=>s + vgNum(x.v), 0));
+    return `<h3>${escapeHtml(g.d ? vgSemana(g.d) + ', ' + vgDataBR(g.d) : 'Sem data')}<span>R$ ${fmt(sub)}</span></h3>
+    <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="h">${escapeHtml(x.h || '')}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td><td class="s">${x.pago ? 'pago' : 'a pagar'}</td></tr>`).join('')}</tbody></table>`;
+  }).join('') || '<p class="m">Nenhum passeio cadastrado.</p>';
+  const c = t.car;
+  const temCarro = c.locadora || c.dataR || c.dataD || T.c > 0;
+  const carro = temCarro ? `<h2>Aluguel de carro</h2><div class="box">
+    <div><b>${escapeHtml(c.locadora || 'Locadora')}</b>${c.codigo ? ' · reserva ' + escapeHtml(c.codigo) : ''}</div>
+    <div>Retirada: ${escapeHtml(c.localR || '—')} · ${c.dataR ? vgDataBR(c.dataR) : '—'} ${escapeHtml(c.horaR || '')}</div>
+    <div>Devolução: ${escapeHtml(c.localD || '—')} · ${c.dataD ? vgDataBR(c.dataD) : '—'} ${escapeHtml(c.horaD || '')}</div>
+    <div>${vgNum(c.diarias)} diária(s) × R$ ${fmt(vgNum(c.valorDiaria))} + seguro R$ ${fmt(vgNum(c.seguro))} + taxas R$ ${fmt(vgNum(c.taxas))} + combustível e pedágios R$ ${fmt(vgNum(c.comb))}</div>
+    <div><b>Total: R$ ${fmt(T.c)}</b> · ${c.pago ? 'reserva paga' : 'a pagar'}</div></div>` : '';
+  const lista = t.checklist.length ? `<h2>Checklist</h2><ul>${t.checklist.map(x=>`<li class="${x.ok ? 'ok' : ''}">${x.ok ? '☑' : '☐'} ${escapeHtml(x.t)}</li>`).join('')}</ul>` : '';
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(nome)} · viagem</title>
+<style>
+  body{ font-family:Arial,Helvetica,sans-serif; color:#0F223D; margin:0; background:#F1F5F9; }
+  .page{ max-width:800px; margin:20px auto; background:#fff; padding:32px 40px; }
+  .k{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#64748B; }
+  h1{ margin:4px 0 2px; font-size:28px; } .sub{ color:#64748B; font-size:13px; }
+  h2{ font-size:15px; margin:22px 0 8px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
+  h3{ font-size:13px; margin:14px 0 4px; display:flex; justify-content:space-between; } h3 span{ color:#475569; }
+  .cards{ display:flex; gap:10px; margin-top:16px; } .cards div{ flex:1; background:#F8FAFC; border-radius:8px; padding:10px 12px; font-size:11px; color:#64748B; } .cards b{ display:block; font-size:16px; color:#0F223D; margin-top:2px; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; } td{ padding:5px 4px; border-bottom:1px solid #F1F5F9; } td.h{ width:52px; color:#64748B; } td.r{ text-align:right; white-space:nowrap; } td.s{ width:60px; text-align:right; font-size:11px; color:#64748B; } tr.ok td.s{ color:#15803D; }
+  .box{ background:#F8FAFC; border-radius:8px; padding:10px 14px; font-size:12.5px; line-height:1.7; }
+  ul{ list-style:none; padding:0; margin:0; font-size:12.5px; line-height:1.8; } li.ok{ color:#64748B; }
+  .m{ color:#64748B; font-size:12.5px; } .f{ margin-top:26px; font-size:10px; color:#94A3B8; display:flex; justify-content:space-between; }
+  .print-btn{ position:fixed; top:16px; right:16px; padding:8px 14px; background:#ECFDF3; color:#15803D; border:1.5px solid #16A34A; border-radius:8px; font-weight:700; cursor:pointer; }
+  @media print{ body{ background:#fff; } .print-btn{ display:none; } .page{ margin:0; padding:0; } }
+</style></head><body>
+<button class="print-btn" onclick="window.print()">salvar em PDF</button>
+<div class="page">
+  <div class="k">controle de viagens</div>
+  <h1>${escapeHtml(nome)}</h1>
+  <div class="sub">${escapeHtml(vgPeriodo(t))}</div>
+  <div class="cards">
+    <div>Total da viagem<b>R$ ${fmt(T.total)}</b></div>
+    <div>Já pago<b>R$ ${fmt(T.pago)}</b></div>
+    <div>A pagar<b>R$ ${fmt(T.aPagar)}</b></div>
+    <div>Orçamento<b>${orc > 0 ? 'R$ ' + fmt(orc) : '—'}</b></div>
+  </div>
+  <h2>Passeios</h2>${dias}
+  ${carro}${lista}
+  <div class="f"><span>${escapeHtml(nome)} · controle de viagens</span><span>gerado em ${hoje}</span></div>
+</div>
+<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),500));<\/script>
+</body></html>`;
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('Não consegui abrir uma nova aba — seu navegador deve estar bloqueando pop-ups pra este site. Permita pop-ups aqui e tente de novo.');
+    return;
+  }
+  win.document.open(); win.document.write(html); win.document.close();
+}
+
+// ---------- abas excluíveis (todas, menos Viagens) ----------
+function abasVisiveis(){
+  const oc = DATA.abasOcultas || [];
+  return ["Modelo","Resumo Anual","Obrigações"].filter(t=>!oc.includes(t));
+}
+function primeiraAbaVisivel(){
+  if(DATA.monthOrder.length) return DATA.monthOrder[0];
+  const v = abasVisiveis();
+  return v.includes("Obrigações") ? "Obrigações" : (v.includes("Resumo Anual") ? "Resumo Anual" : (v.includes("Modelo") ? "Modelo" : "Viagens"));
+}
+function excluirAba(tab){
+  if(!confirm(`Excluir a aba "${tab}"?\n\nOs dados dela continuam guardados. Se mudar de ideia, é só clicar em "↺ ${tab}" na barra de abas para trazer a aba de volta.`)) return;
+  DATA.abasOcultas = DATA.abasOcultas || [];
+  if(!DATA.abasOcultas.includes(tab)) DATA.abasOcultas.push(tab);
+  save();
+  currentTab = primeiraAbaVisivel();
+  renderTabs();
+  renderContent();
+}
+function restaurarAba(tab){
+  DATA.abasOcultas = (DATA.abasOcultas || []).filter(t=>t !== tab);
+  save();
+  currentTab = tab;
+  renderTabs();
+  renderContent();
+}
+function inserirBarraExcluirAba(content, tab){
+  const bar = document.createElement('div');
+  bar.className = 'aba-acoes-bar';
+  bar.innerHTML = `<button type="button" id="delete-tab-btn">Excluir aba ${escapeHtml(tab)}</button>`;
+  content.insertBefore(bar, content.firstChild);
+  bar.querySelector('button').addEventListener('click', ()=>excluirAba(tab));
+}
+
 // ============================= EXPORTAR / IMPORTAR =============================
 // ============================= SENHA =============================
 // A senha é validada só pelo servidor (header x-app-password em loadFromServer/save) —
@@ -4071,7 +4776,7 @@ async function restaurarSnapshot(id){
     if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
     const json = await resp.json();
     DATA = migrateData(json.data);
-    currentTab = DATA.monthOrder[0] || "Obrigações";
+    currentTab = primeiraAbaVisivel();
     await save();
     renderTabs();
     renderContent();
