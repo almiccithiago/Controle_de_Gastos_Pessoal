@@ -995,8 +995,8 @@
   /* correção: botões não podem ser espremidos pelos campos ao lado */
   .vg-btn, .vg-chip, .vg-sec, .vg-link, .vg-x, .vg-dot{ flex:0 0 auto; min-width:auto; white-space:nowrap; }
   .vg-addline input[type=text], .vg-linkrow input[type=text]{ flex:1 1 auto; width:auto; min-width:0; }
-  .vg-addline{ align-items:stretch; flex-wrap:wrap; }
-  .vg-addline input[type=text]{ min-width:120px; }
+  .vg-addline{ align-items:center; flex-wrap:nowrap; }
+  .vg-addline input[type=text]{ min-width:0; width:0; flex:1 1 0; }
   .vg-ck{ padding:4px 6px; border-radius:8px; transition:background .15s ease; }
   .vg-ck.done{ background:#EEF0F3; }
   #vg-root .vg-ck.done input[type=text]{ border-color:transparent; background:transparent; color:#9CA3AF; text-decoration:line-through; opacity:0.6; }
@@ -1005,7 +1005,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-05.3</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-05.4</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
