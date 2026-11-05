@@ -1001,11 +1001,40 @@
   .vg-ck.done{ background:#EEF0F3; }
   #vg-root .vg-ck.done input[type=text]{ border-color:transparent; background:transparent; color:#9CA3AF; text-decoration:line-through; opacity:0.6; }
   .vg-empty{ padding:28px 0; text-align:center; color:var(--muted); font-size:14px; }
+  /* ===== v.5: capa em colunas, reordenar, supermercado, cobranças ===== */
+  .vg-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); align-items:start; }
+  .vg-span2{ grid-column:span 2; }
+  .vg-cols2{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:2px 14px; }
+  .vg-ck{ gap:6px; }
+  .vg-ck input[type=text]{ flex:1 1 0; width:0; min-width:0; }
+  #vg-root .vg-ck input.vg-val{ flex:0 0 96px; width:96px; }
+  .vg-grip{ cursor:grab; color:var(--muted); font-size:15px; letter-spacing:-3px; padding:2px 4px; user-select:none; flex:0 0 auto; touch-action:none; }
+  .vg-grip:active{ cursor:grabbing; }
+  .vg-mv{ display:inline-flex; flex-direction:column; gap:0; flex:0 0 auto; }
+  .vg-mvb{ border:none; background:transparent; color:var(--muted); font-size:9px; line-height:1; padding:1px 5px; cursor:pointer; font-family:inherit; min-width:auto; }
+  .vg-mvb:hover:not(:disabled){ color:var(--blue); }
+  .vg-mvb:disabled{ opacity:.25; cursor:default; }
+  .vg-ck.dragging{ opacity:.4; }
+  .vg-ck.over{ box-shadow:0 -2px 0 var(--blue); }
+  .vg-car-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .vg-cancelado{ background:#FEF2F2; border:1px solid #FECACA; border-radius:var(--radius); padding:14px 16px; }
+  .vg-bills{ display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+  .vg-bill-block{ background:#F8FAFC; border-radius:10px; padding:10px 12px; }
+  .vg-bill-head{ display:flex; justify-content:space-between; font-size:13px; font-weight:700; padding-bottom:6px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+  .vg-bill{ display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; }
+  .vg-bill-n{ flex:1 1 0; overflow-wrap:anywhere; }
+  .vg-bill-n small{ display:block; color:var(--muted); font-size:11.5px; }
+  .vg-bill-s{ font-size:11px; color:var(--muted); flex:0 0 auto; }
+  .vg-bill-s.ok{ color:#15803D; }
+  .vg-bill-v{ font-weight:700; white-space:nowrap; flex:0 0 auto; }
+  .vg-bill-total{ display:flex; justify-content:space-between; font-size:16px; font-weight:800; margin-top:12px; padding-top:10px; border-top:2px solid var(--border); }
+  @media (max-width:900px){ .vg-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } .vg-span2{ grid-column:1 / -1; } }
+  @media (max-width:600px){ .vg-grid{ grid-template-columns:minmax(0,1fr); } .vg-cols2{ grid-template-columns:minmax(0,1fr); } }
 </style>
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-05.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-05.5</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4078,23 +4107,24 @@ function escapeHtml(str){
 
 // ============================= VIAGENS =============================
 // Aba protegida (não pode ser excluída). Cada viagem é uma "pasta" com seções:
-// Capa, Resumo, Passeios (agrupados por dia) e Aluguel de carro.
+// Capa, Resumo, Passeios (agrupados por dia), Supermercado e Aluguel de carro.
 const VG_CORES = ["#2563EB","#16A34A","#7C3AED","#F97316","#DB2777","#0D9488"];
 const VG_CHECKLIST_PADRAO = ["Documentos (passaporte ou RG)","Seguro viagem","Reservas salvas no celular","Carregador e adaptador de tomada","Cartão e dinheiro na moeda local","Roupas para o clima"];
-const VG_FRASES = {
-  "Espanhol": [["¿Cuánto cuesta?","Quanto custa?"],["La cuenta, por favor.","A conta, por favor."],["¿Dónde está el baño?","Onde fica o banheiro?"],["Muchas gracias.","Muito obrigado(a)."],["No entiendo, ¿puede repetir?","Não entendi, pode repetir?"]],
-  "Inglês": [["How much is it?","Quanto custa?"],["The check, please.","A conta, por favor."],["Where is the restroom?","Onde fica o banheiro?"],["Thank you very much.","Muito obrigado(a)."],["Could you repeat that, please?","Pode repetir, por favor?"]]
-};
-const VG_SECOES = [["capa","🧭 Capa"],["resumo","📊 Resumo"],["passeios","📍 Passeios"],["car","🚗 Aluguel de carro"]];
+const VG_SECOES = [["capa","🧭 Capa"],["resumo","📊 Resumo"],["passeios","📍 Passeios"],["mercado","🛒 Supermercado"],["car","🚗 Aluguel de carro"]];
 const VG_CAR_NUM = ["diarias","valorDiaria","seguro","taxas","comb"];
+const VG_LISTAS = ["checklist","mercado"];
 let viagemAtual = null;
 let viagemSecao = 'capa';
 let viagemRetroPrevia = false;
+let vgPendente = false; // houve mudança de data/hora: redesenha só quando o campo perder o foco
+let vgTimer = null;
+let vgArrasto = null;   // linha sendo arrastada: {lista, i}
 
 // ---------- utilitários ----------
 function vgNum(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
 function vgMoney(n){ return vgNum(n) ? fmt(vgNum(n)) : ''; }
 function vgCot(n){ return vgNum(n) ? vgNum(n).toLocaleString('pt-BR', {maximumFractionDigits:6}) : ''; }
+function vgInt(n){ return Math.round(vgNum(n)).toLocaleString('pt-BR'); }
 function vgHojeISO(){
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -4115,6 +4145,25 @@ function vgSemana(iso){
   const s = d.toLocaleDateString('pt-BR', {weekday:'long'});
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+// Hora em 24h: aceita 9, 930, 0930, 9:30, 9h30, 14 → "HH:MM". Inválida → null.
+function vgHoraNorm(v){
+  const s = String(v || '').trim().toLowerCase().replace(/\s/g, '').replace('h', ':');
+  if(!s) return '';
+  const m = /^(\d{1,2}):?(\d{2})?$/.exec(s);
+  if(!m) return null;
+  const h = +m[1], mi = m[2] ? +m[2] : 0;
+  if(h > 23 || mi > 59) return null;
+  return String(h).padStart(2, '0') + ':' + String(mi).padStart(2, '0');
+}
+const VG_HORA_ATTR = 'inputmode="numeric" maxlength="5" placeholder="hh:mm" data-hora';
+// Ano digitado com 2 dígitos ("27" vira 0027 no campo de data) → 2027.
+function vgFixAno(iso){
+  const m = /^(\d{1,4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if(!m) return iso || '';
+  const y = +m[1];
+  if(y >= 100) return iso;
+  return String(y + 2000).padStart(4, '0') + '-' + m[2] + '-' + m[3];
+}
 function vgUrlSegura(u){
   u = String(u || '').trim();
   if(!u) return '';
@@ -4129,14 +4178,20 @@ function vgPeriodo(t){
   if(t.inicio) return `a partir de ${vgDataBR(t.inicio)}`;
   return 'Defina as datas de ida e volta';
 }
+// Moeda local da viagem: sem nada digitado (ou CLP) → pesos chilenos.
+function vgMoedaInfo(t){
+  const m = String(t.moeda || '').trim();
+  if(!m || m.toUpperCase() === 'CLP') return { cod:'CLP', nome:'pesos chilenos' };
+  return { cod:m, nome:m };
+}
 
 // ---------- dados ----------
 function vgNovaViagem(){
   return {
-    inicio:'', fim:'', orcamento:0, moeda:'', cotacao:0, cor:VG_CORES[0], idioma:'',
+    inicio:'', fim:'', orcamento:0, moeda:'', cotacao:0, cor:VG_CORES[0],
     checklist: VG_CHECKLIST_PADRAO.map(t=>({t, ok:false})),
-    passeios:[], frases:[], diario:[], playlist:'', galeria:'',
-    car:{ locadora:'', codigo:'', link:'', localR:'', dataR:'', horaR:'', localD:'', dataD:'', horaD:'', diarias:0, valorDiaria:0, seguro:0, taxas:0, comb:0, pago:false }
+    passeios:[], mercado:[], diario:[], playlist:'', galeria:'',
+    car:{ cancelado:false, locadora:'', codigo:'', link:'', localR:'', dataR:'', horaR:'', localD:'', dataD:'', horaD:'', diarias:0, valorDiaria:0, seguro:0, taxas:0, comb:0, pago:false }
   };
 }
 function vgNormalizar(t){
@@ -4144,8 +4199,14 @@ function vgNormalizar(t){
   Object.keys(base).forEach(k=>{
     if(t[k] === undefined || t[k] === null) t[k] = (k === 'checklist') ? [] : base[k];
   });
+  if(typeof t.car !== 'object') t.car = base.car;
   Object.keys(base.car).forEach(k=>{ if(t.car[k] === undefined || t.car[k] === null) t.car[k] = base.car[k]; });
-  ['checklist','passeios','frases','diario'].forEach(k=>{ if(!Array.isArray(t[k])) t[k] = []; });
+  ['checklist','passeios','mercado','diario'].forEach(k=>{ if(!Array.isArray(t[k])) t[k] = []; });
+  // corrige datas salvas com ano de 2 dígitos (ex.: 0027-01-01 → 2027-01-01)
+  t.inicio = vgFixAno(t.inicio); t.fim = vgFixAno(t.fim);
+  t.passeios.forEach(x=>{ x.d = vgFixAno(x.d); });
+  t.diario.forEach(x=>{ x.d = vgFixAno(x.d); });
+  t.car.dataR = vgFixAno(t.car.dataR); t.car.dataD = vgFixAno(t.car.dataD);
   return t;
 }
 function vgMigrar(data){
@@ -4163,12 +4224,18 @@ function vgMigrar(data){
 }
 
 // ---------- cálculos ----------
+function vgCarTotal(t){
+  const c = t.car;
+  if(c.cancelado) return 0;
+  return round2(vgNum(c.diarias) * vgNum(c.valorDiaria) + vgNum(c.seguro) + vgNum(c.taxas) + vgNum(c.comb));
+}
 function vgTotais(t){
-  let p = 0, pp = 0;
+  let p = 0, pp = 0, m = 0, mp = 0;
   t.passeios.forEach(x=>{ const v = vgNum(x.v); p += v; if(x.pago) pp += v; });
-  const c = vgNum(t.car.diarias) * vgNum(t.car.valorDiaria) + vgNum(t.car.seguro) + vgNum(t.car.taxas) + vgNum(t.car.comb);
-  const total = p + c, pago = pp + (t.car.pago ? c : 0);
-  return { p:round2(p), c:round2(c), total:round2(total), pago:round2(pago), aPagar:round2(total - pago) };
+  t.mercado.forEach(x=>{ const v = vgNum(x.v); m += v; if(x.ok) mp += v; });
+  const c = vgCarTotal(t);
+  const total = p + c + m, pago = pp + (t.car.pago ? c : 0) + mp;
+  return { p:round2(p), c:round2(c), m:round2(m), mComprado:round2(mp), total:round2(total), pago:round2(pago), aPagar:round2(total - pago) };
 }
 function vgOrdem(t){
   return t.passeios.map((_, i)=>i).sort((a, b)=>{
@@ -4199,14 +4266,21 @@ function vgContagem(t){
   return { big:String(dia), label:`dia ${dia} de ${total} · boa viagem!` };
 }
 
-// ---------- telas ----------
+// ---------- peças de tela ----------
+const VG_DATA_ATTR = 'min="2000-01-01" max="2099-12-31"';
 function vgCard(label, liveKey, valor, extra){
   return `<div class="summary-card"><div class="label">${label}</div><div class="value" data-live="${liveKey}">${valor}</div>${extra || ''}</div>`;
+}
+function vgMoverHTML(lista, i, n){
+  return `<span class="vg-mv"><button type="button" class="vg-mvb" data-act="mv" data-l="${lista}" data-i="${i}" data-dir="-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>▲</button><button type="button" class="vg-mvb" data-act="mv" data-l="${lista}" data-i="${i}" data-dir="1" aria-label="Descer" ${i === n - 1 ? 'disabled' : ''}>▼</button></span>`;
+}
+function vgGripHTML(){
+  return `<span class="vg-grip" draggable="true" title="Arraste para mudar a ordem" aria-hidden="true">⋮⋮</span>`;
 }
 function vgProximoHTML(t){
   const x = vgProximo(t);
   const titulo = `<div class="vg-card-title">📍 Próximo passeio</div>`;
-  if(!x) return titulo + `<p class="vg-muted">${t.passeios.length ? 'Nenhum passeio pela frente.' : 'Cadastre os passeios na seção Passeios.'}</p>`;
+  if(!x) return titulo + `<p class="vg-muted" style="margin:0;">${t.passeios.length ? 'Nenhum passeio pela frente.' : 'Cadastre os passeios na seção Passeios.'}</p>`;
   return titulo + `<div class="vg-next"><div class="name">${escapeHtml(x.n || 'Sem nome')}</div><div class="vg-muted">${escapeHtml(vgSemana(x.d))}, ${vgDataBR(x.d)}${x.h ? ' às ' + escapeHtml(x.h) : ''}</div><div style="font-weight:700;margin-top:4px;">R$ ${fmt(vgNum(x.v))}</div></div>`;
 }
 function vgRetroHTML(t){
@@ -4233,17 +4307,20 @@ function vgRetroHTML(t){
     + stat('Passeios', String(t.passeios.length))
     + stat('Dia mais caro', diaCaro ? `${vgDataBR(diaCaro).slice(0,5)} · R$ ${fmt(round2(porDia[diaCaro]))}` : '—')
     + stat('Passeio mais caro', passCaro ? escapeHtml(passCaro.n || 'Sem nome') : '—')
-    + stat('Aluguel de carro', 'R$ ' + fmt(T.c))
+    + stat('Supermercado', 'R$ ' + fmt(T.m))
+    + stat('Aluguel de carro', t.car.cancelado ? 'cancelado' : 'R$ ' + fmt(T.c))
     + stat('Média das notas', media)
     + `</div>` + (viagemRetroPrevia && !(t.fim && vgDiasEntre(t.fim, vgHojeISO()) > 0) ? `<button type="button" class="vg-btn" style="margin-top:10px;" data-act="retro-previa">Ocultar prévia</button>` : '');
 }
+
+// ---------- telas ----------
 function vgCapa(t){
   const c = vgContagem(t);
   const feitos = t.checklist.filter(x=>x.ok).length, tot = t.checklist.length;
   const pct = tot ? Math.round(feitos / tot * 100) : 0;
-  const lista = t.checklist.map((x, i)=>`<div class="vg-ck ${x.ok ? 'done' : ''}"><input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}"><button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
-  const frases = t.frases.map((x, i)=>`<div class="vg-fr"><input type="text" data-fr="${i}" data-f="es" placeholder="Na língua local" value="${escapeHtml(x.es)}"><input type="text" data-fr="${i}" data-f="pt" placeholder="Em português" value="${escapeHtml(x.pt)}"><button type="button" class="vg-x" data-act="fr-rm" data-i="${i}" aria-label="Remover frase">×</button></div>`).join('');
-  const diario = t.diario.map((e, i)=>({e, i})).reverse().map(({e, i})=>`<div class="vg-diary"><div class="vg-diary-top"><input type="date" data-di="${i}" data-f="d" value="${escapeHtml(e.d || '')}"><button type="button" class="vg-x" data-act="di-rm" data-i="${i}" aria-label="Remover entrada">×</button></div><textarea rows="3" data-di="${i}" data-f="txt" placeholder="Como foi o dia?">${escapeHtml(e.txt || '')}</textarea><div class="vg-nota"><span>Nota do dia</span><input type="range" min="0" max="10" step="1" data-di="${i}" data-f="nota" value="${vgNum(e.nota)}"><b data-nota="${i}">${vgNum(e.nota)}</b></div></div>`).join('');
+  const n = t.checklist.length;
+  const lista = t.checklist.map((x, i)=>`<div class="vg-ck ${x.ok ? 'done' : ''}" data-row data-lista="checklist" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}">${vgMoverHTML('checklist', i, n)}<button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const diario = t.diario.map((e, i)=>({e, i})).reverse().map(({e, i})=>`<div class="vg-diary"><div class="vg-diary-top"><input type="date" ${VG_DATA_ATTR} data-di="${i}" data-f="d" value="${escapeHtml(e.d || '')}"><button type="button" class="vg-x" data-act="di-rm" data-i="${i}" aria-label="Remover entrada">×</button></div><textarea rows="3" data-di="${i}" data-f="txt" placeholder="Como foi o dia?">${escapeHtml(e.txt || '')}</textarea><div class="vg-nota"><span>Nota do dia</span><input type="range" min="0" max="10" step="1" data-di="${i}" data-f="nota" value="${vgNum(e.nota)}"><b data-nota="${i}">${vgNum(e.nota)}</b></div></div>`).join('');
   const link = (campo, rotulo)=>{
     const url = vgUrlSegura(t[campo]);
     return `<div class="vg-linkrow"><label>${rotulo}<input type="text" data-k="${campo}" value="${escapeHtml(t[campo])}" placeholder="Cole o link aqui"></label>${url ? `<a class="vg-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir</a>` : ''}</div>`;
@@ -4258,8 +4335,8 @@ function vgCapa(t){
     <div class="vg-count"><div class="vg-count-big" data-live="count-big">${c.big}</div><div data-live="count-label">${escapeHtml(c.label)}</div></div>
   </div>
   <div class="vg-row">
-    <label>Ida<input type="date" data-k="inicio" value="${escapeHtml(t.inicio)}"></label>
-    <label>Volta<input type="date" data-k="fim" value="${escapeHtml(t.fim)}"></label>
+    <label>Ida<input type="date" ${VG_DATA_ATTR} data-k="inicio" value="${escapeHtml(t.inicio)}"></label>
+    <label>Volta<input type="date" ${VG_DATA_ATTR} data-k="fim" value="${escapeHtml(t.fim)}"></label>
     <span class="vg-colors" role="group" aria-label="Cor da viagem">${VG_CORES.map(cor=>`<button type="button" class="vg-dot ${cor === t.cor ? 'on' : ''}" style="background:${cor}" data-act="cor" data-cor="${cor}" aria-label="Cor ${cor}"></button>`).join('')}</span>
   </div>
   <div class="vg-plan">
@@ -4267,41 +4344,56 @@ function vgCapa(t){
     <div class="vg-bar"><div class="vg-bar-fill" data-live="plan-bar" style="width:${pct}%"></div></div>
   </div>
   <div class="vg-grid">
-    <div class="vg-card">
+    <div class="vg-card vg-span2">
       <div class="vg-card-title">✅ Checklist de mala <span class="vg-muted" data-live="ck-count">${feitos} de ${tot}</span></div>
-      ${lista}
+      <div class="vg-cols2">${lista}</div>
       <div class="vg-addline"><input type="text" id="vg-ck-new" placeholder="Novo item"><button type="button" class="vg-btn" data-act="ck-add">Adicionar</button></div>
-    </div>
-    <div class="vg-card" data-live="next">${vgProximoHTML(t)}</div>
-    <div class="vg-card">
-      <div class="vg-card-title">🗣 Frases úteis</div>
-      <label class="vg-label">Idioma
-        <select data-k="idioma">${['', 'Espanhol', 'Inglês', 'Outro'].map(o=>`<option value="${o}" ${t.idioma === o ? 'selected' : ''}>${o || 'Escolha o idioma'}</option>`).join('')}</select>
-      </label>
-      ${frases}
-      <div class="vg-addline"><button type="button" class="vg-btn" data-act="fr-add">+ Frase</button></div>
-    </div>
-    <div class="vg-card">
-      <div class="vg-card-title">📓 Diário da viagem</div>
-      ${diario || '<p class="vg-muted">Um registro por dia, para ler depois.</p>'}
-      <div class="vg-addline"><button type="button" class="vg-btn" data-act="di-add">+ Nova entrada</button></div>
     </div>
     <div class="vg-card">
       <div class="vg-card-title">🔗 Links da viagem</div>
       ${link('playlist', 'Playlist (Spotify, YouTube…)')}
       ${link('galeria', 'Galeria de fotos (álbum)')}
     </div>
+    <div class="vg-card" data-live="next">${vgProximoHTML(t)}</div>
+    <div class="vg-card vg-span2">
+      <div class="vg-card-title">📓 Diário da viagem</div>
+      ${diario || '<p class="vg-muted">Um registro por dia, para ler depois.</p>'}
+      <div class="vg-addline"><button type="button" class="vg-btn" data-act="di-add">+ Nova entrada</button></div>
+    </div>
     <div class="vg-card vg-card-wide" data-live="retro">${vgRetroHTML(t)}</div>
   </div>`;
 }
+function vgDetalhamento(t){
+  const T = vgTotais(t), blocos = [];
+  const linha = (nome, valor, pago, sub)=>`<div class="vg-bill"><div class="vg-bill-n">${escapeHtml(nome)}${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</div><div class="vg-bill-s ${pago ? 'ok' : ''}">${pago ? 'pago' : 'a pagar'}</div><div class="vg-bill-v">R$ ${fmt(valor)}</div></div>`;
+  const ps = vgOrdem(t).map(i=>t.passeios[i]).filter(x=>vgNum(x.v) > 0);
+  if(ps.length) blocos.push(['📍 Passeios', ps.map(x=>linha(x.n || 'Sem nome', vgNum(x.v), x.pago, (x.d ? vgDataBR(x.d).slice(0,5) : '') + (x.h ? (x.d ? ' · ' : '') + x.h : ''))).join(''), T.p, ps.length]);
+  const c = t.car;
+  if(!c.cancelado){
+    const cl = [];
+    const dTot = round2(vgNum(c.diarias) * vgNum(c.valorDiaria));
+    if(dTot > 0) cl.push(linha('Diárias', dTot, c.pago, `${vgNum(c.diarias)} × R$ ${fmt(vgNum(c.valorDiaria))}`));
+    [['seguro','Seguro'],['taxas','Taxas'],['comb','Combustível e pedágios']].forEach(([k, nome])=>{ if(vgNum(c[k]) > 0) cl.push(linha(nome, vgNum(c[k]), c.pago, '')); });
+    if(cl.length) blocos.push(['🚗 Aluguel de carro', cl.join(''), T.c, cl.length]);
+  }
+  const ms = t.mercado.filter(x=>vgNum(x.v) > 0);
+  if(ms.length) blocos.push(['🛒 Supermercado', ms.map(x=>linha(x.n || 'Sem nome', vgNum(x.v), x.ok, '')).join('').replace(/>pago</g, '>comprado<').replace(/>a pagar</g, '>a comprar<'), T.m, ms.length]);
+  const qtd = blocos.reduce((s, b)=>s + b[3], 0);
+  const corpo = blocos.length
+    ? `<div class="vg-bills">${blocos.map(b=>`<div class="vg-bill-block"><div class="vg-bill-head"><span>${b[0]}</span><b>R$ ${fmt(b[2])}</b></div>${b[1]}</div>`).join('')}</div><div class="vg-bill-total"><span>Total cobrado</span><b>R$ ${fmt(T.total)}</b></div>`
+    : `<p class="vg-muted" style="margin:0;">Ainda não há nada com valor. Cadastre passeios, supermercado ou aluguel de carro e tudo aparece aqui.</p>`;
+  return `<div class="vg-card" style="margin-top:12px;"><div class="vg-card-title">🧾 O que está sendo cobrado <span class="vg-muted">${qtd} ${qtd === 1 ? 'item' : 'itens'}</span></div>${corpo}</div>`;
+}
 function vgResumo(t){
-  const T = vgTotais(t);
+  const T = vgTotais(t), info = vgMoedaInfo(t);
   const secCard = (icone, nome, valor, liveKey, sub, destino)=>`<div class="summary-card vg-seccard"><div><div class="label">${icone} ${nome}</div><div class="value" data-live="${liveKey}">R$ ${fmt(valor)}</div><div class="vg-muted" data-live="${liveKey}-sub">${sub}</div></div><button type="button" class="vg-btn" data-act="secao" data-s="${destino}">Abrir</button></div>`;
-  const nP = t.passeios.length;
+  const nP = t.passeios.length, nM = t.mercado.length;
+  const carSub = t.car.cancelado ? 'aluguel cancelado' : (t.car.dataR && t.car.dataD ? `${vgDataBR(t.car.dataR).slice(0,5)} a ${vgDataBR(t.car.dataD).slice(0,5)}` : 'sem datas');
   return `
   <div class="summary-grid">
     ${secCard('📍', 'passeios', T.p, 'p-total', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`, 'passeios')}
-    ${secCard('🚗', 'aluguel de carro', T.c, 'c-total', t.car.dataR && t.car.dataD ? `${vgDataBR(t.car.dataR).slice(0,5)} a ${vgDataBR(t.car.dataD).slice(0,5)}` : 'sem datas', 'car')}
+    ${secCard('🛒', 'supermercado', T.m, 'm-total', `${nM} ${nM === 1 ? 'item' : 'itens'}`, 'mercado')}
+    ${secCard('🚗', 'aluguel de carro', T.c, 'c-total', carSub, 'car')}
   </div>
   <div class="vg-row">
     <label>Orçamento da viagem (R$)<input type="text" inputmode="decimal" data-k="orcamento" value="${vgMoney(t.orcamento)}" placeholder="0,00" class="vg-right"></label>
@@ -4311,16 +4403,19 @@ function vgResumo(t){
   <div class="summary-grid">
     ${vgCard('total da viagem', 'total', 'R$ ' + fmt(T.total))}
     ${vgCard('já pago', 'pago', 'R$ ' + fmt(T.pago))}
-    ${vgCard('a pagar', 'apagar', 'R$ ' + fmt(T.aPagar))}
+    ${vgCard('a pagar', 'apagar', 'R$ ' + fmt(T.aPagar), '<div class="vg-muted" data-live="apagar-conv"></div>')}
+    ${vgCard('restam do orçamento', 'resta', '—')}
+    ${vgCard(`<span data-live="resta-conv-label">restam em ${escapeHtml(info.nome)}</span>`, 'resta-conv', '—', '<div class="vg-muted" data-live="resta-conv-sub"></div>')}
   </div>
   <div class="vg-card" style="margin-top:12px;">
     <div class="vg-card-title">💱 Câmbio</div>
-    <div class="vg-row">
-      <label>Moeda local<input type="text" data-k="moeda" value="${escapeHtml(t.moeda)}" placeholder="Ex.: CLP, MXN"></label>
+    <div class="vg-row" style="margin-bottom:0;">
+      <label>Moeda local<input type="text" data-k="moeda" value="${escapeHtml(t.moeda)}" placeholder="CLP (pesos chilenos)"></label>
       <label>1 R$ equivale a<input type="text" inputmode="decimal" data-k="cotacao" value="${vgCot(t.cotacao)}" placeholder="0,00" class="vg-right"></label>
       <span class="vg-note" data-live="cambio"></span>
     </div>
-  </div>`;
+  </div>
+  ${vgDetalhamento(t)}`;
 }
 function vgPasseios(t){
   const grupos = [], mapa = {};
@@ -4343,8 +4438,8 @@ function vgPasseios(t){
       const x = t.passeios[i];
       return `<tr>
         <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
-        <td><input type="date" data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
-        <td><input type="time" data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"></td>
+        <td><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
+        <td><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"></td>
         <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
         <td class="c"><button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
@@ -4363,16 +4458,37 @@ function vgPasseios(t){
   return html + `<div class="vg-addbar"><button type="button" class="vg-btn" data-act="p-add" data-d="">+ Adicionar passeio</button></div>
     <div class="summary-card" style="margin-top:12px;"><div class="label">total de passeios</div><div class="value" data-live="p-total">R$ ${fmt(T.p)}</div><div class="vg-muted" data-live="p-count">${n} ${n === 1 ? 'passeio' : 'passeios'}</div></div>`;
 }
+function vgMercado(t){
+  const n = t.mercado.length, T = vgTotais(t);
+  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00" aria-label="Valor em reais">${vgMoverHTML('mercado', i, n)}<button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  return `<p class="vg-muted" style="margin:0 0 10px;">Lista de compras da viagem. O total entra no resumo e no total da viagem; marque o que já comprou.</p>
+    ${n ? `<div class="vg-cols2">${linhas}</div>` : `<p class="vg-muted">Nenhum item ainda. Use "+ Adicionar item".</p>`}
+    <div class="vg-addbar"><button type="button" class="vg-btn" data-act="m-add">+ Adicionar item</button></div>
+    <div class="summary-grid" style="margin-top:12px;">
+      ${vgCard('total do supermercado', 'm-total', 'R$ ' + fmt(T.m), `<div class="vg-muted" data-live="m-total-sub">${n} ${n === 1 ? 'item' : 'itens'}</div>`)}
+      ${vgCard('já comprado', 'm-comprado', 'R$ ' + fmt(T.mComprado))}
+      ${vgCard('falta comprar', 'm-falta', 'R$ ' + fmt(round2(T.m - T.mComprado)))}
+    </div>`;
+}
 function vgCar(t){
   const c = t.car, T = vgTotais(t);
+  if(c.cancelado){
+    return `<div class="vg-cancelado">
+      <div class="vg-card-title" style="margin-bottom:4px;">🚫 Aluguel de carro cancelado</div>
+      <p class="vg-muted" style="margin:0 0 10px;">Nada desta seção entra no total da viagem nem no resumo. Os dados que você já preencheu continuam guardados.</p>
+      <button type="button" class="vg-btn" data-act="car-reativar">Reativar aluguel</button>
+    </div>`;
+  }
   const campo = (f, rotulo, tipo, ph)=>{
     const ehNum = VG_CAR_NUM.includes(f);
     const valor = ehNum ? (f === 'diarias' ? (vgNum(c[f]) || '') : vgMoney(c[f])) : escapeHtml(c[f] || '');
-    return `<label>${rotulo}<input type="${tipo}" ${ehNum ? 'inputmode="decimal" class="vg-right"' : ''} data-car="${f}" value="${valor}" placeholder="${ph || ''}"></label>`;
+    const extra = tipo === 'date' ? ' ' + VG_DATA_ATTR : (tipo === 'time' ? ' ' + VG_HORA_ATTR : '');
+    return `<label>${rotulo}<input type="${tipo === 'time' ? 'text' : tipo}"${extra} ${ehNum ? 'inputmode="decimal" class="vg-right"' : ''} data-car="${f}" value="${valor}" placeholder="${ph || ''}"></label>`;
   };
   const grupo = (titulo, inner)=>`<div class="vg-group"><div class="vg-group-title">${titulo}</div><div class="vg-form-grid">${inner}</div></div>`;
   const url = vgUrlSegura(c.link);
-  return grupo('Reserva', campo('locadora', 'Locadora', 'text', 'Nome da locadora') + campo('codigo', 'Código da reserva', 'text', 'Opcional')
+  return `<div class="vg-car-top"><span class="vg-muted">Não vai alugar carro? Cancele e nada daqui entra no total.</span><button type="button" class="vg-btn danger" data-act="car-cancelar">Cancelar aluguel</button></div>`
+    + grupo('Reserva', campo('locadora', 'Locadora', 'text', 'Nome da locadora') + campo('codigo', 'Código da reserva', 'text', 'Opcional')
       + `<div class="vg-linkrow">${campo('link', 'Link da reserva', 'text', 'Cole o link aqui')}${url ? `<a class="vg-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Abrir</a>` : ''}</div>`)
     + grupo('Retirada', campo('localR', 'Local', 'text', 'Aeroporto ou loja') + campo('dataR', 'Data', 'date') + campo('horaR', 'Hora', 'time'))
     + grupo('Devolução', campo('localD', 'Local', 'text', 'Aeroporto ou loja') + campo('dataD', 'Data', 'date') + campo('horaD', 'Hora', 'time'))
@@ -4397,8 +4513,8 @@ function renderViagensView(){
     <button type="button" class="vg-btn" data-act="renomear">Renomear</button>
     <button type="button" class="vg-btn" data-act="pdf">PDF</button>
     <button type="button" class="vg-btn danger" data-act="excluir">Excluir viagem</button></div>`;
-  html += viagemSecao === 'resumo' ? vgResumo(t) : (viagemSecao === 'passeios' ? vgPasseios(t) : (viagemSecao === 'car' ? vgCar(t) : vgCapa(t)));
-  return html + `</div>`;
+  const corpo = { resumo:vgResumo, passeios:vgPasseios, mercado:vgMercado, car:vgCar }[viagemSecao] || vgCapa;
+  return html + corpo(t) + `</div>`;
 }
 
 // ---------- atualização ao vivo (sem redesenhar os campos) ----------
@@ -4406,12 +4522,14 @@ function vgRefresh(){
   const t = DATA.viagens.itens[viagemAtual];
   const root = document.getElementById('vg-root');
   if(!t || !root) return;
-  const T = vgTotais(t);
+  const T = vgTotais(t), info = vgMoedaInfo(t);
   const set = (k, v)=>{ root.querySelectorAll(`[data-live="${k}"]`).forEach(el=>{ el.textContent = v; }); };
   set('total', 'R$ ' + fmt(T.total)); set('pago', 'R$ ' + fmt(T.pago)); set('apagar', 'R$ ' + fmt(T.aPagar));
-  set('p-total', 'R$ ' + fmt(T.p)); set('c-total', 'R$ ' + fmt(T.c));
-  const nP = t.passeios.length;
+  set('p-total', 'R$ ' + fmt(T.p)); set('c-total', 'R$ ' + fmt(T.c)); set('m-total', 'R$ ' + fmt(T.m));
+  const nP = t.passeios.length, nM = t.mercado.length;
   set('p-count', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`); set('p-total-sub', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`);
+  set('m-total-sub', `${nM} ${nM === 1 ? 'item' : 'itens'}`);
+  set('m-comprado', 'R$ ' + fmt(T.mComprado)); set('m-falta', 'R$ ' + fmt(round2(T.m - T.mComprado)));
   const orc = vgNum(t.orcamento), ratio = orc > 0 ? T.total / orc : 0;
   root.querySelectorAll('[data-live="bar"]').forEach(el=>{
     el.style.width = Math.min(100, Math.round(ratio * 100)) + '%';
@@ -4421,8 +4539,19 @@ function vgRefresh(){
     el.textContent = orc > 0 ? (ratio > 1 ? `Estourou em R$ ${fmt(round2(T.total - orc))}` : `Restam R$ ${fmt(round2(orc - T.total))} (${Math.round(ratio * 100)}% usado)`) : 'Defina um orçamento para acompanhar quanto já usou.';
     el.style.color = ratio > 1 ? 'var(--red)' : 'var(--muted)';
   });
-  const cot = vgNum(t.cotacao), moeda = String(t.moeda || '').trim();
-  set('cambio', (cot > 0 && moeda) ? `Total ≈ ${(T.total * cot).toLocaleString('pt-BR', {maximumFractionDigits:0})} ${moeda}` : 'Informe a moeda e a cotação para ver a conversão.');
+  // conversão para a moeda local (pesos chilenos por padrão)
+  const cot = vgNum(t.cotacao);
+  const resta = orc > 0 ? round2(orc - T.total) : null;
+  set('resta', resta === null ? '—' : (resta < 0 ? '−R$ ' + fmt(-resta) : 'R$ ' + fmt(resta)));
+  set('resta-conv-label', `restam em ${info.nome}`);
+  if(resta === null){ set('resta-conv', '—'); set('resta-conv-sub', 'defina o orçamento'); }
+  else if(!(cot > 0)){ set('resta-conv', '—'); set('resta-conv-sub', 'informe a cotação no câmbio'); }
+  else {
+    set('resta-conv', `${resta < 0 ? '−' : ''}${vgInt(Math.abs(resta) * cot)} ${info.cod}`);
+    set('resta-conv-sub', `1 R$ = ${vgCot(cot)} ${info.cod}${resta < 0 ? ' · acima do orçamento' : ''}`);
+  }
+  set('apagar-conv', cot > 0 ? `≈ ${vgInt(T.aPagar * cot)} ${info.cod}` : '');
+  set('cambio', cot > 0 ? `Total ≈ ${vgInt(T.total * cot)} ${info.cod}` : 'Informe a cotação para ver a conversão.');
   root.querySelectorAll('[data-sub]').forEach(el=>{
     const dd = el.dataset.sub;
     el.textContent = 'R$ ' + fmt(round2(t.passeios.reduce((s, x)=>s + ((x.d || '') === dd ? vgNum(x.v) : 0), 0)));
@@ -4441,16 +4570,17 @@ function vgAplicar(el){
   const t = DATA.viagens.itens[viagemAtual];
   if(!t) return false;
   const d = el.dataset;
-  const val = el.type === 'checkbox' ? el.checked : el.value;
+  let val = el.type === 'checkbox' ? el.checked : el.value;
+  if(d.hora !== undefined){ val = vgHoraNorm(val); if(val === null) return false; }
   if(d.p !== undefined){
     const x = t.passeios[+d.p]; if(!x) return false;
     x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : (d.f === 'pago' ? !!val : val);
   } else if(d.ck !== undefined){
     const x = t.checklist[+d.ck]; if(!x) return false;
     x[d.f] = d.f === 'ok' ? !!val : val;
-  } else if(d.fr !== undefined){
-    const x = t.frases[+d.fr]; if(!x) return false;
-    x[d.f] = val;
+  } else if(d.m !== undefined){
+    const x = t.mercado[+d.m]; if(!x) return false;
+    x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : (d.f === 'ok' ? !!val : val);
   } else if(d.di !== undefined){
     const x = t.diario[+d.di]; if(!x) return false;
     x[d.f] = d.f === 'nota' ? vgNum(val) : val;
@@ -4463,8 +4593,9 @@ function vgAplicar(el){
 }
 function vgOnInput(e){
   const el = e.target;
+  if(el.dataset.hora !== undefined) return; // hora só é gravada ao sair do campo
   if(!vgAplicar(el)) return;
-  if(el.dataset.ck !== undefined && el.dataset.f === 'ok'){
+  if((el.dataset.ck !== undefined || el.dataset.m !== undefined) && el.dataset.f === 'ok'){
     const linha = el.closest('.vg-ck');
     if(linha) linha.classList.toggle('done', el.checked);
   }
@@ -4476,26 +4607,64 @@ function vgOnInput(e){
 }
 function vgOnChange(e){
   const el = e.target, d = el.dataset;
-  if(!vgAplicar(el)) return;
   const t = DATA.viagens.itens[viagemAtual];
+  if(d.hora !== undefined && vgHoraNorm(el.value) === null){
+    // hora inválida: volta para o último valor salvo
+    el.value = d.p !== undefined ? ((t.passeios[+d.p] || {}).h || '') : (t.car[d.car] || '');
+    return;
+  }
+  if(!vgAplicar(el)) return;
+  if(d.hora !== undefined) el.value = vgHoraNorm(el.value);
   if(d.p !== undefined && d.f === 'v') el.value = vgMoney(t.passeios[+d.p].v);
+  if(d.m !== undefined && d.f === 'v') el.value = vgMoney(t.mercado[+d.m].v);
   if(d.car !== undefined && VG_CAR_NUM.includes(d.car) && d.car !== 'diarias') el.value = vgMoney(t.car[d.car]);
   if(d.k === 'orcamento') el.value = vgMoney(t.orcamento);
   if(d.k === 'cotacao') el.value = vgCot(t.cotacao);
-  if(d.k === 'idioma' && !t.frases.length && VG_FRASES[t.idioma]){
-    t.frases = VG_FRASES[t.idioma].map(([es, pt])=>({es, pt}));
-  }
   save();
+  const segmentado = el.type === 'date' || el.type === 'time' || d.hora !== undefined;
   const estrutural = (d.p !== undefined && (d.f === 'd' || d.f === 'h'))
-    || ['idioma','playlist','galeria','inicio','fim'].includes(d.k) || d.car === 'link';
-  if(estrutural) vgRender(); else vgRefresh();
+    || ['playlist','galeria','inicio','fim'].includes(d.k) || d.car === 'link';
+  if(estrutural && segmentado){ vgPendente = true; vgRefresh(); }   // não redesenha enquanto digita a data
+  else if(estrutural){ vgAgendarRender(); }
+  else vgRefresh();
+}
+// Ao sair de um campo de data/hora: corrige ano de 2 dígitos e só então reagrupa os passeios.
+function vgOnFocusOut(e){
+  const el = e.target;
+  if(!el || el.tagName !== 'INPUT') return;
+  if(el.type === 'date'){
+    const fx = vgFixAno(el.value);
+    if(fx !== el.value){ el.value = fx; vgAplicar(el); save(); vgPendente = true; }
+  }
+  if(vgPendente && (el.type === 'date' || el.dataset.hora !== undefined)){ vgPendente = false; vgAgendarRender(); }
+}
+function vgAgendarRender(){
+  clearTimeout(vgTimer);
+  vgTimer = setTimeout(()=>{ vgTimer = null; vgRender(); }, 200);
+}
+function vgFoco(el){
+  if(!el || !el.dataset) return null;
+  const d = el.dataset;
+  for(const k of ['p','ck','di','m','car','k']){
+    if(d[k] !== undefined) return `[data-${k}="${d[k]}"]` + (d.f !== undefined ? `[data-f="${d.f}"]` : '');
+  }
+  return el.id ? '#' + el.id : null;
 }
 function vgRender(){
+  clearTimeout(vgTimer); vgTimer = null; vgPendente = false;
   const content = document.getElementById('content');
   if(!content || currentTab !== 'Viagens') return;
+  const ativo = document.activeElement;
+  const sel = (ativo && content.contains(ativo)) ? vgFoco(ativo) : null;
+  let pos = null;
+  try{ pos = ativo.selectionStart; }catch(_){}
   content.innerHTML = renderViagensView();
   attachViagensEvents();
   vgRefresh();
+  if(sel){
+    const n = content.querySelector(sel);
+    if(n){ n.focus(); if(typeof pos === 'number'){ try{ n.setSelectionRange(pos, pos); }catch(_){} } }
+  }
 }
 function vgNomeValido(nome, ignorar){
   nome = String(nome || '').trim();
@@ -4503,6 +4672,15 @@ function vgNomeValido(nome, ignorar){
   const existe = DATA.viagens.ordem.some(n=>n !== ignorar && n.trim().toLowerCase() === nome.toLowerCase());
   if(existe){ alert(`Já existe uma viagem chamada "${nome}".`); return ''; }
   return nome;
+}
+function vgMoverItem(lista, de, para){
+  const t = DATA.viagens.itens[viagemAtual];
+  if(!t || !VG_LISTAS.includes(lista)) return false;
+  const arr = t[lista];
+  if(de === para || de < 0 || para < 0 || de >= arr.length || para >= arr.length) return false;
+  const [it] = arr.splice(de, 1);
+  arr.splice(para, 0, it);
+  return true;
 }
 function vgOnClick(e){
   const b = e.target.closest('[data-act]');
@@ -4545,8 +4723,13 @@ function vgOnClick(e){
       t.checklist.push({t:txt, ok:false}); break;
     }
     case 'ck-rm': t.checklist.splice(+d.i, 1); break;
-    case 'fr-add': t.frases.push({es:'', pt:''}); break;
-    case 'fr-rm': t.frases.splice(+d.i, 1); break;
+    case 'mv': if(!vgMoverItem(d.l, +d.i, +d.i + +d.dir)) return; break;
+    case 'm-add': t.mercado.push({n:'', v:0, ok:false}); break;
+    case 'm-rm':
+      if(t.mercado[+d.i] && t.mercado[+d.i].n && !confirm('Remover este item da lista?')) return;
+      t.mercado.splice(+d.i, 1); break;
+    case 'car-cancelar': t.car.cancelado = true; break;
+    case 'car-reativar': t.car.cancelado = false; break;
     case 'di-add': t.diario.push({d:vgHojeISO(), txt:'', nota:8}); break;
     case 'di-rm':
       if(t.diario[+d.i] && t.diario[+d.i].txt && !confirm('Remover esta entrada do diário?')) return;
@@ -4568,10 +4751,17 @@ function vgOnClick(e){
   save();
   vgRender();
   if(d.act === 'ck-add'){ const i = document.getElementById('vg-ck-new'); if(i) i.focus(); }
+  if(d.act === 'm-add'){
+    const i = document.querySelector(`[data-m="${t.mercado.length - 1}"][data-f="n"]`);
+    if(i) i.focus();
+  }
   if(d.act === 'p-add'){
     const i = document.querySelector(`[data-p="${t.passeios.length - 1}"][data-f="n"]`);
     if(i) i.focus();
   }
+}
+function vgLimparArrasto(root){
+  root.querySelectorAll('.dragging, .over').forEach(el=>el.classList.remove('dragging', 'over'));
 }
 function attachViagensEvents(){
   const root = document.getElementById('vg-root');
@@ -4579,9 +4769,43 @@ function attachViagensEvents(){
   root.addEventListener('input', vgOnInput);
   root.addEventListener('change', vgOnChange);
   root.addEventListener('click', vgOnClick);
+  root.addEventListener('focusout', vgOnFocusOut);
   root.addEventListener('keydown', e=>{
     if(e.key === 'Enter' && e.target.id === 'vg-ck-new'){ e.preventDefault(); vgOnClick({target: root.querySelector('[data-act="ck-add"]')}); }
   });
+  // arrastar e soltar para mudar a ordem (checklist e supermercado)
+  root.addEventListener('dragstart', e=>{
+    const grip = e.target.closest ? e.target.closest('.vg-grip') : null;
+    if(!grip) return;
+    const linha = grip.closest('[data-row]');
+    if(!linha) return;
+    vgArrasto = { lista: linha.dataset.lista, i: +linha.dataset.i };
+    if(e.dataTransfer){
+      e.dataTransfer.effectAllowed = 'move';
+      try{ e.dataTransfer.setData('text/plain', 'vg'); }catch(_){}
+      try{ e.dataTransfer.setDragImage(linha, 12, 12); }catch(_){}
+    }
+    linha.classList.add('dragging');
+  });
+  root.addEventListener('dragover', e=>{
+    if(!vgArrasto) return;
+    const linha = e.target.closest ? e.target.closest('[data-row]') : null;
+    if(!linha || linha.dataset.lista !== vgArrasto.lista) return;
+    e.preventDefault();
+    if(e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    root.querySelectorAll('.over').forEach(el=>{ if(el !== linha) el.classList.remove('over'); });
+    linha.classList.add('over');
+  });
+  root.addEventListener('drop', e=>{
+    if(!vgArrasto) return;
+    const linha = e.target.closest ? e.target.closest('[data-row]') : null;
+    if(!linha || linha.dataset.lista !== vgArrasto.lista) return;
+    e.preventDefault();
+    const { lista, i } = vgArrasto;
+    vgArrasto = null;
+    if(vgMoverItem(lista, i, +linha.dataset.i)){ save(); vgRender(); } else { vgLimparArrasto(root); }
+  });
+  root.addEventListener('dragend', ()=>{ vgArrasto = null; vgLimparArrasto(root); });
 }
 
 // ---------- PDF ----------
@@ -4597,13 +4821,15 @@ function vgExportarPdf(nome){
     <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="h">${escapeHtml(x.h || '')}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td><td class="s">${x.pago ? 'pago' : 'a pagar'}</td></tr>`).join('')}</tbody></table>`;
   }).join('') || '<p class="m">Nenhum passeio cadastrado.</p>';
   const c = t.car;
-  const temCarro = c.locadora || c.dataR || c.dataD || T.c > 0;
+  const temCarro = !c.cancelado && (c.locadora || c.dataR || c.dataD || T.c > 0);
   const carro = temCarro ? `<h2>Aluguel de carro</h2><div class="box">
     <div><b>${escapeHtml(c.locadora || 'Locadora')}</b>${c.codigo ? ' · reserva ' + escapeHtml(c.codigo) : ''}</div>
     <div>Retirada: ${escapeHtml(c.localR || '—')} · ${c.dataR ? vgDataBR(c.dataR) : '—'} ${escapeHtml(c.horaR || '')}</div>
     <div>Devolução: ${escapeHtml(c.localD || '—')} · ${c.dataD ? vgDataBR(c.dataD) : '—'} ${escapeHtml(c.horaD || '')}</div>
     <div>${vgNum(c.diarias)} diária(s) × R$ ${fmt(vgNum(c.valorDiaria))} + seguro R$ ${fmt(vgNum(c.seguro))} + taxas R$ ${fmt(vgNum(c.taxas))} + combustível e pedágios R$ ${fmt(vgNum(c.comb))}</div>
     <div><b>Total: R$ ${fmt(T.c)}</b> · ${c.pago ? 'reserva paga' : 'a pagar'}</div></div>` : '';
+  const temMercado = t.mercado.some(x=>x.n || vgNum(x.v));
+  const mercado = temMercado ? `<h2>Supermercado</h2><table><tbody>${t.mercado.map(x=>`<tr class="${x.ok ? 'ok' : ''}"><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td><td class="s">${x.ok ? 'comprado' : 'a comprar'}</td></tr>`).join('')}</tbody></table><div class="m" style="margin-top:6px;">Total do supermercado: <b>R$ ${fmt(T.m)}</b></div>` : '';
   const lista = t.checklist.length ? `<h2>Checklist</h2><ul>${t.checklist.map(x=>`<li class="${x.ok ? 'ok' : ''}">${x.ok ? '☑' : '☐'} ${escapeHtml(x.t)}</li>`).join('')}</ul>` : '';
   const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(nome)} · viagem</title>
 <style>
@@ -4614,7 +4840,7 @@ function vgExportarPdf(nome){
   h2{ font-size:15px; margin:22px 0 8px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
   h3{ font-size:13px; margin:14px 0 4px; display:flex; justify-content:space-between; } h3 span{ color:#475569; }
   .cards{ display:flex; gap:10px; margin-top:16px; } .cards div{ flex:1; background:#F8FAFC; border-radius:8px; padding:10px 12px; font-size:11px; color:#64748B; } .cards b{ display:block; font-size:16px; color:#0F223D; margin-top:2px; }
-  table{ width:100%; border-collapse:collapse; font-size:12.5px; } td{ padding:5px 4px; border-bottom:1px solid #F1F5F9; } td.h{ width:52px; color:#64748B; } td.r{ text-align:right; white-space:nowrap; } td.s{ width:60px; text-align:right; font-size:11px; color:#64748B; } tr.ok td.s{ color:#15803D; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; } td{ padding:5px 4px; border-bottom:1px solid #F1F5F9; } td.h{ width:52px; color:#64748B; } td.r{ text-align:right; white-space:nowrap; } td.s{ width:70px; text-align:right; font-size:11px; color:#64748B; } tr.ok td.s{ color:#15803D; }
   .box{ background:#F8FAFC; border-radius:8px; padding:10px 14px; font-size:12.5px; line-height:1.7; }
   ul{ list-style:none; padding:0; margin:0; font-size:12.5px; line-height:1.8; } li.ok{ color:#64748B; }
   .m{ color:#64748B; font-size:12.5px; } .f{ margin-top:26px; font-size:10px; color:#94A3B8; display:flex; justify-content:space-between; }
@@ -4633,7 +4859,7 @@ function vgExportarPdf(nome){
     <div>Orçamento<b>${orc > 0 ? 'R$ ' + fmt(orc) : '—'}</b></div>
   </div>
   <h2>Passeios</h2>${dias}
-  ${carro}${lista}
+  ${mercado}${carro}${lista}
   <div class="f"><span>${escapeHtml(nome)} · controle de viagens</span><span>gerado em ${hoje}</span></div>
 </div>
 <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),500));<\/script>
