@@ -1030,6 +1030,13 @@
   .vg-bill-total{ display:flex; justify-content:space-between; font-size:16px; font-weight:800; margin-top:12px; padding-top:10px; border-top:2px solid var(--border); }
   @media (max-width:900px){ .vg-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } .vg-span2{ grid-column:1 / -1; } }
   @media (max-width:600px){ .vg-grid{ grid-template-columns:minmax(0,1fr); } .vg-cols2{ grid-template-columns:minmax(0,1fr); } }
+  tr.vg-prow.done td{ background:#EEF0F3; }
+  tr.vg-prow.done td:first-child{ border-radius:8px 0 0 8px; }
+  tr.vg-prow.done td:last-child{ border-radius:0 8px 8px 0; }
+  #vg-root tr.vg-prow.done input[type=text], #vg-root tr.vg-prow.done input[type=date]{ border-color:transparent; background:transparent; color:#9CA3AF; text-decoration:line-through; opacity:0.6; }
+  .vg-side{ display:flex; flex-direction:column; gap:12px; min-width:0; }
+  @media (max-width:900px){ .vg-side{ grid-column:1 / -1; } }
+  .vg-grid > .vg-card.vg-span2:first-child{ align-self:stretch; }
 </style>
 </head>
 <body>
@@ -4349,12 +4356,14 @@ function vgCapa(t){
       <div class="vg-cols2">${lista}</div>
       <div class="vg-addline"><input type="text" id="vg-ck-new" placeholder="Novo item"><button type="button" class="vg-btn" data-act="ck-add">Adicionar</button></div>
     </div>
+    <div class="vg-side">
     <div class="vg-card">
       <div class="vg-card-title">🔗 Links da viagem</div>
       ${link('playlist', 'Playlist (Spotify, YouTube…)')}
       ${link('galeria', 'Galeria de fotos (álbum)')}
     </div>
     <div class="vg-card" data-live="next">${vgProximoHTML(t)}</div>
+    </div>
     <div class="vg-card vg-span2">
       <div class="vg-card-title">📓 Diário da viagem</div>
       ${diario || '<p class="vg-muted">Um registro por dia, para ler depois.</p>'}
@@ -4436,7 +4445,7 @@ function vgPasseios(t){
     const sub = round2(g.itens.reduce((s, i)=>s + vgNum(t.passeios[i].v), 0));
     const linhas = g.itens.map(i=>{
       const x = t.passeios[i];
-      return `<tr>
+      return `<tr class="vg-prow ${x.pago ? 'done' : ''}">
         <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
         <td><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
         <td><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"></td>
@@ -4595,6 +4604,10 @@ function vgOnInput(e){
   const el = e.target;
   if(el.dataset.hora !== undefined) return; // hora só é gravada ao sair do campo
   if(!vgAplicar(el)) return;
+  if(el.dataset.p !== undefined && el.dataset.f === 'pago'){
+    const tr = el.closest('tr');
+    if(tr) tr.classList.toggle('done', el.checked);
+  }
   if((el.dataset.ck !== undefined || el.dataset.m !== undefined) && el.dataset.f === 'ok'){
     const linha = el.closest('.vg-ck');
     if(linha) linha.classList.toggle('done', el.checked);
