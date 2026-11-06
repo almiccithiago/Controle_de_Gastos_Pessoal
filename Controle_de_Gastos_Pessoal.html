@@ -4844,12 +4844,12 @@ function vgExportarPdf(nome){
   const temMercado = t.mercado.some(x=>x.n || vgNum(x.v));
   const mercado = temMercado ? `<h2>Supermercado</h2><table><tbody>${t.mercado.map(x=>`<tr class="${x.ok ? 'ok' : ''}"><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td><td class="s">${x.ok ? 'comprado' : 'a comprar'}</td></tr>`).join('')}</tbody></table><div class="m" style="margin-top:6px;">Total do supermercado: <b>R$ ${fmt(T.m)}</b></div>` : '';
   const lista = t.checklist.length ? `<h2>Checklist</h2><ul>${t.checklist.map(x=>`<li class="${x.ok ? 'ok' : ''}">${x.ok ? '☑' : '☐'} ${escapeHtml(x.t)}</li>`).join('')}</ul>` : '';
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(nome)} · viagem</title>
+  const htmlBruto = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(nome)} · viagem</title>
 <style>
   body{ font-family:Arial,Helvetica,sans-serif; color:#0F223D; margin:0; text-transform:lowercase; background:#F1F5F9; }
   .page{ max-width:800px; margin:20px auto; background:#fff; padding:32px 40px; }
   .k{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#64748B; }
-  h1{ margin:4px 0 2px; font-size:28px; text-transform:uppercase; } .sub{ color:#64748B; font-size:13px; }
+  h1{ margin:4px 0 2px; font-size:28px; text-transform:uppercase; } .u{ text-transform:uppercase; } .sub{ color:#64748B; font-size:13px; }
   h2{ font-size:15px; margin:22px 0 8px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
   h3{ font-size:13px; margin:14px 0 4px; display:flex; justify-content:space-between; } h3 span{ color:#475569; }
   .cards{ display:flex; gap:10px; margin-top:16px; } .cards div{ flex:1; background:#F8FAFC; border-radius:8px; padding:10px 12px; font-size:11px; color:#64748B; } .cards b{ display:block; font-size:16px; color:#0F223D; margin-top:2px; }
@@ -4877,6 +4877,7 @@ function vgExportarPdf(nome){
 </div>
 <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),500));<\/script>
 </body></html>`;
+  const html = htmlBruto.replace(/R\$/g, ()=>'<span class="u">R$</span>');
   const win = window.open('', '_blank');
   if(!win){
     alert('Não consegui abrir uma nova aba — seu navegador deve estar bloqueando pop-ups pra este site. Permita pop-ups aqui e tente de novo.');
