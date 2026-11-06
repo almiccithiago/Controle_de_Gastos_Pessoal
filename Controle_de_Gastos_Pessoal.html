@@ -453,6 +453,12 @@
     font-size:11.5px; font-weight:700; color:var(--purple); text-decoration:none; flex-shrink:0;
   }
   .item-link-open:hover{ text-decoration:underline; }
+  .anexo-links-list{ display:flex; flex-direction:column; gap:6px; margin-bottom:6px; }
+  .anexo-link-line{ display:flex; align-items:center; gap:6px; }
+  .anexo-link-line .anexo-form-input{ flex:1 1 0; min-width:0; margin:0; }
+  .anexo-link-del{ border:none; background:transparent; color:var(--muted); cursor:pointer; font-size:16px; padding:2px 6px; flex:0 0 auto; min-width:auto; }
+  .anexo-link-del:hover{ color:var(--red); }
+  .anexo-link-add{ border:none; background:transparent; color:var(--blue); font-weight:700; font-size:12px; cursor:pointer; padding:2px 0; margin-bottom:8px; text-align:left; font-family:inherit; }
 
   /* Popover flutuante do menu de anexos (link / texto / arquivo) e do balão
      de nota — reaproveitado por todos os itens, criado/posicionado via JS. */
@@ -1043,7 +1049,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-05.5</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-06.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1958,17 +1964,35 @@ function reservaEmergenciaBoxHtml(m){
   </div>`;
 }
 
+// Links do item: vários por item (item.links); item.link guarda o primeiro (compatibilidade).
+function itemLinks(item){
+  const arr = Array.isArray(item.links) ? item.links : (item.link ? [item.link] : []);
+  return arr.map(l=>String(l||'').trim()).filter(Boolean);
+}
+function setItemLinks(item, arr){
+  const lista = arr.map(l=>String(l||'').trim()).filter(Boolean);
+  item.links = lista.length ? lista : null;
+  item.link = lista[0] || null;
+}
+function itemLinksAbrirHtml(item){
+  const ls = itemLinks(item);
+  return ls.map((l, i)=>{
+    const u = urlSeguraParaLink(l);
+    if(!u) return '';
+    return `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="item-link-open" title="${escapeHtml(l)}">↗ ${ls.length > 1 ? 'link ' + (i + 1) : 'abrir'}</a>`;
+  }).join('');
+}
 function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
   const listAttr = detailIdx===undefined ? listKey : `detail:${detailIdx}`;
-  const temAnexos = !!(item.link || item.nota || item.anexo);
+  const temAnexos = !!(itemLinks(item).length || item.nota || item.anexo);
   return `
   <div class="item-row ${item.pago?'paid':''}" data-list="${listAttr}" data-idx="${idx}">
     <input type="checkbox" class="chk-pago" ${item.pago?'checked':''} title="Marcar como pago">
     <input type="text" class="item-desc" value="${escapeHtml(item.desc)}">
-    ${(() => { const u = item.link ? urlSeguraParaLink(item.link) : ''; return u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" class="item-link-open">↗ abrir</a>` : ''; })()}
+    ${itemLinksAbrirHtml(item)}
     ${item.nota ? `<button class="item-nota-view" title="Ver nota">${notaIconSvg()}</button>` : ''}
     ${item.anexo ? `<button class="item-anexo-view" title="Ver anexo">${anexoIconSvg()}</button>` : ''}
-    <button class="item-link ${item.link ? 'has-link' : ''}" title="Adicionar link, texto ou anexo">${item.link ? linkIconSvg() : genericIconSvg()}</button>
+    <button class="item-link ${itemLinks(item).length ? 'has-link' : ''}" title="Adicionar link, texto ou anexo">${itemLinks(item).length ? linkIconSvg() : genericIconSvg()}</button>
     <span class="rs-prefix">R$</span>
     <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
     <button class="item-remove" title="Remover item">×</button>
@@ -2049,11 +2073,11 @@ function abrirMenuAnexoItem(triggerEl, item, onChange){
 
 function renderAnexoMenu(el, item, onChange){
   el.innerHTML = `
-    <button class="anexo-menu-opt" data-opt="link"><span class="anexo-menu-icon">${linkIconSvg()}</span> ${item.link ? 'Editar link' : 'Adicionar link'}</button>
+    <button class="anexo-menu-opt" data-opt="link"><span class="anexo-menu-icon">${linkIconSvg()}</span> ${itemLinks(item).length ? 'Editar links (' + itemLinks(item).length + ')' : 'Adicionar link'}</button>
     <button class="anexo-menu-opt" data-opt="nota"><span class="anexo-menu-icon">${notaIconSvg()}</span> ${item.nota ? 'Editar texto' : 'Adicionar texto'}</button>
     <button class="anexo-menu-opt" data-opt="anexo"><span class="anexo-menu-icon">${anexoIconSvg()}</span> ${item.anexo ? 'Trocar anexo' : 'Anexar imagem/documento'}</button>
-    ${(item.link || item.nota || item.anexo) ? '<hr>' : ''}
-    ${item.link ? `<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-link"><span class="anexo-menu-icon">${linkIconSvg()}</span> Remover link</button>` : ''}
+    ${(itemLinks(item).length || item.nota || item.anexo) ? '<hr>' : ''}
+    ${itemLinks(item).length ? `<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-link"><span class="anexo-menu-icon">${linkIconSvg()}</span> ${itemLinks(item).length > 1 ? 'Remover todos os links' : 'Remover link'}</button>` : ''}
     ${item.nota ? `<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-nota"><span class="anexo-menu-icon">${notaIconSvg()}</span> Remover texto</button>` : ''}
     ${item.anexo ? `<button class="anexo-menu-opt anexo-menu-remove" data-opt="remove-anexo"><span class="anexo-menu-icon">${anexoIconSvg()}</span> Remover anexo</button>` : ''}
   `;
@@ -2063,7 +2087,7 @@ function renderAnexoMenu(el, item, onChange){
       if(opt==='link') renderAnexoFormLink(el, item, onChange);
       else if(opt==='nota') renderAnexoFormNota(el, item, onChange);
       else if(opt==='anexo') renderAnexoFormArquivo(el, item, onChange);
-      else if(opt==='remove-link'){ item.link = null; onChange(); fecharAnexoPopover(); }
+      else if(opt==='remove-link'){ setItemLinks(item, []); onChange(); fecharAnexoPopover(); }
       else if(opt==='remove-nota'){ item.nota = null; onChange(); fecharAnexoPopover(); }
       else if(opt==='remove-anexo'){ item.anexo = null; onChange(); fecharAnexoPopover(); }
     });
@@ -2072,24 +2096,38 @@ function renderAnexoMenu(el, item, onChange){
 
 function renderAnexoFormLink(el, item, onChange){
   el.innerHTML = `
-    <div class="anexo-form-title"><span class="anexo-menu-icon">${linkIconSvg()}</span> Link para "${escapeHtml(item.desc)}"</div>
-    <input type="text" class="anexo-form-input" placeholder="https://...">
+    <div class="anexo-form-title"><span class="anexo-menu-icon">${linkIconSvg()}</span> Links para "${escapeHtml(item.desc)}"</div>
+    <div class="anexo-links-list"></div>
+    <button type="button" class="anexo-link-add">+ adicionar outro link</button>
     <div class="anexo-form-actions">
       <button class="anexo-form-cancel">Voltar</button>
       <button class="anexo-form-save">Salvar</button>
     </div>
   `;
-  const input = el.querySelector('.anexo-form-input');
-  input.value = item.link || '';
-  input.focus();
-  el.querySelector('.anexo-form-cancel').addEventListener('click', ()=> renderAnexoMenu(el, item, onChange));
-  const salvar = ()=>{
-    const v = input.value.trim();
-    item.link = v || null;
-    onChange(); fecharAnexoPopover();
+  const lista = el.querySelector('.anexo-links-list');
+  const novaLinha = (valor)=>{
+    const linha = document.createElement('div');
+    linha.className = 'anexo-link-line';
+    linha.innerHTML = `<input type="text" class="anexo-form-input" placeholder="https://..."><button type="button" class="anexo-link-del" title="Remover este link" aria-label="Remover este link">×</button>`;
+    const inp = linha.querySelector('input');
+    inp.value = valor || '';
+    linha.querySelector('button').addEventListener('click', ()=>{
+      if(lista.children.length > 1) linha.remove(); else inp.value = '';
+    });
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); salvar(); } });
+    lista.appendChild(linha);
+    return inp;
   };
+  const atuais = itemLinks(item);
+  (atuais.length ? atuais : ['']).forEach(l=>novaLinha(l));
+  lista.querySelector('input').focus();
+  el.querySelector('.anexo-link-add').addEventListener('click', ()=> novaLinha('').focus());
+  el.querySelector('.anexo-form-cancel').addEventListener('click', ()=> renderAnexoMenu(el, item, onChange));
+  function salvar(){
+    setItemLinks(item, Array.from(lista.querySelectorAll('input')).map(i=>i.value));
+    onChange(); fecharAnexoPopover();
+  }
   el.querySelector('.anexo-form-save').addEventListener('click', salvar);
-  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); salvar(); } });
 }
 
 function renderAnexoFormNota(el, item, onChange){
