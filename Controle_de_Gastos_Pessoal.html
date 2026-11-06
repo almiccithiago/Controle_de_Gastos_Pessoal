@@ -4846,7 +4846,7 @@ function vgExportarPdf(nome){
   const lista = t.checklist.length ? `<h2>Checklist</h2><ul>${t.checklist.map(x=>`<li class="${x.ok ? 'ok' : ''}">${x.ok ? '☑' : '☐'} ${escapeHtml(x.t)}</li>`).join('')}</ul>` : '';
   const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(nome)} · viagem</title>
 <style>
-  body{ font-family:Arial,Helvetica,sans-serif; color:#0F223D; margin:0; background:#F1F5F9; }
+  body{ font-family:Arial,Helvetica,sans-serif; color:#0F223D; margin:0; text-transform:lowercase; background:#F1F5F9; }
   .page{ max-width:800px; margin:20px auto; background:#fff; padding:32px 40px; }
   .k{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#64748B; }
   h1{ margin:4px 0 2px; font-size:28px; } .sub{ color:#64748B; font-size:13px; }
