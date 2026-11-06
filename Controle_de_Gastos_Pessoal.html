@@ -4363,13 +4363,13 @@ function vgCapa(t){
       ${link('galeria', 'Galeria de fotos (álbum)')}
     </div>
     <div class="vg-card" data-live="next">${vgProximoHTML(t)}</div>
-    </div>
-    <div class="vg-card vg-span2">
+    <div class="vg-card">
       <div class="vg-card-title">📓 Diário da viagem</div>
       ${diario || '<p class="vg-muted">Um registro por dia, para ler depois.</p>'}
       <div class="vg-addline"><button type="button" class="vg-btn" data-act="di-add">+ Nova entrada</button></div>
     </div>
-    <div class="vg-card vg-card-wide" data-live="retro">${vgRetroHTML(t)}</div>
+    </div>
+    <div class="vg-card vg-span2" data-live="retro">${vgRetroHTML(t)}</div>
   </div>`;
 }
 function vgDetalhamento(t){
