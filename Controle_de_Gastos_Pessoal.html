@@ -1037,6 +1037,8 @@
   .vg-side{ display:flex; flex-direction:column; gap:12px; min-width:0; }
   @media (max-width:900px){ .vg-side{ grid-column:1 / -1; } }
   .vg-grid > .vg-card.vg-span2:first-child{ align-self:stretch; }
+  /* campos de valor com o mesmo tamanho em todas as telas (cabe 123456.00) */
+  .pessoa-receb-amount input, .reserva-box input, .loan-inicial-row input, .meta-input{ width:120px !important; min-width:120px !important; flex:0 0 120px; text-align:right; }
 </style>
 </head>
 <body>
