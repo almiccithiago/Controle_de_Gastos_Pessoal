@@ -1007,6 +1007,7 @@
   .vg-ck.done{ background:#EEF0F3; }
   #vg-root .vg-ck.done input[type=text]{ border-color:transparent; background:transparent; color:#9CA3AF; text-decoration:line-through; opacity:0.6; }
   .vg-empty{ padding:28px 0; text-align:center; color:var(--muted); font-size:14px; }
+  #vg-root input[data-k=cotacao]{ width:150px; }
   .vg-mlist{ display:flex; flex-direction:column; gap:2px; }
   .vg-mlist .vg-mk{ flex-wrap:nowrap; align-items:center; }
   #vg-root .vg-mk input.vg-mn{ flex:1 1 140px; width:0; min-width:60px; }
@@ -1067,7 +1068,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.5</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.6</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4250,9 +4251,16 @@ function vgPeriodo(t){
 }
 // Moeda local da viagem: sem nada digitado (ou CLP) → pesos chilenos.
 function vgMoedaInfo(t){
-  const m = String(t.moeda || '').trim();
-  if(!m || m.toUpperCase() === 'CLP') return { cod:'CLP', nome:'pesos chilenos' };
-  return { cod:m, nome:m };
+  const m = String(t.moeda || '').trim(), n = vgSemAcento(m);
+  // reconhece o que você digitou ("pesos chilenos", "peso chileno", "CLP"...) e usa sempre o código curto nas telas
+  const conhecidas = [
+    [/chilen|\bclp\b/, 'CLP', 'pesos chilenos'], [/argentin|\bars\b/, 'ARS', 'pesos argentinos'],
+    [/uruguai|\buyu\b/, 'UYU', 'pesos uruguaios'], [/mexican|\bmxn\b/, 'MXN', 'pesos mexicanos'],
+    [/dolar|\busd\b/, 'USD', 'dólares'], [/\beuro|\beur\b/, 'EUR', 'euros'], [/libra|\bgbp\b/, 'GBP', 'libras']
+  ];
+  if(!m) return { cod:'CLP', nome:'pesos chilenos' };
+  for(const [re, cod, nome] of conhecidas) if(re.test(n)) return { cod, nome };
+  return { cod: m.length <= 5 ? m.toUpperCase() : m.slice(0, 3).toUpperCase(), nome: m };
 }
 
 // ---------- dados ----------
@@ -4578,7 +4586,7 @@ function vgResumo(t){
   <div class="vg-card" style="margin-top:12px;">
     <div class="vg-card-title">💱 Câmbio</div>
     <div class="vg-row" style="margin-bottom:0;">
-      <label>Moeda local<input type="text" data-k="moeda" value="${escapeHtml(t.moeda)}" placeholder="CLP (pesos chilenos)"></label>
+      <label>Moeda local<input type="text" data-k="moeda" value="${escapeHtml(t.moeda)}" placeholder="CLP"></label>
       <label>1 R$ equivale a<input type="text" inputmode="decimal" data-k="cotacao" value="${vgCot(t.cotacao)}" placeholder="0,00" class="vg-right"></label>
       <span class="vg-note" data-live="cambio"></span>
     </div>
@@ -4634,7 +4642,7 @@ function vgPasseios(t){
 }
 function vgMercado(t){
   const n = t.mercado.length, T = vgTotais(t), info = vgMoedaInfo(t), cot = vgNum(t.cotacao);
-  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" class="vg-mn" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><span class="vg-lb">qtd</span><input type="text" inputmode="decimal" class="vg-right vg-qtd" data-m="${i}" data-f="q" value="${vgLocal(vgQtd(x))}" placeholder="1" aria-label="Quantidade"><span class="vg-lb">× ${escapeHtml(info.cod)}</span><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgLocal(x.v)}" placeholder="0" aria-label="Valor unitário em ${escapeHtml(info.nome)}"><span class="vg-tot" data-tot="${i}">= ${vgLocal(vgLinhaMercado(x)) || '0'} ${escapeHtml(info.cod)}</span><span class="vg-brl" data-brl="${i}">${vgBrlItem(t, vgLinhaMercado(x))}</span><button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" class="vg-mn" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><span class="vg-lb">qtd</span><input type="text" inputmode="decimal" class="vg-right vg-qtd" data-m="${i}" data-f="q" value="${vgLocal(vgQtd(x))}" placeholder="1" aria-label="Quantidade"><span class="vg-lb">× ${escapeHtml(info.cod)}</span><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgLocal(x.v)}" placeholder="0" aria-label="Valor unitário em ${escapeHtml(info.nome)}"><span class="vg-tot" data-tot="${i}">${vgNum(x.v) ? '= ' + vgLocal(vgLinhaMercado(x)) + ' ' + escapeHtml(info.cod) : ''}</span><span class="vg-brl" data-brl="${i}">${vgBrlItem(t, vgLinhaMercado(x))}</span><button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
   const card = (rot, loc, brl, vLoc, vBrl)=>`<div class="summary-card"><div class="label">${rot}</div><div class="value" data-live="${loc}">${vLoc}</div><div class="vg-muted" data-live="${brl}">${vBrl}</div></div>`;
   const brlTxt = v=>cot > 0 ? '≈ R$ ' + fmt(v) : 'informe a cotação';
   return `<p class="vg-muted" style="margin:0 0 10px;">Digite a quantidade e o valor de <b>cada unidade</b> em <b>${escapeHtml(info.nome)}</b> (${escapeHtml(info.cod)}); o app multiplica e soma. O total é convertido em reais pela cotação e entra no resumo e no total da viagem; marque o que já comprou.</p>
@@ -4715,7 +4723,7 @@ function vgRefresh(){
     set('m-comprado-loc', vgInt(T.mLocalComprado) + ' ' + info.cod); set('m-comprado-brl', brl(T.mComprado));
     set('m-falta-loc', vgInt(round2(T.mLocal - T.mLocalComprado)) + ' ' + info.cod); set('m-falta-brl', brl(round2(T.m - T.mComprado)));
     root.querySelectorAll('[data-brl]').forEach(el=>{ const x = t.mercado[+el.dataset.brl]; el.textContent = x ? vgBrlItem(t, vgLinhaMercado(x)) : ''; });
-    root.querySelectorAll('[data-tot]').forEach(el=>{ const x = t.mercado[+el.dataset.tot]; el.textContent = x ? '= ' + (vgLocal(vgLinhaMercado(x)) || '0') + ' ' + info.cod : ''; });
+    root.querySelectorAll('[data-tot]').forEach(el=>{ const x = t.mercado[+el.dataset.tot]; el.textContent = (x && vgNum(x.v)) ? '= ' + vgLocal(vgLinhaMercado(x)) + ' ' + info.cod : ''; });
     set('m-cot-note', cotM > 0 ? '' : 'Informe a cotação para converter o supermercado em reais.');
   }
   const orc = vgNum(t.orcamento), ratio = orc > 0 ? T.total / orc : 0;
