@@ -1057,7 +1057,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4464,7 +4464,7 @@ function vgCapa(t){
   const feitos = t.checklist.filter(x=>x.ok).length, tot = t.checklist.length;
   const pct = tot ? Math.round(feitos / tot * 100) : 0;
   const n = t.checklist.length;
-  const lista = t.checklist.map((x, i)=>`<div class="vg-ck ${x.ok ? 'done' : ''}" data-row data-lista="checklist" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}">${vgMoverHTML('checklist', i, n)}<button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const lista = t.checklist.map((x, i)=>`<div class="vg-ck ${x.ok ? 'done' : ''}" data-row data-lista="checklist" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}"><button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
   const diario = t.diario.map((e, i)=>({e, i})).reverse().map(({e, i})=>`<div class="vg-diary"><div class="vg-diary-top"><input type="date" ${VG_DATA_ATTR} data-di="${i}" data-f="d" value="${escapeHtml(e.d || '')}"><button type="button" class="vg-x" data-act="di-rm" data-i="${i}" aria-label="Remover entrada">×</button></div><textarea rows="3" data-di="${i}" data-f="txt" placeholder="Como foi o dia?">${escapeHtml(e.txt || '')}</textarea><div class="vg-nota"><span>Nota do dia</span><input type="range" min="0" max="10" step="1" data-di="${i}" data-f="nota" value="${vgNum(e.nota)}"><b data-nota="${i}">${vgNum(e.nota)}</b></div></div>`).join('');
   const link = (campo, rotulo)=>{
     const url = vgUrlSegura(t[campo]);
@@ -4591,7 +4591,7 @@ function vgPasseios(t){
         <td><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"></td>
         <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
-        <td class="c vg-acts"><span class="vg-mv"><button type="button" class="vg-mvb" data-act="mvp" data-i="${i}" data-dir="-1" aria-label="Subir" ${pos === 0 ? 'disabled' : ''}>▲</button><button type="button" class="vg-mvb" data-act="mvp" data-i="${i}" data-dir="1" aria-label="Descer" ${pos === nG - 1 ? 'disabled' : ''}>▼</button></span><button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
+        <td class="c vg-acts"><button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
       </tr>`;
     }).join('');
     const cidade = g.d ? `<input type="text" class="vg-city" list="vg-cidades" data-cid="${escapeHtml(g.d)}" value="${escapeHtml(vgCidadeDia(t, g.d))}" placeholder="+ cidade" aria-label="Cidade deste dia">` : '';
@@ -4613,7 +4613,7 @@ function vgPasseios(t){
 }
 function vgMercado(t){
   const n = t.mercado.length, T = vgTotais(t);
-  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00" aria-label="Valor em reais">${vgMoverHTML('mercado', i, n)}<button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00" aria-label="Valor em reais"><button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
   return `<p class="vg-muted" style="margin:0 0 10px;">Lista de compras da viagem. O total entra no resumo e no total da viagem; marque o que já comprou.</p>
     ${n ? `<div class="vg-cols2">${linhas}</div>` : `<p class="vg-muted">Nenhum item ainda. Use "+ Adicionar item".</p>`}
     <div class="vg-addbar"><button type="button" class="vg-btn" data-act="m-add">+ Adicionar item</button></div>
