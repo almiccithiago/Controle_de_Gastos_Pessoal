@@ -1007,6 +1007,10 @@
   .vg-ck.done{ background:#EEF0F3; }
   #vg-root .vg-ck.done input[type=text]{ border-color:transparent; background:transparent; color:#9CA3AF; text-decoration:line-through; opacity:0.6; }
   .vg-empty{ padding:28px 0; text-align:center; color:var(--muted); font-size:14px; }
+  .vg-day-t{ display:inline-flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  #vg-root .vg-day-t .vg-city{ display:inline-block; width:170px; max-width:100%; flex:0 0 auto; border:1px dashed var(--border); background:transparent; border-radius:8px; padding:3px 9px; font-size:13px; font-weight:600; color:var(--blue); }
+  #vg-root .vg-day-t .vg-city:focus{ border-style:solid; background:#fff; outline:none; }
+  .vg-route{ background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:13px; }
   /* ===== v.5: capa em colunas, reordenar, supermercado, cobranças ===== */
   .vg-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); align-items:start; }
   .vg-span2{ grid-column:span 2; }
@@ -1049,7 +1053,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-06.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4237,7 +4241,7 @@ function vgNovaViagem(){
   return {
     inicio:'', fim:'', orcamento:0, moeda:'', cotacao:0, cor:VG_CORES[0],
     checklist: VG_CHECKLIST_PADRAO.map(t=>({t, ok:false})),
-    passeios:[], mercado:[], diario:[], playlist:'', galeria:'',
+    passeios:[], mercado:[], diario:[], cidades:{}, playlist:'', galeria:'',
     car:{ cancelado:false, locadora:'', codigo:'', link:'', localR:'', dataR:'', horaR:'', localD:'', dataD:'', horaD:'', diarias:0, valorDiaria:0, seguro:0, taxas:0, comb:0, pago:false }
   };
 }
@@ -4249,6 +4253,7 @@ function vgNormalizar(t){
   if(typeof t.car !== 'object') t.car = base.car;
   Object.keys(base.car).forEach(k=>{ if(t.car[k] === undefined || t.car[k] === null) t.car[k] = base.car[k]; });
   ['checklist','passeios','mercado','diario'].forEach(k=>{ if(!Array.isArray(t[k])) t[k] = []; });
+  if(!t.cidades || typeof t.cidades !== 'object' || Array.isArray(t.cidades)) t.cidades = {};
   // corrige datas salvas com ano de 2 dígitos (ex.: 0027-01-01 → 2027-01-01)
   t.inicio = vgFixAno(t.inicio); t.fim = vgFixAno(t.fim);
   t.passeios.forEach(x=>{ x.d = vgFixAno(x.d); });
@@ -4268,6 +4273,61 @@ function vgMigrar(data){
   if(!Array.isArray(data.abasOcultas)) data.abasOcultas = [];
   data.abasOcultas = data.abasOcultas.filter(t=>["Modelo","Resumo Anual","Obrigações"].includes(t));
   return data;
+}
+
+// ---------- cidades por dia ----------
+// Palavras (sem acento) que indicam a cidade onde o passeio acontece. A primeira que casar vale.
+const VG_CIDADES_PALAVRAS = [
+  ['Viña del Mar', ['vina del mar','renaca','castillo wulff','reloj de flores','quinta vergara','museo fonck','playa acapulco','vina']],
+  ['Valparaíso', ['valparaiso','valpo','cerro alegre','cerro concepcion','la sebastiana','ascensor','muelle prat','paseo gervasoni','plaza sotomayor','cerro bellavista']],
+  ['Concón', ['concon','dunas de concon']],
+  ['Pirque', ['concha y toro','pirque']],
+  ['Cajón del Maipo', ['cajon del maipo','embalse el yeso','baños morales','banos morales']],
+  ['Valle Nevado', ['valle nevado','farellones','el colorado','la parva']],
+  ['Casablanca', ['casablanca']],
+  ['Isla Negra', ['isla negra']],
+  ['Pomaire', ['pomaire']],
+  ['Santa Cruz', ['colchagua','santa cruz']],
+  ['San Pedro de Atacama', ['san pedro de atacama','atacama','valle de la luna','geiseres del tatio','laguna cejar']],
+  ['La Serena', ['la serena','valle del elqui','pisco elqui','isla damas']],
+  ['Pucón', ['pucon','villarrica']],
+  ['Puerto Varas', ['puerto varas','petrohue','osorno']],
+  ['Chiloé', ['chiloe','castro','ancud']],
+  ['Torres del Paine', ['torres del paine','puerto natales','punta arenas','glaciar grey']],
+  ['Ilha de Páscoa', ['rapa nui','isla de pascua','ilha de pascoa','pascua']],
+  ['Santiago', ['santiago','san cristobal','la moneda','plaza de armas','bellavista','lastarria','santa lucia','costanera','sky costanera','mercado central','la chascona','barrio italia','providencia','las condes']]
+];
+function vgSemAcento(x){ return String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function vgCidadeSugerida(t, d){
+  const cont = {}, ordem = [];
+  t.passeios.forEach(x=>{
+    if((x.d || '') !== d) return;
+    const nome = vgSemAcento(x.n);
+    if(!nome) return;
+    for(const [cidade, palavras] of VG_CIDADES_PALAVRAS){
+      if(palavras.some(p=>new RegExp('(^|[^a-z0-9])' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z0-9]|$)').test(nome))){
+        if(!cont[cidade]){ cont[cidade] = 0; ordem.push(cidade); }
+        cont[cidade]++;
+        return;
+      }
+    }
+  });
+  let melhor = '';
+  ordem.forEach(c=>{ if(!melhor || cont[c] > cont[melhor]) melhor = c; });
+  return melhor;
+}
+// Cidade do dia: a que você digitou; se nunca editou, a sugerida pelos passeios do dia.
+function vgCidadeDia(t, d){
+  if(!d) return '';
+  const v = t.cidades[d];
+  return (v === undefined || v === null) ? vgCidadeSugerida(t, d) : String(v);
+}
+function vgRoteiro(t){
+  const dias = [];
+  vgOrdem(t).forEach(i=>{ const d = t.passeios[i].d; if(d && !dias.includes(d)) dias.push(d); });
+  const rota = [];
+  dias.forEach(d=>{ const c = vgCidadeDia(t, d).trim(); if(c && rota[rota.length - 1] !== c) rota.push(c); });
+  return rota;
 }
 
 // ---------- cálculos ----------
@@ -4494,8 +4554,9 @@ function vgPasseios(t){
         <td class="c"><button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
       </tr>`;
     }).join('');
+    const cidade = g.d ? `<input type="text" class="vg-city" list="vg-cidades" data-cid="${escapeHtml(g.d)}" value="${escapeHtml(vgCidadeDia(t, g.d))}" placeholder="+ cidade" aria-label="Cidade deste dia">` : '';
     html += `<div class="vg-day">
-      <div class="vg-day-head"><span>${escapeHtml(titulo)}</span><span class="vg-muted">Subtotal <b data-sub="${escapeHtml(g.d)}">R$ ${fmt(sub)}</b></span></div>
+      <div class="vg-day-head"><span class="vg-day-t">${escapeHtml(titulo)}${cidade}</span><span class="vg-muted">Subtotal <b data-sub="${escapeHtml(g.d)}">R$ ${fmt(sub)}</b></span></div>
       <div class="vg-scroll"><table class="vg-table"><colgroup><col style="width:32%"><col style="width:20%"><col style="width:14%"><col style="width:20%"><col style="width:7%"><col style="width:7%"></colgroup>
       <thead><tr><th>Passeio</th><th>Data</th><th>Hora</th><th class="r">Valor (R$)</th><th class="c">Pago</th><th></th></tr></thead>
       <tbody>${linhas}</tbody></table></div>
@@ -4503,6 +4564,9 @@ function vgPasseios(t){
     </div>`;
   });
   if(!grupos.length) html = `<p class="vg-muted">Nenhum passeio ainda. Use "Adicionar passeio".</p>`;
+  const rota = vgRoteiro(t);
+  const datalist = `<datalist id="vg-cidades">${[...new Set(VG_CIDADES_PALAVRAS.map(c=>c[0]).concat(Object.values(t.cidades).filter(Boolean)))].map(c=>`<option value="${escapeHtml(c)}"></option>`).join('')}</datalist>`;
+  html = datalist + (rota.length ? `<div class="vg-route">🏨 Onde você fica: <b>${rota.map(escapeHtml).join(' → ')}</b></div>` : '') + html;
   const T = vgTotais(t), n = t.passeios.length;
   return html + `<div class="vg-addbar"><button type="button" class="vg-btn" data-act="p-add" data-d="">+ Adicionar passeio</button></div>
     <div class="summary-card" style="margin-top:12px;"><div class="label">total de passeios</div><div class="value" data-live="p-total">R$ ${fmt(T.p)}</div><div class="vg-muted" data-live="p-count">${n} ${n === 1 ? 'passeio' : 'passeios'}</div></div>`;
@@ -4621,7 +4685,9 @@ function vgAplicar(el){
   const d = el.dataset;
   let val = el.type === 'checkbox' ? el.checked : el.value;
   if(d.hora !== undefined){ val = vgHoraNorm(val); if(val === null) return false; }
-  if(d.p !== undefined){
+  if(d.cid !== undefined){
+    t.cidades[d.cid] = String(val).trim();
+  } else if(d.p !== undefined){
     const x = t.passeios[+d.p]; if(!x) return false;
     x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : (d.f === 'pago' ? !!val : val);
   } else if(d.ck !== undefined){
@@ -4675,7 +4741,7 @@ function vgOnChange(e){
   if(d.k === 'cotacao') el.value = vgCot(t.cotacao);
   save();
   const segmentado = el.type === 'date' || el.type === 'time' || d.hora !== undefined;
-  const estrutural = (d.p !== undefined && (d.f === 'd' || d.f === 'h'))
+  const estrutural = d.cid !== undefined || (d.p !== undefined && (d.f === 'd' || d.f === 'h' || d.f === 'n'))
     || ['playlist','galeria','inicio','fim'].includes(d.k) || d.car === 'link';
   if(estrutural && segmentado){ vgPendente = true; vgRefresh(); }   // não redesenha enquanto digita a data
   else if(estrutural){ vgAgendarRender(); }
@@ -4698,7 +4764,7 @@ function vgAgendarRender(){
 function vgFoco(el){
   if(!el || !el.dataset) return null;
   const d = el.dataset;
-  for(const k of ['p','ck','di','m','car','k']){
+  for(const k of ['cid','p','ck','di','m','car','k']){
     if(d[k] !== undefined) return `[data-${k}="${d[k]}"]` + (d.f !== undefined ? `[data-f="${d.f}"]` : '');
   }
   return el.id ? '#' + el.id : null;
@@ -4870,7 +4936,8 @@ function vgExportarPdf(nome){
   vgOrdem(t).forEach(i=>{ const d = t.passeios[i].d || ''; if(!mapa[d]){ mapa[d] = {d, itens:[]}; grupos.push(mapa[d]); } mapa[d].itens.push(t.passeios[i]); });
   const dias = grupos.map(g=>{
     const sub = round2(g.itens.reduce((s, x)=>s + vgNum(x.v), 0));
-    return `<h3>${escapeHtml(g.d ? vgSemana(g.d) + ', ' + vgDataBR(g.d) : 'Sem data')}<span>R$ ${fmt(sub)}</span></h3>
+    const cid = g.d ? vgCidadeDia(t, g.d).trim() : '';
+    return `<h3>${escapeHtml(g.d ? vgSemana(g.d) + ', ' + vgDataBR(g.d) : 'Sem data')}${cid ? ' · ' + escapeHtml(cid) : ''}<span>R$ ${fmt(sub)}</span></h3>
     <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="h">${escapeHtml(x.h || '')}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td><td class="s">${x.pago ? 'pago' : 'a pagar'}</td></tr>`).join('')}</tbody></table>`;
   }).join('') || '<p class="m">Nenhum passeio cadastrado.</p>';
   const c = t.car;
