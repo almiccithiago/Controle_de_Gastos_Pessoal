@@ -1007,6 +1007,10 @@
   .vg-ck.done{ background:#EEF0F3; }
   #vg-root .vg-ck.done input[type=text]{ border-color:transparent; background:transparent; color:#9CA3AF; text-decoration:line-through; opacity:0.6; }
   .vg-empty{ padding:28px 0; text-align:center; color:var(--muted); font-size:14px; }
+  tr.vg-prow.dragging{ opacity:.4; }
+  tr.vg-prow.over td{ box-shadow:0 -2px 0 var(--blue); }
+  .vg-acts{ white-space:nowrap; }
+  .vg-acts .vg-mv{ display:inline-flex; vertical-align:middle; margin-right:2px; }
   .vg-day-t{ display:inline-flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
   #vg-root .vg-day-t .vg-city{ display:inline-block; width:170px; max-width:100%; flex:0 0 auto; border:1px dashed var(--border); background:transparent; border-radius:8px; padding:3px 9px; font-size:13px; font-weight:600; color:var(--blue); }
   #vg-root .vg-day-t .vg-city:focus{ border-style:solid; background:#fff; outline:none; }
@@ -1053,7 +1057,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4169,7 +4173,8 @@ let viagemSecao = 'capa';
 let viagemRetroPrevia = false;
 let vgPendente = false; // houve mudança de data/hora: redesenha só quando o campo perder o foco
 let vgTimer = null;
-let vgArrasto = null;   // linha sendo arrastada: {lista, i}
+let vgArrasto = null;
+let vgSemFoco = false; // linha mudou de lugar: não devolve o foco a um campo que agora é de outra linha   // linha sendo arrastada: {lista, i}
 
 // ---------- utilitários ----------
 function vgNum(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
@@ -4349,13 +4354,46 @@ function vgOrdem(t){
     const A = t.passeios[a], B = t.passeios[b];
     const da = A.d || '9999', db = B.d || '9999';
     if(da !== db) return da < db ? -1 : 1;
-    return String(A.h || '').localeCompare(String(B.h || ''));
+    return a - b;   // dentro do mesmo dia vale a ordem que você definiu
   });
+}
+function vgOrdemTempo(t){
+  return t.passeios.map((_, i)=>i).sort((a, b)=>{
+    const A = t.passeios[a], B = t.passeios[b];
+    const da = A.d || '9999', db = B.d || '9999';
+    if(da !== db) return da < db ? -1 : 1;
+    return String(A.h || '').localeCompare(String(B.h || '')) || (a - b);
+  });
+}
+// Posições (no vetor) dos passeios de um dia, na ordem atual.
+function vgIdxDia(t, d){ return t.passeios.map((x, i)=>i).filter(i=>(t.passeios[i].d || '') === (d || '')); }
+// Reordena os passeios de um dia colocando o item de índice "de" na posição do item "para".
+function vgMoverPasseio(t, de, para){
+  const G = vgIdxDia(t, t.passeios[de] && t.passeios[de].d);
+  const a = G.indexOf(de), b = G.indexOf(para);
+  if(a < 0 || b < 0 || a === b) return false;
+  const itens = G.map(i=>t.passeios[i]);
+  const [it] = itens.splice(a, 1);
+  itens.splice(b, 0, it);
+  G.forEach((idx, k)=>{ t.passeios[idx] = itens[k]; });
+  return true;
+}
+// Ao mudar a hora de um passeio, o dia é reordenado por horário (quem não tem hora fica no fim).
+function vgOrdenarDiaPorHora(t, d){
+  const G = vgIdxDia(t, d);
+  const itens = G.map(i=>({x:t.passeios[i], k:i}));
+  itens.sort((A, B)=>{
+    const ha = A.x.h || '99:99', hb = B.x.h || '99:99';
+    return ha === hb ? A.k - B.k : (ha < hb ? -1 : 1);
+  });
+  const mudou = itens.some((o, k)=>o.k !== G[k]);
+  G.forEach((idx, k)=>{ t.passeios[idx] = itens[k].x; });
+  return mudou;
 }
 function vgProximo(t){
   const hoje = vgHojeISO(), agora = new Date();
   const hm = `${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}`;
-  for(const i of vgOrdem(t)){
+  for(const i of vgOrdemTempo(t)){
     const x = t.passeios[i];
     if(!x.d) continue;
     if(x.d > hoje || (x.d === hoje && (x.h || '23:59') >= hm)) return x;
@@ -4545,20 +4583,22 @@ function vgPasseios(t){
     const sub = round2(g.itens.reduce((s, i)=>s + vgNum(t.passeios[i].v), 0));
     const linhas = g.itens.map(i=>{
       const x = t.passeios[i];
-      return `<tr class="vg-prow ${x.pago ? 'done' : ''}">
+ const pos = g.itens.indexOf(i), nG = g.itens.length;
+      return `<tr class="vg-prow ${x.pago ? 'done' : ''}" data-row data-lista="passeios" data-i="${i}" data-dia="${escapeHtml(g.d)}">
+        <td class="c">${vgGripHTML()}</td>
         <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
         <td><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
         <td><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"></td>
         <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
-        <td class="c"><button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
+        <td class="c vg-acts"><span class="vg-mv"><button type="button" class="vg-mvb" data-act="mvp" data-i="${i}" data-dir="-1" aria-label="Subir" ${pos === 0 ? 'disabled' : ''}>▲</button><button type="button" class="vg-mvb" data-act="mvp" data-i="${i}" data-dir="1" aria-label="Descer" ${pos === nG - 1 ? 'disabled' : ''}>▼</button></span><button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
       </tr>`;
     }).join('');
     const cidade = g.d ? `<input type="text" class="vg-city" list="vg-cidades" data-cid="${escapeHtml(g.d)}" value="${escapeHtml(vgCidadeDia(t, g.d))}" placeholder="+ cidade" aria-label="Cidade deste dia">` : '';
     html += `<div class="vg-day">
       <div class="vg-day-head"><span class="vg-day-t">${escapeHtml(titulo)}${cidade}</span><span class="vg-muted">Subtotal <b data-sub="${escapeHtml(g.d)}">R$ ${fmt(sub)}</b></span></div>
-      <div class="vg-scroll"><table class="vg-table"><colgroup><col style="width:32%"><col style="width:20%"><col style="width:14%"><col style="width:20%"><col style="width:7%"><col style="width:7%"></colgroup>
-      <thead><tr><th>Passeio</th><th>Data</th><th>Hora</th><th class="r">Valor (R$)</th><th class="c">Pago</th><th></th></tr></thead>
+      <div class="vg-scroll"><table class="vg-table"><colgroup><col style="width:4%"><col style="width:29%"><col style="width:19%"><col style="width:13%"><col style="width:19%"><col style="width:6%"><col style="width:10%"></colgroup>
+      <thead><tr><th></th><th>Passeio</th><th>Data</th><th>Hora</th><th class="r">Valor (R$)</th><th class="c">Pago</th><th></th></tr></thead>
       <tbody>${linhas}</tbody></table></div>
       <button type="button" class="vg-link" data-act="p-add" data-d="${escapeHtml(g.d)}">+ Passeio neste dia</button>
     </div>`;
@@ -4734,6 +4774,7 @@ function vgOnChange(e){
   }
   if(!vgAplicar(el)) return;
   if(d.hora !== undefined) el.value = vgHoraNorm(el.value);
+  if(d.p !== undefined && d.f === 'h' && vgOrdenarDiaPorHora(t, t.passeios[+d.p].d)) vgSemFoco = true;
   if(d.p !== undefined && d.f === 'v') el.value = vgMoney(t.passeios[+d.p].v);
   if(d.m !== undefined && d.f === 'v') el.value = vgMoney(t.mercado[+d.m].v);
   if(d.car !== undefined && VG_CAR_NUM.includes(d.car) && d.car !== 'diarias') el.value = vgMoney(t.car[d.car]);
@@ -4774,7 +4815,8 @@ function vgRender(){
   const content = document.getElementById('content');
   if(!content || currentTab !== 'Viagens') return;
   const ativo = document.activeElement;
-  const sel = (ativo && content.contains(ativo)) ? vgFoco(ativo) : null;
+  const sel = (!vgSemFoco && ativo && content.contains(ativo)) ? vgFoco(ativo) : null;
+  vgSemFoco = false;
   let pos = null;
   try{ pos = ativo.selectionStart; }catch(_){}
   content.innerHTML = renderViagensView();
@@ -4843,6 +4885,12 @@ function vgOnClick(e){
     }
     case 'ck-rm': t.checklist.splice(+d.i, 1); break;
     case 'mv': if(!vgMoverItem(d.l, +d.i, +d.i + +d.dir)) return; break;
+    case 'mvp': {
+      const i = +d.i, G = vgIdxDia(t, t.passeios[i] && t.passeios[i].d);
+      const alvo = G[G.indexOf(i) + +d.dir];
+      if(alvo === undefined || !vgMoverPasseio(t, i, alvo)) return;
+      break;
+    }
     case 'm-add': t.mercado.push({n:'', v:0, ok:false}); break;
     case 'm-rm':
       if(t.mercado[+d.i] && t.mercado[+d.i].n && !confirm('Remover este item da lista?')) return;
@@ -4898,7 +4946,7 @@ function attachViagensEvents(){
     if(!grip) return;
     const linha = grip.closest('[data-row]');
     if(!linha) return;
-    vgArrasto = { lista: linha.dataset.lista, i: +linha.dataset.i };
+    vgArrasto = { lista: linha.dataset.lista, i: +linha.dataset.i, dia: linha.dataset.dia };
     if(e.dataTransfer){
       e.dataTransfer.effectAllowed = 'move';
       try{ e.dataTransfer.setData('text/plain', 'vg'); }catch(_){}
@@ -4909,7 +4957,7 @@ function attachViagensEvents(){
   root.addEventListener('dragover', e=>{
     if(!vgArrasto) return;
     const linha = e.target.closest ? e.target.closest('[data-row]') : null;
-    if(!linha || linha.dataset.lista !== vgArrasto.lista) return;
+    if(!linha || linha.dataset.lista !== vgArrasto.lista || linha.dataset.dia !== vgArrasto.dia) return;
     e.preventDefault();
     if(e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     root.querySelectorAll('.over').forEach(el=>{ if(el !== linha) el.classList.remove('over'); });
@@ -4918,11 +4966,13 @@ function attachViagensEvents(){
   root.addEventListener('drop', e=>{
     if(!vgArrasto) return;
     const linha = e.target.closest ? e.target.closest('[data-row]') : null;
-    if(!linha || linha.dataset.lista !== vgArrasto.lista) return;
+    if(!linha || linha.dataset.lista !== vgArrasto.lista || linha.dataset.dia !== vgArrasto.dia) return;
     e.preventDefault();
     const { lista, i } = vgArrasto;
     vgArrasto = null;
-    if(vgMoverItem(lista, i, +linha.dataset.i)){ save(); vgRender(); } else { vgLimparArrasto(root); }
+    const t = DATA.viagens.itens[viagemAtual];
+    const moveu = lista === 'passeios' ? vgMoverPasseio(t, i, +linha.dataset.i) : vgMoverItem(lista, i, +linha.dataset.i);
+    if(moveu){ save(); vgRender(); } else { vgLimparArrasto(root); }
   });
   root.addEventListener('dragend', ()=>{ vgArrasto = null; vgLimparArrasto(root); });
 }
