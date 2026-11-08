@@ -1007,6 +1007,16 @@
   .vg-ck.done{ background:#EEF0F3; }
   #vg-root .vg-ck.done input[type=text]{ border-color:transparent; background:transparent; color:#9CA3AF; text-decoration:line-through; opacity:0.6; }
   .vg-empty{ padding:28px 0; text-align:center; color:var(--muted); font-size:14px; }
+  .vg-mlist{ display:flex; flex-direction:column; gap:2px; }
+  .vg-mlist .vg-mk{ flex-wrap:nowrap; align-items:center; }
+  #vg-root .vg-mk input.vg-mn{ flex:1 1 140px; width:0; min-width:60px; }
+  #vg-root .vg-mk input.vg-qtd{ flex:0 0 56px; width:56px; }
+  #vg-root .vg-mk input.vg-val{ flex:0 0 100px; width:100px; }
+  .vg-lb{ font-size:11px; font-weight:700; color:var(--muted); flex:0 0 auto; white-space:nowrap; }
+  .vg-tot{ font-size:13px; font-weight:700; white-space:nowrap; min-width:96px; text-align:right; flex:0 0 auto; }
+  @media (max-width:700px){ .vg-mlist .vg-mk{ flex-wrap:wrap; } #vg-root .vg-mk input.vg-mn{ flex:1 1 100%; } .vg-tot,.vg-brl{ min-width:0; } }
+  .vg-brl{ font-size:11.5px; color:var(--muted); white-space:nowrap; min-width:66px; text-align:right; flex:0 0 auto; }
+  .vg-moeda{ font-size:11px; font-weight:700; color:var(--muted); flex:0 0 auto; }
   tr.vg-prow.dragging{ opacity:.4; }
   tr.vg-prow.over td{ box-shadow:0 -2px 0 var(--blue); }
   .vg-acts{ white-space:nowrap; }
@@ -1057,7 +1067,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.3</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.5</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4180,6 +4190,10 @@ let vgSemFoco = false; // linha mudou de lugar: não devolve o foco a um campo q
 function vgNum(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
 function vgMoney(n){ return vgNum(n) ? fmt(vgNum(n)) : ''; }
 function vgCot(n){ return vgNum(n) ? vgNum(n).toLocaleString('pt-BR', {maximumFractionDigits:6}) : ''; }
+function vgQtd(x){ const n = vgNum(x.q); return n > 0 ? n : 1; }
+function vgLinhaMercado(x){ return round2(vgNum(x.v) * vgQtd(x)); }   // quantidade × valor unitário, na moeda local
+function vgBrlItem(t, valorLocal){ const c = vgNum(t.cotacao); return (vgNum(valorLocal) && c > 0) ? '≈ R$ ' + fmt(round2(vgNum(valorLocal) / c)) : ''; }
+function vgLocal(n){ return vgNum(n) ? vgNum(n).toLocaleString('pt-BR', {maximumFractionDigits:2}) : ''; }
 function vgInt(n){ return Math.round(vgNum(n)).toLocaleString('pt-BR'); }
 function vgHojeISO(){
   const d = new Date();
@@ -4258,6 +4272,7 @@ function vgNormalizar(t){
   if(typeof t.car !== 'object') t.car = base.car;
   Object.keys(base.car).forEach(k=>{ if(t.car[k] === undefined || t.car[k] === null) t.car[k] = base.car[k]; });
   ['checklist','passeios','mercado','diario'].forEach(k=>{ if(!Array.isArray(t[k])) t[k] = []; });
+  t.mercado.forEach(x=>{ if(!(vgNum(x.q) > 0)) x.q = 1; });
   if(!t.cidades || typeof t.cidades !== 'object' || Array.isArray(t.cidades)) t.cidades = {};
   // corrige datas salvas com ano de 2 dígitos (ex.: 0027-01-01 → 2027-01-01)
   t.inicio = vgFixAno(t.inicio); t.fim = vgFixAno(t.fim);
@@ -4342,12 +4357,15 @@ function vgCarTotal(t){
   return round2(vgNum(c.diarias) * vgNum(c.valorDiaria) + vgNum(c.seguro) + vgNum(c.taxas) + vgNum(c.comb));
 }
 function vgTotais(t){
-  let p = 0, pp = 0, m = 0, mp = 0;
+  let p = 0, pp = 0, ml = 0, mlp = 0;
   t.passeios.forEach(x=>{ const v = vgNum(x.v); p += v; if(x.pago) pp += v; });
-  t.mercado.forEach(x=>{ const v = vgNum(x.v); m += v; if(x.ok) mp += v; });
+  // supermercado é digitado na moeda local (pesos); em reais = valor ÷ cotação (1 R$ = cotação pesos)
+  t.mercado.forEach(x=>{ const v = vgLinhaMercado(x); ml += v; if(x.ok) mlp += v; });
+  const cot = vgNum(t.cotacao);
+  const m = cot > 0 ? ml / cot : 0, mp = cot > 0 ? mlp / cot : 0;
   const c = vgCarTotal(t);
   const total = p + c + m, pago = pp + (t.car.pago ? c : 0) + mp;
-  return { p:round2(p), c:round2(c), m:round2(m), mComprado:round2(mp), total:round2(total), pago:round2(pago), aPagar:round2(total - pago) };
+  return { p:round2(p), c:round2(c), m:round2(m), mComprado:round2(mp), mLocal:round2(ml), mLocalComprado:round2(mlp), total:round2(total), pago:round2(pago), aPagar:round2(total - pago) };
 }
 function vgOrdem(t){
   return t.passeios.map((_, i)=>i).sort((a, b)=>{
@@ -4512,7 +4530,7 @@ function vgCapa(t){
 }
 function vgDetalhamento(t){
   const T = vgTotais(t), blocos = [];
-  const linha = (nome, valor, pago, sub)=>`<div class="vg-bill"><div class="vg-bill-n">${escapeHtml(nome)}${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</div><div class="vg-bill-s ${pago ? 'ok' : ''}">${pago ? 'pago' : 'a pagar'}</div><div class="vg-bill-v">R$ ${fmt(valor)}</div></div>`;
+  const linha = (nome, valor, pago, sub, txt)=>`<div class="vg-bill"><div class="vg-bill-n">${escapeHtml(nome)}${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</div><div class="vg-bill-s ${pago ? 'ok' : ''}">${pago ? 'pago' : 'a pagar'}</div><div class="vg-bill-v">${txt || 'R$ ' + fmt(valor)}</div></div>`;
   const ps = vgOrdem(t).map(i=>t.passeios[i]).filter(x=>vgNum(x.v) > 0);
   if(ps.length) blocos.push(['📍 Passeios', ps.map(x=>linha(x.n || 'Sem nome', vgNum(x.v), x.pago, (x.d ? vgDataBR(x.d).slice(0,5) : '') + (x.h ? (x.d ? ' · ' : '') + x.h : ''))).join(''), T.p, ps.length]);
   const c = t.car;
@@ -4524,7 +4542,10 @@ function vgDetalhamento(t){
     if(cl.length) blocos.push(['🚗 Aluguel de carro', cl.join(''), T.c, cl.length]);
   }
   const ms = t.mercado.filter(x=>vgNum(x.v) > 0);
-  if(ms.length) blocos.push(['🛒 Supermercado', ms.map(x=>linha(x.n || 'Sem nome', vgNum(x.v), x.ok, '')).join('').replace(/>pago</g, '>comprado<').replace(/>a pagar</g, '>a comprar<'), T.m, ms.length]);
+  if(ms.length){
+    const info = vgMoedaInfo(t), cot = vgNum(t.cotacao);
+    blocos.push([`🛒 Supermercado · ${vgInt(T.mLocal)} ${info.cod}`, ms.map(x=>{ const lin = vgLinhaMercado(x); return linha(x.n || 'Sem nome', 0, x.ok, `${vgLocal(vgQtd(x))} × ${vgLocal(x.v)} ${info.cod}` + (cot > 0 ? ' · ≈ R$ ' + fmt(round2(lin / cot)) : ' · sem cotação'), vgLocal(lin) + ' ' + info.cod); }).join('').replace(/>pago</g, '>comprado<').replace(/>a pagar</g, '>a comprar<'), T.m, ms.length]);
+  }
   const qtd = blocos.reduce((s, b)=>s + b[3], 0);
   const corpo = blocos.length
     ? `<div class="vg-bills">${blocos.map(b=>`<div class="vg-bill-block"><div class="vg-bill-head"><span>${b[0]}</span><b>R$ ${fmt(b[2])}</b></div>${b[1]}</div>`).join('')}</div><div class="vg-bill-total"><span>Total cobrado</span><b>R$ ${fmt(T.total)}</b></div>`
@@ -4539,7 +4560,7 @@ function vgResumo(t){
   return `
   <div class="summary-grid">
     ${secCard('📍', 'passeios', T.p, 'p-total', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`, 'passeios')}
-    ${secCard('🛒', 'supermercado', T.m, 'm-total', `${nM} ${nM === 1 ? 'item' : 'itens'}`, 'mercado')}
+    ${secCard('🛒', 'supermercado', T.m, 'm-total', `${nM} ${nM === 1 ? 'item' : 'itens'} · ${vgInt(T.mLocal)} ${info.cod}`, 'mercado')}
     ${secCard('🚗', 'aluguel de carro', T.c, 'c-total', carSub, 'car')}
   </div>
   <div class="vg-row">
@@ -4612,15 +4633,21 @@ function vgPasseios(t){
     <div class="summary-card" style="margin-top:12px;"><div class="label">total de passeios</div><div class="value" data-live="p-total">R$ ${fmt(T.p)}</div><div class="vg-muted" data-live="p-count">${n} ${n === 1 ? 'passeio' : 'passeios'}</div></div>`;
 }
 function vgMercado(t){
-  const n = t.mercado.length, T = vgTotais(t);
-  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00" aria-label="Valor em reais"><button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
-  return `<p class="vg-muted" style="margin:0 0 10px;">Lista de compras da viagem. O total entra no resumo e no total da viagem; marque o que já comprou.</p>
-    ${n ? `<div class="vg-cols2">${linhas}</div>` : `<p class="vg-muted">Nenhum item ainda. Use "+ Adicionar item".</p>`}
+  const n = t.mercado.length, T = vgTotais(t), info = vgMoedaInfo(t), cot = vgNum(t.cotacao);
+  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" class="vg-mn" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><span class="vg-lb">qtd</span><input type="text" inputmode="decimal" class="vg-right vg-qtd" data-m="${i}" data-f="q" value="${vgLocal(vgQtd(x))}" placeholder="1" aria-label="Quantidade"><span class="vg-lb">× ${escapeHtml(info.cod)}</span><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgLocal(x.v)}" placeholder="0" aria-label="Valor unitário em ${escapeHtml(info.nome)}"><span class="vg-tot" data-tot="${i}">= ${vgLocal(vgLinhaMercado(x)) || '0'} ${escapeHtml(info.cod)}</span><span class="vg-brl" data-brl="${i}">${vgBrlItem(t, vgLinhaMercado(x))}</span><button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const card = (rot, loc, brl, vLoc, vBrl)=>`<div class="summary-card"><div class="label">${rot}</div><div class="value" data-live="${loc}">${vLoc}</div><div class="vg-muted" data-live="${brl}">${vBrl}</div></div>`;
+  const brlTxt = v=>cot > 0 ? '≈ R$ ' + fmt(v) : 'informe a cotação';
+  return `<p class="vg-muted" style="margin:0 0 10px;">Digite a quantidade e o valor de <b>cada unidade</b> em <b>${escapeHtml(info.nome)}</b> (${escapeHtml(info.cod)}); o app multiplica e soma. O total é convertido em reais pela cotação e entra no resumo e no total da viagem; marque o que já comprou.</p>
+    <div class="vg-row" style="margin-bottom:10px;">
+      <label>1 R$ equivale a (${escapeHtml(info.cod)})<input type="text" inputmode="decimal" data-k="cotacao" value="${vgCot(t.cotacao)}" placeholder="0,00" class="vg-right"></label>
+      <span class="vg-note" data-live="m-cot-note">${cot > 0 ? '' : 'Informe a cotação para converter o supermercado em reais.'}</span>
+    </div>
+    ${n ? `<div class="vg-mlist">${linhas}</div>` : `<p class="vg-muted">Nenhum item ainda. Use "+ Adicionar item".</p>`}
     <div class="vg-addbar"><button type="button" class="vg-btn" data-act="m-add">+ Adicionar item</button></div>
     <div class="summary-grid" style="margin-top:12px;">
-      ${vgCard('total do supermercado', 'm-total', 'R$ ' + fmt(T.m), `<div class="vg-muted" data-live="m-total-sub">${n} ${n === 1 ? 'item' : 'itens'}</div>`)}
-      ${vgCard('já comprado', 'm-comprado', 'R$ ' + fmt(T.mComprado))}
-      ${vgCard('falta comprar', 'm-falta', 'R$ ' + fmt(round2(T.m - T.mComprado)))}
+      ${card('total do supermercado', 'm-loc', 'm-brl', vgInt(T.mLocal) + ' ' + info.cod, brlTxt(T.m))}
+      ${card('já comprado', 'm-comprado-loc', 'm-comprado-brl', vgInt(T.mLocalComprado) + ' ' + info.cod, brlTxt(T.mComprado))}
+      ${card('falta comprar', 'm-falta-loc', 'm-falta-brl', vgInt(round2(T.mLocal - T.mLocalComprado)) + ' ' + info.cod, brlTxt(round2(T.m - T.mComprado)))}
     </div>`;
 }
 function vgCar(t){
@@ -4681,8 +4708,16 @@ function vgRefresh(){
   set('p-total', 'R$ ' + fmt(T.p)); set('c-total', 'R$ ' + fmt(T.c)); set('m-total', 'R$ ' + fmt(T.m));
   const nP = t.passeios.length, nM = t.mercado.length;
   set('p-count', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`); set('p-total-sub', `${nP} ${nP === 1 ? 'passeio' : 'passeios'}`);
-  set('m-total-sub', `${nM} ${nM === 1 ? 'item' : 'itens'}`);
-  set('m-comprado', 'R$ ' + fmt(T.mComprado)); set('m-falta', 'R$ ' + fmt(round2(T.m - T.mComprado)));
+  set('m-total-sub', `${nM} ${nM === 1 ? 'item' : 'itens'} · ${vgInt(T.mLocal)} ${info.cod}`);
+  {
+    const cotM = vgNum(t.cotacao), brl = v=>cotM > 0 ? '≈ R$ ' + fmt(v) : 'informe a cotação';
+    set('m-loc', vgInt(T.mLocal) + ' ' + info.cod); set('m-brl', brl(T.m));
+    set('m-comprado-loc', vgInt(T.mLocalComprado) + ' ' + info.cod); set('m-comprado-brl', brl(T.mComprado));
+    set('m-falta-loc', vgInt(round2(T.mLocal - T.mLocalComprado)) + ' ' + info.cod); set('m-falta-brl', brl(round2(T.m - T.mComprado)));
+    root.querySelectorAll('[data-brl]').forEach(el=>{ const x = t.mercado[+el.dataset.brl]; el.textContent = x ? vgBrlItem(t, vgLinhaMercado(x)) : ''; });
+    root.querySelectorAll('[data-tot]').forEach(el=>{ const x = t.mercado[+el.dataset.tot]; el.textContent = x ? '= ' + (vgLocal(vgLinhaMercado(x)) || '0') + ' ' + info.cod : ''; });
+    set('m-cot-note', cotM > 0 ? '' : 'Informe a cotação para converter o supermercado em reais.');
+  }
   const orc = vgNum(t.orcamento), ratio = orc > 0 ? T.total / orc : 0;
   root.querySelectorAll('[data-live="bar"]').forEach(el=>{
     el.style.width = Math.min(100, Math.round(ratio * 100)) + '%';
@@ -4735,7 +4770,7 @@ function vgAplicar(el){
     x[d.f] = d.f === 'ok' ? !!val : val;
   } else if(d.m !== undefined){
     const x = t.mercado[+d.m]; if(!x) return false;
-    x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : (d.f === 'ok' ? !!val : val);
+    x[d.f] = (d.f === 'v' || d.f === 'q') ? vgNum(parseValorBR(val)) : (d.f === 'ok' ? !!val : val);
   } else if(d.di !== undefined){
     const x = t.diario[+d.di]; if(!x) return false;
     x[d.f] = d.f === 'nota' ? vgNum(val) : val;
@@ -4776,7 +4811,8 @@ function vgOnChange(e){
   if(d.hora !== undefined) el.value = vgHoraNorm(el.value);
   if(d.p !== undefined && d.f === 'h' && vgOrdenarDiaPorHora(t, t.passeios[+d.p].d)) vgSemFoco = true;
   if(d.p !== undefined && d.f === 'v') el.value = vgMoney(t.passeios[+d.p].v);
-  if(d.m !== undefined && d.f === 'v') el.value = vgMoney(t.mercado[+d.m].v);
+  if(d.m !== undefined && d.f === 'v') el.value = vgLocal(t.mercado[+d.m].v);
+  if(d.m !== undefined && d.f === 'q') el.value = vgLocal(vgQtd(t.mercado[+d.m]));
   if(d.car !== undefined && VG_CAR_NUM.includes(d.car) && d.car !== 'diarias') el.value = vgMoney(t.car[d.car]);
   if(d.k === 'orcamento') el.value = vgMoney(t.orcamento);
   if(d.k === 'cotacao') el.value = vgCot(t.cotacao);
@@ -4891,7 +4927,7 @@ function vgOnClick(e){
       if(alvo === undefined || !vgMoverPasseio(t, i, alvo)) return;
       break;
     }
-    case 'm-add': t.mercado.push({n:'', v:0, ok:false}); break;
+    case 'm-add': t.mercado.push({n:'', v:0, q:1, ok:false}); break;
     case 'm-rm':
       if(t.mercado[+d.i] && t.mercado[+d.i].n && !confirm('Remover este item da lista?')) return;
       t.mercado.splice(+d.i, 1); break;
@@ -4999,7 +5035,8 @@ function vgExportarPdf(nome){
     <div>${vgNum(c.diarias)} diária(s) × R$ ${fmt(vgNum(c.valorDiaria))} + seguro R$ ${fmt(vgNum(c.seguro))} + taxas R$ ${fmt(vgNum(c.taxas))} + combustível e pedágios R$ ${fmt(vgNum(c.comb))}</div>
     <div><b>Total: R$ ${fmt(T.c)}</b> · ${c.pago ? 'reserva paga' : 'a pagar'}</div></div>` : '';
   const temMercado = t.mercado.some(x=>x.n || vgNum(x.v));
-  const mercado = temMercado ? `<h2>Supermercado</h2><table><tbody>${t.mercado.map(x=>`<tr class="${x.ok ? 'ok' : ''}"><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td><td class="s">${x.ok ? 'comprado' : 'a comprar'}</td></tr>`).join('')}</tbody></table><div class="m" style="margin-top:6px;">Total do supermercado: <b>R$ ${fmt(T.m)}</b></div>` : '';
+  const infoM = vgMoedaInfo(t), cotM = vgNum(t.cotacao);
+  const mercado = temMercado ? `<h2>Supermercado</h2><table><tbody>${t.mercado.map(x=>`<tr class="${x.ok ? 'ok' : ''}"><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">${vgLocal(vgQtd(x))} × ${vgLocal(x.v)} = ${vgLocal(vgLinhaMercado(x)) || '0'} ${escapeHtml(infoM.cod)}</td><td class="s">${x.ok ? 'comprado' : 'a comprar'}</td></tr>`).join('')}</tbody></table><div class="m" style="margin-top:6px;">Total do supermercado: <b>${vgInt(T.mLocal)} ${escapeHtml(infoM.cod)}</b>${cotM > 0 ? ' ≈ <b>R$ ' + fmt(T.m) + '</b>' : ''}</div>` : '';
   const lista = t.checklist.length ? `<h2>Checklist</h2><ul>${t.checklist.map(x=>`<li class="${x.ok ? 'ok' : ''}">${x.ok ? '☑' : '☐'} ${escapeHtml(x.t)}</li>`).join('')}</ul>` : '';
   const htmlBruto = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(nome)} · viagem</title>
 <style>
