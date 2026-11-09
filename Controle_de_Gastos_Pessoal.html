@@ -176,6 +176,9 @@
   nav.tabs button.drag-over{ box-shadow: inset 0 -3px 0 var(--orange); background: rgba(255,138,61,0.12); }
   nav.tabs button .pin-btn{ opacity:0; margin-right:4px; font-size:11px; transition: opacity .15s ease; }
   nav.tabs button:hover .pin-btn, nav.tabs button .pin-btn.pinned{ opacity:1; }
+  nav.tabs button .rename-btn{ opacity:0; margin-right:4px; font-size:12px; transition: opacity .15s ease; }
+  nav.tabs button:hover .rename-btn, nav.tabs button.active .rename-btn{ opacity:.75; }
+  nav.tabs button .rename-btn:hover{ opacity:1; }
   nav.tabs button.tab-pinned{ background:rgba(249,115,22,0.15); border-radius:6px; }
   nav.tabs button.tab-pinned.active{ border-bottom-color: var(--orange); }
   @media (max-width:480px){
@@ -1070,7 +1073,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.5</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1910,7 +1913,7 @@ function renderTabs(){
   const tabs = document.getElementById('tabs');
   const allTabs = [...DATA.monthOrder, ...abasVisiveis(), "Viagens"];
   tabs.innerHTML = allTabs.map(t =>
-    `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${t==="Viagens"?'tab-viagens':''} ${t===DATA.pinnedMonth?'tab-pinned':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${escapeHtml(t)}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${DATA.monthOrder.includes(t) ? `<span class="pin-btn ${t===DATA.pinnedMonth?'pinned':''}" data-pin="${escapeHtml(t)}" title="${t===DATA.pinnedMonth?'Desafixar mês':'Fixar mês em evidência'}">📌</span>` : ''}${t==="Viagens" ? '✈ ' : ''}${escapeHtml(t)}</button>`
+    `<button class="${t===currentTab?'active':''} ${t==="Modelo"?'tab-modelo':''} ${t==="Viagens"?'tab-viagens':''} ${t===DATA.pinnedMonth?'tab-pinned':''} ${DATA.months[t] && mesTotalmentePago(DATA.months[t])?'tab-completo':''}" data-tab="${escapeHtml(t)}" ${DATA.monthOrder.includes(t) ? 'draggable="true"' : ''}>${DATA.monthOrder.includes(t) ? `<span class="pin-btn ${t===DATA.pinnedMonth?'pinned':''}" data-pin="${escapeHtml(t)}" title="${t===DATA.pinnedMonth?'Desafixar mês':'Fixar mês em evidência'}">📌</span><span class="rename-btn" data-rename="${escapeHtml(t)}" title="Renomear este mês">✎</span>` : ''}${t==="Viagens" ? '✈ ' : ''}${escapeHtml(t)}</button>`
   ).join('')
     + `<button id="add-month-tab" title="Criar o próximo mês a partir do Modelo">+ Novo Mês</button>`
     + (DATA.abasOcultas||[]).map(t=>`<button class="restore-tab" data-restore="${escapeHtml(t)}" title="Trazer de volta a aba ${escapeHtml(t)}">↺ ${escapeHtml(t)}</button>`).join('');
@@ -1919,6 +1922,14 @@ function renderTabs(){
   });
   tabs.querySelectorAll('.pin-btn').forEach(el=>{
     el.addEventListener('click', (e)=>{ e.stopPropagation(); togglePinMonth(el.dataset.pin); });
+  });
+  tabs.querySelectorAll('.rename-btn').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      currentTab = el.dataset.rename; renderTabs(); renderContent();
+      const inp = document.getElementById('month-title-input');
+      if(inp){ inp.focus(); inp.select(); }
+    });
   });
   tabs.querySelector('#add-month-tab').addEventListener('click', addMonth);
   tabs.querySelectorAll('.restore-tab').forEach(b=>b.addEventListener('click', ()=>restaurarAba(b.dataset.restore)));
@@ -2633,7 +2644,7 @@ function renderMonthView(monthKey){
   <div class="month-title-bar">
     ${isTemplate
       ? `<div class="month-title-input" style="cursor:default;">modelo <span style="font-size:12px;color:var(--muted);font-weight:600;text-transform:none;">— usado como base</span></div>`
-      : `<input type="text" class="month-title-input" id="month-title-input" value="${escapeHtml(monthKey)}" title="Clique para renomear este mês"><span class="month-title-pencil" title="Clique no nome para renomear este mês">✎</span>`
+      : `<input type="text" class="month-title-input" id="month-title-input" value="${escapeHtml(monthKey)}" title="Clique para renomear este mês">`
     }
     <div class="month-title-actions">
       <span class="dia-pill">dia 08 · R$ ${fmt(totalsDiaQuadros(m).totalDia08)}</span>
