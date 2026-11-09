@@ -1068,7 +1068,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-08.7</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1614,6 +1614,67 @@ function addMonth(){
   DATA.monthOrder.push(nomeCompleto);
   save();
   currentTab = nomeCompleto;
+  renderTabs();
+  renderContent();
+}
+
+// Zera, em qualquer nível da cópia, as marcações de "pago".
+function zerarPagos(obj){
+  if(Array.isArray(obj)){ obj.forEach(zerarPagos); return; }
+  if(obj && typeof obj === 'object'){
+    Object.keys(obj).forEach(k=>{
+      if(k === 'pago') obj[k] = false; else zerarPagos(obj[k]);
+    });
+  }
+}
+
+// Modal da duplicação: reaproveita o modal de 3 opções, trocando os textos e devolvendo os originais.
+function askDuplicar(origem, destino){
+  return new Promise(resolve=>{
+    const modal = document.getElementById('replicate-modal');
+    const titulo = document.getElementById('replicate-modal-title');
+    const texto = document.getElementById('replicate-modal-text');
+    const b1 = document.getElementById('replicate-btn-replicate');
+    const b2 = document.getElementById('replicate-btn-only');
+    const b3 = document.getElementById('replicate-btn-cancel');
+    const antes = [titulo.textContent, texto.innerHTML, b1.textContent, b2.textContent, b3.textContent];
+    titulo.textContent = `Duplicar ${origem}?`;
+    texto.innerHTML = `Vai criar <b>${escapeHtml(destino)}</b> (o próximo mês que ainda não existe) com os mesmos itens, valores e blocos deste mês. A reserva de emergência volta a zero.`;
+    b1.textContent = 'Duplicar com tudo como "não pago"';
+    b2.textContent = 'Duplicar mantendo o que já está pago';
+    b3.textContent = 'Cancelar';
+    modal.style.display = 'flex';
+    function fim(r){
+      modal.style.display = 'none';
+      b1.onclick = b2.onclick = b3.onclick = modal.onclick = null;
+      titulo.textContent = antes[0]; texto.innerHTML = antes[1];
+      b1.textContent = antes[2]; b2.textContent = antes[3]; b3.textContent = antes[4];
+      resolve(r);
+    }
+    b1.onclick = ()=>fim('zerar');
+    b2.onclick = ()=>fim('manter');
+    b3.onclick = ()=>fim('cancel');
+    modal.onclick = e=>{ if(e.target.id === 'replicate-modal') fim('cancel'); };
+  });
+}
+
+// Duplica o mês aberto no próximo mês que ainda não existe (seguinte ao último lançado).
+async function duplicarMes(monthKey){
+  const origem = DATA.months[monthKey];
+  if(!origem) return;
+  const destino = nomeMesSeguinte(DATA.monthOrder[DATA.monthOrder.length - 1]);
+  const jaExiste = Object.keys(DATA.months).some(k=>k.trim().toLowerCase() === destino.toLowerCase());
+  if(jaExiste){ alert(`Já existe um mês chamado "${destino}".`); return; }
+  const r = await askDuplicar(monthKey, destino);
+  if(r === 'cancel') return;
+  const copia = deepClone(origem);
+  if(r === 'zerar') zerarPagos(copia);
+  copia.reservaEmergencia = 0;
+  copia.reservaEmergenciaFeita = false;
+  DATA.months[destino] = copia;
+  DATA.monthOrder.push(destino);
+  save();
+  currentTab = destino;
   renderTabs();
   renderContent();
 }
@@ -2558,6 +2619,7 @@ function renderMonthView(monthKey){
       <span class="dia-pill">dia 08 · R$ ${fmt(totalsDiaQuadros(m).totalDia08)}</span>
       <span class="dia-pill">dia 18 · R$ ${fmt(totalsDiaQuadros(m).totalDia18)}</span>
       ${!isTemplate ? `<button id="export-pdf-btn" class="toggle-all-btn" title="Gera um relatório deste mês pra salvar como PDF ou imprimir">🖨️ Exportar relatório</button>` : ''}
+      ${!isTemplate ? `<button id="duplicate-month-btn" class="toggle-all-btn" title="Cria o próximo mês que falta, copiando este">⧉ Duplicar mês</button>` : ''}
       ${!isTemplate ? `<button id="delete-month-btn" title="Excluir este mês">Excluir mês</button>` : ''}
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
     </div>
@@ -2685,6 +2747,8 @@ function attachMonthEvents(monthKey){
   if(!isTemplate){
     const delBtn = content.querySelector('#delete-month-btn');
     if(delBtn) delBtn.addEventListener('click', ()=>deleteMonth(monthKey));
+    const dupBtn = content.querySelector('#duplicate-month-btn');
+    if(dupBtn) dupBtn.addEventListener('click', ()=>duplicarMes(monthKey));
     const exportBtn = content.querySelector('#export-pdf-btn');
     if(exportBtn) exportBtn.addEventListener('click', ()=>exportarRelatorioMes(monthKey));
     content.querySelectorAll('.insight-dismiss').forEach(btn=>{
