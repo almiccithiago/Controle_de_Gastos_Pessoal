@@ -1068,7 +1068,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1659,6 +1659,10 @@ function askDuplicar(origem, destino){
 }
 
 // Duplica o mês aberto no próximo mês que ainda não existe (seguinte ao último lançado).
+// arquivos anexados (base64, até 2MB cada) não são copiados: dobrariam o tamanho dos dados e estourariam o limite do servidor
+function removerArquivosAnexados(obj){ if(Array.isArray(obj)){ obj.forEach(removerArquivosAnexados); return; }
+  if(obj && typeof obj === 'object'){ Object.keys(obj).forEach(k=>{
+    if(k === 'anexo' && obj[k] && typeof obj[k] === 'object' && obj[k].dados) delete obj[k]; else removerArquivosAnexados(obj[k]); }); } }
 async function duplicarMes(monthKey){
   const origem = DATA.months[monthKey];
   if(!origem) return;
@@ -1667,7 +1671,7 @@ async function duplicarMes(monthKey){
   if(jaExiste){ alert(`Já existe um mês chamado "${destino}".`); return; }
   const r = await askDuplicar(monthKey, destino);
   if(r === 'cancel') return;
-  const copia = deepClone(origem);
+  const copia = deepClone(origem); removerArquivosAnexados(copia);
   if(r === 'zerar') zerarPagos(copia);
   copia.reservaEmergencia = 0;
   copia.reservaEmergenciaFeita = false;
