@@ -1068,7 +1068,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.1</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1756,18 +1756,32 @@ async function saveUmaVez(){
     // assim que os dados do app crescessem além disso).
     // limite do keepalive é em BYTES — acentos ocupam 2 bytes, então mede o tamanho real
     const usaKeepalive = new Blob([body]).size < 60000;
-    const resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-app-password': currentPassword },
-      body,
-      keepalive: usaKeepalive
-    });
-    if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
+    // até 4 tentativas (0s, 2s, 5s, 10s): o servidor gratuito do Render pode estar
+    // "acordando" e falhar na primeira chamada; erros 4xx (senha/dados) não repetem
+    let resp = null, ultimoErro = null;
+    const esperas = [0, 2000, 5000, 10000];
+    for(let t = 0; t < esperas.length; t++){
+      if(esperas[t]) await new Promise(r=>setTimeout(r, esperas[t]));
+      try{
+        resp = await fetch(`${API_BASE}/api/data/${APP_ID}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-app-password': currentPassword },
+          body,
+          keepalive: usaKeepalive
+        });
+        if(resp.ok) break;
+        ultimoErro = new Error('Resposta não OK: ' + resp.status); ultimoErro.status = resp.status;
+        if(resp.status >= 400 && resp.status < 500 && resp.status !== 408 && resp.status !== 429) break;
+      }catch(err){ ultimoErro = err; resp = null; }
+    }
+    if(!resp || !resp.ok) throw ultimoErro || new Error('sem resposta');
     setSaveStatus('saved');
     ultimoSaveFalhou = false;
   }catch(e){
     console.error('Falha ao salvar dados no servidor', e);
     setSaveStatus('error');
+    const el = document.getElementById('save-status');
+    if(el) el.textContent = '⚠ não foi possível salvar' + (e && e.status ? ' (erro ' + e.status + ')' : ' (sem conexão com o servidor)') + ' — tente de novo';
     // avisa uma vez só (antes aparecia um alert a cada campo editado sem internet)
     if(!ultimoSaveFalhou) alert('Não foi possível salvar as alterações no servidor agora. Verifique sua internet e tente novamente.');
     ultimoSaveFalhou = true;
