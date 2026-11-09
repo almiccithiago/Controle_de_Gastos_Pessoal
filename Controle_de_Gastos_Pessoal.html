@@ -1081,7 +1081,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.6</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.8</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1689,21 +1689,22 @@ function removerArquivosAnexados(obj){ if(Array.isArray(obj)){ obj.forEach(remov
 // ===== peso dos dados / anexos =====
 function fmtBytes(b){ return b >= 1048576 ? (b/1048576).toFixed(2).replace('.',',') + ' MB' : Math.max(1, Math.round(b/1024)) + ' KB'; }
 function coletarAnexos(){
+  // varre TODOS os dados (meses, modelo, empréstimos, viagens...) atrás de arquivos anexados
   const lista = [];
-  (function walk(o, mes, rotulo){
-    if(Array.isArray(o)){ o.forEach(x=>walk(x, mes, rotulo)); return; }
+  (function walk(o, topo, rotulo){
+    if(Array.isArray(o)){ o.forEach(x=>walk(x, topo, rotulo)); return; }
     if(!o || typeof o !== 'object') return;
+    const r = o.desc || o.n || o.nome || o.titulo || rotulo;
     Object.keys(o).forEach(k=>{
       const v = o[k];
-      if(k === 'anexo' && v && typeof v === 'object' && typeof v.dados === 'string'){
-        lista.push({ pai:o, anexo:v, mes, item:o.desc || o.n || o.nome || o.titulo || '(item)', bytes:v.dados.length });
-      } else walk(v, mes, rotulo);
+      if(v && typeof v === 'object' && !Array.isArray(v) && typeof v.dados === 'string' && v.dados.indexOf('data:') === 0){
+        lista.push({ pai:o, chave:k, anexo:v, mes:topo, item:r || '(item)', bytes:v.dados.length });
+      } else walk(v, topo, r);
     });
-  })(DATA.months, '', '');
-  // descobre o mês de cada anexo
-  Object.keys(DATA.months).forEach(mk=>{ lista.forEach(a=>{ if(!a.mes && JSON.stringify(DATA.months[mk]).indexOf(a.anexo.dados.slice(0,60)) >= 0) a.mes = mk; }); });
-  if(DATA.template) (function walkT(o){ if(Array.isArray(o)){o.forEach(walkT);return;} if(!o||typeof o!=='object')return;
-    Object.keys(o).forEach(k=>{ const v=o[k]; if(k==='anexo'&&v&&typeof v.dados==='string') lista.push({pai:o,anexo:v,mes:'Modelo',item:o.desc||o.n||'(item)',bytes:v.dados.length}); else walkT(v); }); })(DATA.template);
+  })(DATA, '', '');
+  // preenche o "mês" (primeira chave dentro de months)
+  Object.keys(DATA.months || {}).forEach(mk=>{ const sub = JSON.stringify(DATA.months[mk]); lista.forEach(a=>{ if(!a.mes && sub.indexOf(a.anexo.dados.slice(0,80)) >= 0) a.mes = mk; }); });
+  lista.forEach(a=>{ if(!a.mes) a.mes = 'outro local'; });
   return lista.sort((a,b)=>b.bytes-a.bytes);
 }
 function comprimirImagemDataUrl(dataUrl, maxDim, qualidade){
@@ -1731,21 +1732,34 @@ function abrirPainelPeso(){
   corpo.querySelectorAll('button[data-i]').forEach(b=>b.addEventListener('click', ()=>{
     const a = anexos[+b.dataset.i];
     if(!confirm('Remover o arquivo "' + (a.anexo.nome || 'arquivo') + '" de "' + a.item + '"? Isso não pode ser desfeito.')) return;
-    delete a.pai.anexo; save(); renderContent(); abrirPainelPeso();
+    delete a.pai[a.chave]; save(); renderContent(); abrirPainelPeso();
   }));
   document.getElementById('peso-comprimir').style.display = anexos.some(a=>/^data:image\//.test(a.anexo.dados)) ? '' : 'none';
   modal.style.display = 'flex';
 }
 async function comprimirTodasImagens(){
-  const btn = document.getElementById('peso-comprimir'); btn.disabled = true; btn.textContent = 'Comprimindo...';
-  for(const a of coletarAnexos()){
-    if(/^data:image\//.test(a.anexo.dados)){
-      const novo = await comprimirImagemDataUrl(a.anexo.dados, 1280, 0.6);
-      if(novo.length < a.anexo.dados.length){ a.anexo.dados = novo; a.anexo.tipo = 'image/jpeg'; }
+  const btn = document.getElementById('peso-comprimir'); btn.disabled = true; btn.textContent = 'Comprimindo... aguarde';
+  const antes = new Blob([JSON.stringify(DATA)]).size; let nImg = 0;
+  try{
+    const passes = [[1280,0.6],[900,0.5],[640,0.4]];
+    for(const a of coletarAnexos()){
+      if(!/^data:image\//.test(a.anexo.dados)) continue;
+      nImg++;
+      for(const [dim,q] of passes){
+        if(a.anexo.dados.length < 150000) break;           // já está pequena
+        const novo = await comprimirImagemDataUrl(a.anexo.dados, dim, q);
+        if(novo.length < a.anexo.dados.length){ a.anexo.dados = novo; a.anexo.tipo = 'image/jpeg'; }
+      }
     }
-  }
+  }catch(e){ console.error(e); }
+  const depois = new Blob([JSON.stringify(DATA)]).size;
   btn.disabled = false; btn.textContent = 'Comprimir todas as imagens anexadas';
   save(); renderContent(); abrirPainelPeso();
+  const msg = document.createElement('div'); msg.className = 'peso-resumo'; msg.style.cssText = 'background:#ECFDF5;border:1px solid #16A34A;border-radius:8px;padding:8px 10px;';
+  msg.innerHTML = antes - depois > 1024
+    ? '✔ ' + nImg + ' imagem(ns) comprimida(s): de <b>' + fmtBytes(antes) + '</b> para <b>' + fmtBytes(depois) + '</b>. Salvando...'
+    : 'As imagens já estão no menor tamanho possível (' + fmtBytes(depois) + '). Para reduzir mais, remova os arquivos mais pesados da lista (principalmente PDFs).';
+  document.getElementById('peso-corpo').prepend(msg);
 }
 async function duplicarMes(monthKey){
   const origem = DATA.months[monthKey];
@@ -4898,7 +4912,7 @@ function renderViagensView(){
   html += `<div class="vg-secs">${VG_SECOES.map(([k, nome])=>`<button type="button" class="vg-sec ${k === viagemSecao ? 'active' : ''}" data-act="secao" data-s="${k}">${nome}</button>`).join('')}
     <span class="vg-spacer"></span>
     <button type="button" class="vg-btn" data-act="renomear">Renomear</button>
-    <button type="button" class="vg-btn" data-act="pdf">PDF</button>
+    <button type="button" class="toggle-all-btn" data-act="pdf" title="Gera um relatório desta viagem pra salvar como PDF ou imprimir">🖨️ exportar relatório</button>
     <button type="button" class="vg-btn danger" data-act="excluir">Excluir viagem</button></div>`;
   const corpo = { resumo:vgResumo, passeios:vgPasseios, mercado:vgMercado, car:vgCar }[viagemSecao] || vgCapa;
   return html + corpo(t) + `</div>`;
