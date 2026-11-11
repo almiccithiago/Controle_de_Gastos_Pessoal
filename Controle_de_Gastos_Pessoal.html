@@ -12,10 +12,15 @@
 (function(){
   var m = location.search.match(/[?&]_v=(\d+)/);
   var agora = Date.now();
-  if(!m || (agora - parseInt(m[1],10)) > 3000){
+  // trava contra loop: se esta aba já foi redirecionada há poucos segundos (conexão lenta,
+  // servidor "acordando"), não redireciona de novo.
+  var ultimoRedir = 0;
+  try{ ultimoRedir = parseInt(sessionStorage.getItem('cg_ultimo_redir') || '0', 10) || 0; }catch(e){}
+  if((!m || (agora - parseInt(m[1],10)) > 3000) && (agora - ultimoRedir) > 15000){
+    try{ sessionStorage.setItem('cg_ultimo_redir', String(agora)); }catch(e){}
     var params = new URLSearchParams(location.search);
     params.set('_v', agora);
-    location.replace(location.pathname + '?' + params.toString());
+    location.replace(location.pathname + '?' + params.toString() + location.hash);
   }
 })();
 </script>
@@ -46,6 +51,7 @@
     --text: #0F223D;
     --muted: #6B7280;
     --border: #E5E7EB;
+    --border-strong: #CBD5E1;
     --radius: 14px;
   }
   *{box-sizing:border-box; min-width:0;}
@@ -383,7 +389,7 @@
     .section-card{ padding:10px 8px; }
     .section-header{ flex-wrap:wrap; row-gap:4px; }
     .section-header .detail-title-input{ flex-basis:100%; font-size:13px; }
-    .item-valor{ width:58px; font-size:12px; }
+    .item-valor{ width:70px; font-size:12px; }
     .rs-prefix{ font-size:10.5px; }
     .add-item-row{ gap:4px; }
     .add-item-row input.add-valor{ width:56px; }
@@ -468,6 +474,7 @@
   .anexo-popover{
     background:#fff; border:1px solid var(--border); border-radius:14px;
     box-shadow:0 12px 32px rgba(20,22,26,0.14); padding:12px; width:250px;
+    max-width:calc(100vw - 16px); max-height:calc(100vh - 16px); overflow-y:auto;
     font-family:'Poppins', sans-serif;
   }
   .anexo-menu-opt{
@@ -845,7 +852,7 @@
   /* --- Botões de ação: um só formato e um só estilo (contorno verde) --- */
   .toggle-all-btn, #delete-month-btn, .loan-add-btn, .add-block-btn, .btn-add,
   .history-restore-btn, .goal-archive-btn, .goal-unarchive-btn,
-  .modal-btn-primary, .modal-btn-secondary, .resumo-ia-btn,
+  .modal-btn-primary, .modal-btn-secondary,
   .anexo-form-save, .anexo-form-cancel, .anexo-form-edit, .block-restore,
   #history-btn, #logout-btn, #lock-btn, .anexo-modal-download, .anexo-modal-close, .anexo-modal-remove{
     display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:6px !important;
@@ -859,7 +866,7 @@
   }
   .toggle-all-btn:hover, .loan-add-btn:hover, .add-block-btn:hover, .btn-add:hover,
   .history-restore-btn:hover, .goal-unarchive-btn:hover, .modal-btn-primary:hover,
-  .resumo-ia-btn:hover, .anexo-form-save:hover, .anexo-form-edit:hover, .block-restore:hover,
+  .anexo-form-save:hover, .anexo-form-edit:hover, .block-restore:hover,
   #history-btn:hover, #logout-btn:hover, #lock-btn:hover, .anexo-modal-download:hover{
     background:var(--teal) !important; color:#fff !important;
   }
@@ -1052,7 +1059,7 @@
   .vg-grip{ cursor:grab; color:var(--muted); font-size:15px; letter-spacing:-3px; padding:2px 4px; user-select:none; flex:0 0 auto; touch-action:none; }
   .vg-grip:active{ cursor:grabbing; }
   .vg-mv{ display:inline-flex; flex-direction:column; gap:0; flex:0 0 auto; }
-  .vg-mvb{ border:none; background:transparent; color:var(--muted); font-size:9px; line-height:1; padding:1px 5px; cursor:pointer; font-family:inherit; min-width:auto; }
+  .vg-mvb{ border:none; background:transparent; color:var(--muted); font-size:10px; line-height:1; padding:3px 6px; cursor:pointer; font-family:inherit; min-width:auto; }
   .vg-mvb:hover:not(:disabled){ color:var(--blue); }
   .vg-mvb:disabled{ opacity:.25; cursor:default; }
   .vg-ck.dragging{ opacity:.4; }
@@ -1080,11 +1087,60 @@
   .vg-grid > .vg-card.vg-span2:first-child{ align-self:stretch; }
   /* campos de valor com o mesmo tamanho em todas as telas (cabe 123456.00) */
   .pessoa-receb-amount input, .reserva-box input[type=text], .loan-inicial-row input, .meta-input{ width:120px !important; min-width:120px !important; flex:0 0 120px; text-align:right; }
+  /* ===== busca de item em todos os meses ===== */
+  .busca-wrap{
+    position:relative; display:flex; align-items:center; gap:8px; height:34px; width:270px; flex-shrink:1;
+    padding:0 10px; border-radius:8px; background:rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.28); color:#BFD0E8;
+  }
+  .busca-wrap:focus-within{ background:#fff; color:var(--text); border-color:var(--teal); box-shadow:0 0 0 3px rgba(22,163,74,0.25); }
+  .busca-wrap > svg{ width:15px; height:15px; flex-shrink:0; }
+  #busca-input{ flex:1; min-width:0; border:none; background:transparent; outline:none; color:inherit; font-family:inherit; font-size:12.5px; font-weight:600; padding:0; }
+  #busca-input::placeholder{ color:#BFD0E8; opacity:1; }
+  .busca-wrap:focus-within #busca-input::placeholder{ color:var(--muted); }
+  .busca-drop{
+    position:absolute; top:40px; right:0; width:520px; max-width:calc(100vw - 20px); max-height:min(70vh, 520px); overflow-y:auto;
+    background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 16px 40px rgba(8,26,46,0.28);
+    padding:8px; z-index:60; color:var(--text);
+  }
+  .busca-res{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:9px 10px; border:none; background:transparent;
+    border-radius:8px; font-size:13px; font-family:inherit; color:var(--text); cursor:pointer;
+  }
+  .busca-res:hover, .busca-res.sel{ background:#F4F6F9; }
+  .busca-res-n{ flex:1; min-width:0; font-weight:700; overflow-wrap:anywhere; }
+  .busca-res-n small{ display:block; color:var(--muted); font-size:11.5px; font-weight:500; }
+  .busca-res mark{ background:#FEF08A; border-radius:3px; padding:0 1px; color:inherit; }
+  .busca-res-v{ font-weight:700; white-space:nowrap; flex-shrink:0; text-transform:none; }
+  .busca-st{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:99px; white-space:nowrap; flex-shrink:0; }
+  .busca-st.pago{ background:#EAFBEF; color:#2E8B57; }
+  .busca-st.pendente{ background:#FFF6E5; color:#F97316; }
+  .busca-foot{ font-size:11.5px; color:var(--muted); padding:8px 10px 4px; border-top:1px solid var(--border); margin-top:4px; }
+  .busca-vazio{ padding:14px 10px; font-size:13px; color:var(--muted); }
+  .item-row.busca-alvo{ background:#FFF7ED !important; box-shadow:0 0 0 2px var(--orange); }
+  @media (max-width:480px){
+    .brand{ flex-wrap:wrap; }
+    .busca-wrap{ order:10; width:100%; flex-basis:100%; height:32px; }
+    .busca-drop{ left:0; right:0; width:auto; max-width:none; }
+  }
+  /* ===== aviso "desfazer" ===== */
+  .desfazer-toast{
+    position:fixed; left:12px; right:12px; bottom:24px; margin:0 auto; width:max-content; max-width:calc(100vw - 24px); z-index:9000;
+    background:var(--navy-deep); color:#fff; border-radius:12px; padding:10px 12px 10px 16px; display:flex; align-items:center; gap:12px;
+    font-family:'Poppins', Arial, sans-serif; font-size:13.5px; font-weight:600; box-shadow:0 12px 30px rgba(8,26,46,0.35);
+  }
+  .desfazer-txt{ min-width:0; overflow-wrap:break-word; }
+  .desfazer-btn{
+    background:transparent; color:#86EFAC; border:1.5px solid #86EFAC; border-radius:8px; padding:6px 12px;
+    font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; flex-shrink:0;
+  }
+  .desfazer-btn:hover{ background:#86EFAC; color:var(--navy-deep); }
+  .desfazer-x{ background:transparent; border:none; color:#BFD0E8; font-size:18px; line-height:1; cursor:pointer; padding:2px 6px; flex-shrink:0; }
+  .desfazer-x:hover{ color:#fff; }
 </style>
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-09.9</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-11.2</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1104,6 +1160,11 @@
       <div class="brand-text">
         <h1>Controle de Gastos Pessoal</h1>
         <p>THIAGO DE PAULA ALMICCI</p>
+      </div>
+      <div class="busca-wrap" id="busca-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" id="busca-input" placeholder="buscar item em todos os meses" autocomplete="off" aria-label="Buscar item em todos os meses">
+        <div class="busca-drop" id="busca-drop" style="display:none;"></div>
       </div>
       <span id="save-status" class="save-status"></span>
       <button id="history-btn" title="Ver e restaurar versões anteriores">Histórico</button>
@@ -1458,7 +1519,7 @@ function migrateData(data){
     recebDia18: "Recebimento · Dia 18",
     recebDia08: "Recebimento · Dia 08",
     recebThiDia08: "Recebimento Thi · Dia 08",
-    recebPeDia08: "Recebimento Pe · Dia 08",
+    recebPeDia08: "Recebimento Pe · Dia 18",   // o Pedro recebe no dia 18 (a chave interna manteve o nome antigo)
     recebThiDia18: "Recebimento Thi · Dia 18",
     secaoDia18: "DIA 18 · Vencimentos",
     secaoDia08: "DIA 08 · Vencimentos",
@@ -1539,12 +1600,17 @@ function migrateData(data){
 
   // migração: bloco "REVOLUT" (e títulos legados equivalentes) removido de vez —
   // inclusive do Modelo, pra não voltar em meses novos
-  const TITULOS_REVOLUT_LEGADO = ['revolut', 'pedro', 'pedro / revolut'];
-  allMonthObjs.forEach(m=>{
-    if(Array.isArray(m.detalhamentos)){
-      m.detalhamentos = m.detalhamentos.filter(d=>!TITULOS_REVOLUT_LEGADO.includes(d.titulo.trim().toLowerCase()));
-    }
-  });
+  // Roda UMA única vez (marcado em data.migRevolutRemovido). Antes rodava a cada
+  // carregamento e apagava qualquer bloco novo chamado "Pedro" ou "Revolut".
+  if(!data.migRevolutRemovido){
+    const TITULOS_REVOLUT_LEGADO = ['revolut', 'pedro', 'pedro / revolut'];
+    allMonthObjs.forEach(m=>{
+      if(Array.isArray(m.detalhamentos)){
+        m.detalhamentos = m.detalhamentos.filter(d=>!TITULOS_REVOLUT_LEGADO.includes(String(d.titulo||'').trim().toLowerCase()));
+      }
+    });
+    data.migRevolutRemovido = true;
+  }
 
   // migração: metas de economia (viagem, reserva, etc.) — lista nova, começa vazia
   if(!Array.isArray(data.metasEconomia)) data.metasEconomia = [];
@@ -1560,6 +1626,9 @@ function migrateData(data){
     if(Array.isArray(m.dia08)) sortItemsByDesc(m.dia08);
     (m.detalhamentos||[]).forEach(d=>{ if(Array.isArray(d.items)) sortItemsByDesc(d.items); });
   });
+
+  // o resumo em texto por IA foi removido: limpa o que ficou salvo nos meses
+  allMonthObjs.forEach(m=>{ delete m.resumoIA; });
 
   vgMigrar(data);
   return data;
@@ -1582,7 +1651,13 @@ function askReplicar(texto){
     const btnReplicate = document.getElementById('replicate-btn-replicate');
     const btnOnly = document.getElementById('replicate-btn-only');
     const btnCancel = document.getElementById('replicate-btn-cancel');
+    const abertoEm = Date.now();
+    const recente = ()=> Date.now() - abertoEm < 300;   // ignora o Enter que ainda está pressionado ao abrir
+    const aoTeclar = e=>{ if(e.key === 'Escape'){ e.preventDefault(); cleanup('cancel'); } };
+    document.addEventListener('keydown', aoTeclar, true);
+    setTimeout(()=>{ if(modal.style.display === 'flex') btnOnly.focus(); }, 0);
     function cleanup(resultado){
+      document.removeEventListener('keydown', aoTeclar, true);
       modal.style.display = 'none';
       btnReplicate.onclick = null;
       btnOnly.onclick = null;
@@ -1590,8 +1665,9 @@ function askReplicar(texto){
       modal.onclick = null;
       resolve(resultado);
     }
-    btnReplicate.onclick = ()=>cleanup('replicate');
-    btnOnly.onclick = ()=>cleanup('only');
+    // e.detail === 0: botão acionado pelo teclado (Enter/espaço), não pelo mouse
+    btnReplicate.onclick = e=>{ if(e && e.detail === 0 && recente()) return; cleanup('replicate'); };
+    btnOnly.onclick = e=>{ if(e && e.detail === 0 && recente()) return; cleanup('only'); };
     btnCancel.onclick = ()=>cleanup('cancel');
     modal.onclick = (e)=>{ if(e.target.id === 'replicate-modal') cleanup('cancel'); };
   });
@@ -1808,7 +1884,7 @@ function flushCampoEmFoco(){
 }
 window.addEventListener('beforeunload', e=>{
   flushCampoEmFoco();
-  if(pendingSaves > 0){
+  if(pendingSaves > 0 || ultimoSaveFalhou){
     e.preventDefault();
     e.returnValue = '';
   }
@@ -1838,8 +1914,10 @@ function setSaveStatus(state){
 // Salvamentos em fila: nunca há dois POSTs ao mesmo tempo. Antes, edições
 // rápidas disparavam vários POSTs em paralelo e, se um mais antigo chegasse
 // ao servidor depois de um mais novo, a versão antiga sobrescrevia a nova.
-let saveEmAndamento = null, salvarDeNovo = false, ultimoSaveFalhou = false;
+let saveEmAndamento = null, salvarDeNovo = false, ultimoSaveFalhou = false, retrySaveTimer = null;
+window.addEventListener('online', ()=>{ if(ultimoSaveFalhou && dataReady) save(); });
 function save(){
+  if(!dataReady || !DATA) return Promise.resolve();
   if(saveEmAndamento){ salvarDeNovo = true; return saveEmAndamento; }
   saveEmAndamento = (async ()=>{
     do{ salvarDeNovo = false; await saveUmaVez(); } while(salvarDeNovo);
@@ -1848,6 +1926,7 @@ function save(){
   return saveEmAndamento;
 }
 async function saveUmaVez(){
+  if(!DATA) return;
   pendingSaves++;
   setSaveStatus('saving');
   try{
@@ -1882,6 +1961,7 @@ async function saveUmaVez(){
     if(!resp || !resp.ok) throw ultimoErro || new Error('sem resposta');
     setSaveStatus('saved');
     ultimoSaveFalhou = false;
+    clearTimeout(retrySaveTimer);
   }catch(e){
     console.error('Falha ao salvar dados no servidor', e);
     setSaveStatus('error');
@@ -1893,6 +1973,10 @@ async function saveUmaVez(){
       else alert('Não foi possível salvar as alterações no servidor agora. Verifique sua internet e tente novamente.');
     }
     ultimoSaveFalhou = true;
+    // tenta de novo sozinho em 30s (menos em erros 4xx, que não se resolvem repetindo)
+    const definitivo = e && e.status >= 400 && e.status < 500 && e.status !== 408 && e.status !== 429;
+    clearTimeout(retrySaveTimer);
+    if(!definitivo) retrySaveTimer = setTimeout(()=>{ if(ultimoSaveFalhou && dataReady) save(); }, 30000);
   }finally{
     pendingSaves--;
   }
@@ -1929,6 +2013,10 @@ function fmt(v){
   if(v === null || v === undefined || isNaN(v)) return "—";
   return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
+
+// Valor como aparece nos campos editáveis: formato brasileiro ("1.004,39").
+// parseValorBR entende esse formato de volta quando o campo é editado.
+function fmtCampo(v){ return fmt(round2(v)); }
 
 function round2(v){
   const n = Number(v);
@@ -1997,6 +2085,158 @@ function mesesSeguintesETemplate(monthKeyAtual){
     ? Object.values(DATA.months)
     : DATA.monthOrder.slice(idx+1).map(k=>DATA.months[k]);
   return [...seguintes, DATA.template];
+}
+
+// ============================= DESFAZER =============================
+let desfazerEl = null, desfazerTimer = null;
+function fecharDesfazer(){
+  clearTimeout(desfazerTimer); desfazerTimer = null;
+  if(desfazerEl){ desfazerEl.remove(); desfazerEl = null; }
+}
+// Aviso no rodapé com o botão "desfazer"; some sozinho em 8 segundos.
+function mostrarDesfazer(texto, aoDesfazer){
+  fecharDesfazer();
+  const el = document.createElement('div');
+  el.className = 'desfazer-toast';
+  el.setAttribute('role', 'status');
+  el.innerHTML = '<span class="desfazer-txt"></span><button type="button" class="desfazer-btn">desfazer</button><button type="button" class="desfazer-x" aria-label="Fechar aviso">×</button>';
+  el.querySelector('.desfazer-txt').textContent = texto;
+  el.querySelector('.desfazer-btn').addEventListener('click', ()=>{ fecharDesfazer(); aoDesfazer(); });
+  el.querySelector('.desfazer-x').addEventListener('click', fecharDesfazer);
+  document.body.appendChild(el);
+  desfazerEl = el;
+  desfazerTimer = setTimeout(fecharDesfazer, 8000);
+}
+// Remove o item na hora (sem pergunta) e oferece "desfazer", que devolve o item à mesma posição.
+function removerItemComDesfazer(list, idx){
+  const item = list[idx];
+  if(!item) return;
+  const dadosNaHora = DATA;
+  list.splice(idx, 1);
+  save(); renderContent();
+  mostrarDesfazer(`item “${item.desc}” (R$ ${fmt(item.valor)}) removido`, ()=>{
+    if(DATA !== dadosNaHora || !dataReady) return;   // dados recarregados/restaurados nesse meio tempo
+    list.splice(Math.min(idx, list.length), 0, item);
+    save(); renderContent();
+  });
+}
+
+// ============================= ENTER ADICIONA =============================
+// Enter na descrição (com valor vazio) pula para o valor; Enter com os dois preenchidos adiciona.
+// Depois de adicionar pelo teclado, o cursor volta para a descrição do mesmo bloco.
+let refocarAdd = null;
+function ligarEnterAdicionar(addRow){
+  const desc = addRow.querySelector('.add-desc'), valor = addRow.querySelector('.add-valor'), btn = addRow.querySelector('.btn-add');
+  [desc, valor].forEach(inp=>inp.addEventListener('keydown', e=>{
+    if(e.key !== 'Enter' || e.repeat) return;
+    e.preventDefault();
+    if(inp === desc && desc.value.trim() && !valor.value.trim()){ valor.focus(); return; }
+    refocarAdd = {
+      sel: addRow.dataset.add !== undefined ? `.add-item-row[data-add="${addRow.dataset.add}"] .add-desc` : `.add-item-row[data-add-detail="${addRow.dataset.addDetail}"] .add-desc`,
+      t: Date.now()
+    };
+    btn.click();
+  }));
+}
+function focarAddPendente(){
+  const r = refocarAdd; refocarAdd = null;
+  if(!r || Date.now() - r.t > 60000) return;
+  const el = document.querySelector('#content ' + r.sel);
+  if(el) el.focus();
+}
+
+// ============================= BUSCA =============================
+let buscaRes = [], buscaSel = 0;
+function buscarItens(q){
+  const alvo = vgSemAcento(q).trim();
+  if(alvo.length < 2) return [];
+  const res = [];
+  DATA.monthOrder.slice().reverse().forEach(k=>{
+    const m = DATA.months[k];
+    if(!m) return;
+    const quadros = [{ titulo: (m.labels && m.labels.secaoDia08) || 'Dia 08', items: m.dia08 || [], lista:'dia08' }]
+      .concat((m.detalhamentos || []).map((d, di)=>({ titulo: d.titulo, items: d.items || [], lista: 'detail:' + di })));
+    quadros.forEach(qd=>qd.items.forEach((it, idx)=>{
+      const pos = vgSemAcento(it.desc).indexOf(alvo);
+      if(pos >= 0) res.push({ mes:k, bloco:qd.titulo, lista:qd.lista, idx, item:it, pos, len:alvo.length });
+    }));
+  });
+  // o mês que está aberto vem primeiro; depois os demais, do mais recente para o mais antigo
+  return res.filter(r=>r.mes === currentTab).concat(res.filter(r=>r.mes !== currentTab));
+}
+function renderBusca(){
+  const inp = document.getElementById('busca-input'), drop = document.getElementById('busca-drop');
+  if(!inp || !drop) return;
+  const q = inp.value;
+  if(!dataReady || !DATA || vgSemAcento(q).trim().length < 2){ drop.style.display = 'none'; drop.innerHTML = ''; buscaRes = []; return; }
+  buscaRes = buscarItens(q);
+  if(buscaSel >= buscaRes.length) buscaSel = 0;
+  if(!buscaRes.length){
+    drop.innerHTML = `<div class="busca-vazio">nenhum item encontrado para “${escapeHtml(q.trim())}”.</div>`;
+  } else {
+    const MAX = 40;
+    const linhas = buscaRes.slice(0, MAX).map((r, i)=>{
+      const d = String(r.item.desc);
+      const nome = escapeHtml(d.slice(0, r.pos)) + '<mark>' + escapeHtml(d.slice(r.pos, r.pos + r.len)) + '</mark>' + escapeHtml(d.slice(r.pos + r.len));
+      return `<button type="button" class="busca-res ${i === buscaSel ? 'sel' : ''}" data-i="${i}">
+        <span class="busca-res-n">${nome}<small>${escapeHtml(r.mes)} · ${escapeHtml(r.bloco)}</small></span>
+        <span class="busca-res-v">R$ ${fmt(r.item.valor)}</span>
+        <span class="busca-st ${r.item.pago ? 'pago' : 'pendente'}">${r.item.pago ? 'pago' : 'pendente'}</span>
+      </button>`;
+    }).join('');
+    const meses = new Set(buscaRes.map(r=>r.mes)).size;
+    const total = round2(buscaRes.reduce((s2, r)=>s2 + valorDespesa(r.item.valor), 0));
+    drop.innerHTML = linhas + `<div class="busca-foot">${buscaRes.length} resultado${buscaRes.length === 1 ? '' : 's'} em ${meses} ${meses === 1 ? 'mês' : 'meses'} · total R$ ${fmt(total)}${buscaRes.length > MAX ? ' · mostrando os ' + MAX + ' primeiros' : ''} · clique para abrir o mês</div>`;
+  }
+  drop.style.display = 'block';
+  const sel = drop.querySelector('.busca-res.sel');
+  if(sel && sel.scrollIntoView) sel.scrollIntoView({ block:'nearest' });
+}
+function fecharBusca(limpar){
+  const inp = document.getElementById('busca-input'), drop = document.getElementById('busca-drop');
+  if(drop){ drop.style.display = 'none'; drop.innerHTML = ''; }
+  buscaRes = []; buscaSel = 0;
+  if(limpar && inp){ inp.value = ''; inp.blur(); }
+}
+// Abre o mês do resultado, rola até o item e destaca a linha por alguns segundos.
+function abrirResultadoBusca(r){
+  fecharBusca(true);
+  const m = DATA.months[r.mes];
+  if(!m) return;
+  const dIdx = r.lista === 'dia08' ? null : +r.lista.split(':')[1];
+  const pessoa = dIdx === null ? (m.dia08Pessoa === 'pedro' ? 'pedro' : 'thiago') : (m.detalhamentos[dIdx] ? pessoaOf(m.detalhamentos[dIdx]) : 'thiago');
+  if(m.pessoaSecaoOculta && m.pessoaSecaoOculta[pessoa]) m.pessoaSecaoOculta[pessoa] = false;   // a seção estava recolhida
+  currentTab = r.mes;
+  pressionadoDesde = 0; tabEmAndamento = false;
+  renderContent();
+  const sel = dIdx === null
+    ? `.section-card[data-section="dia08"] .item-row[data-idx="${r.idx}"]`
+    : `.section-card[data-detail="${dIdx}"] .item-row[data-idx="${r.idx}"]`;
+  const row = document.querySelector('#content ' + sel);
+  if(row){
+    row.scrollIntoView({ block:'center' });
+    row.classList.add('busca-alvo');
+    setTimeout(()=>row.classList.remove('busca-alvo'), 2600);
+  }
+}
+function initBusca(){
+  const inp = document.getElementById('busca-input'), drop = document.getElementById('busca-drop'), wrap = document.getElementById('busca-wrap');
+  if(!inp || !drop || !wrap) return;
+  inp.addEventListener('input', ()=>{ buscaSel = 0; renderBusca(); });
+  inp.addEventListener('focus', renderBusca);
+  inp.addEventListener('keydown', e=>{
+    if(e.key === 'Escape'){ fecharBusca(true); return; }
+    if(!buscaRes.length) return;
+    const visiveis = Math.min(buscaRes.length, 40);
+    if(e.key === 'ArrowDown'){ e.preventDefault(); buscaSel = (buscaSel + 1) % visiveis; renderBusca(); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); buscaSel = (buscaSel - 1 + visiveis) % visiveis; renderBusca(); }
+    else if(e.key === 'Enter'){ e.preventDefault(); abrirResultadoBusca(buscaRes[buscaSel]); }
+  });
+  drop.addEventListener('click', e=>{
+    const b = e.target.closest('.busca-res');
+    if(b && buscaRes[+b.dataset.i]) abrirResultadoBusca(buscaRes[+b.dataset.i]);
+  });
+  document.addEventListener('mousedown', e=>{ if(!wrap.contains(e.target)) fecharBusca(false); });
 }
 
 // ============================= TABS =============================
@@ -2079,10 +2319,61 @@ function initTabDragReorder(tabs){
   });
 }
 
+// ---- redesenho sem perder clique nem foco ----
+// Editar um campo e clicar (ou apertar Tab) em outro disparava o redesenho da tela
+// no meio do gesto: o clique caía num elemento que já não existia e o foco sumia.
+// Agora o redesenho espera o gesto terminar e devolve o foco ao campo equivalente.
+let pressionadoDesde = 0, tabEmAndamento = false, renderPendente = false, renderTimer = null;
+function interacaoEmAndamento(){
+  return tabEmAndamento || (pressionadoDesde > 0 && Date.now() - pressionadoDesde < 1500);
+}
+function agendarRenderPendente(ms){
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(()=>{
+    renderTimer = null;
+    if(renderPendente){ pressionadoDesde = 0; tabEmAndamento = false; renderContent(); }
+  }, ms);
+}
+document.addEventListener('mousedown', ()=>{ pressionadoDesde = Date.now(); }, true);
+['mouseup','dragend','drop'].forEach(ev=>document.addEventListener(ev, ()=>{
+  pressionadoDesde = 0;
+  if(renderPendente) agendarRenderPendente(0);
+}, true));
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Tab') return;
+  tabEmAndamento = true;
+  setTimeout(()=>{ tabEmAndamento = false; if(renderPendente) agendarRenderPendente(0); }, 0);
+}, true);
+function capturarFoco(content){
+  const el = document.activeElement;
+  if(!el || !content.contains(el) || !/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(el.tagName)) return null;
+  const todos = Array.from(content.querySelectorAll('input,textarea,select,button,a[href]'));
+  let ini = null, fim = null;
+  try{ ini = el.selectionStart; fim = el.selectionEnd; }catch(_){}
+  return { i: todos.indexOf(el), total: todos.length, tag: el.tagName, cls: el.className, type: el.type, ini, fim };
+}
+function restaurarFoco(content, f){
+  if(!f || f.i < 0) return;
+  const todos = Array.from(content.querySelectorAll('input,textarea,select,button,a[href]'));
+  if(todos.length !== f.total) return;
+  const n = todos[f.i];
+  if(!n || n.tagName !== f.tag || n.className !== f.cls || n.type !== f.type || n.disabled) return;
+  try{ n.focus({ preventScroll:true }); }catch(_){ n.focus(); }
+  if(typeof f.ini === 'number'){ try{ n.setSelectionRange(f.ini, f.fim); }catch(_){} }
+}
+
 function renderContent(){
+  if(!dataReady || !DATA) return;
+  if(interacaoEmAndamento()){
+    renderPendente = true;
+    if(!renderTimer) agendarRenderPendente(1600);
+    return;
+  }
+  renderPendente = false;
   if(currentTab !== "Viagens" && !DATA.monthOrder.includes(currentTab) && !abasVisiveis().includes(currentTab)) currentTab = primeiraAbaVisivel();
   renderTabs();
   const content = document.getElementById('content');
+  const focoAntes = capturarFoco(content);
   if(currentTab === "Modelo"){
     content.innerHTML = renderMonthView("Modelo");
     attachMonthEvents("Modelo");
@@ -2101,6 +2392,7 @@ function renderContent(){
     vgRefresh();
   }
   if(["Modelo","Resumo Anual","Obrigações"].includes(currentTab)) inserirBarraExcluirAba(content, currentTab);
+  restaurarFoco(content, focoAntes);
 }
 
 // ============================= MÊS =============================
@@ -2141,20 +2433,19 @@ function monthTotals(m){
 // detalhamento) cujo título contenha "dia 08", "a pagar", "empresa" ou "noh".
 // "Total Dia 18" = soma de todo quadro cujo título contenha "dia 18".
 // Comparação é por trecho do título, sem diferenciar maiúsculas/minúsculas.
+function diaDoQuadro(titulo){
+  const t = String(titulo||'').toLowerCase();
+  if(t.includes('dia 18')) return '18';
+  if(['dia 08','a pagar','empresa','noh'].some(p=>t.includes(p))) return '08';
+  return null;
+}
 function totalsDiaQuadros(m){
   const quadros = [{ titulo: m.labels.secaoDia08, items: m.dia08 }].concat(m.detalhamentos || []);
-  const normaliza = s => String(s||'').toLowerCase();
-  const palavrasDia08 = ['dia 08','a pagar','empresa','noh'];
-  const palavrasDia18 = ['dia 18'];
   let totalDia08 = 0, totalDia18 = 0;
   quadros.forEach(q=>{
-    const titulo = normaliza(q.titulo);
+    const dia = diaDoQuadro(q.titulo);
     const soma = (q.items||[]).reduce((s,x)=>s+valorDespesa(x.valor),0);
-    if(palavrasDia18.some(p=>titulo.includes(p))){
-      totalDia18 += soma;
-    } else if(palavrasDia08.some(p=>titulo.includes(p))){
-      totalDia08 += soma;
-    }
+    if(dia === '18') totalDia18 += soma; else if(dia === '08') totalDia08 += soma;
   });
   return { totalDia08: round2(totalDia08), totalDia18: round2(totalDia18) };
 }
@@ -2175,7 +2466,7 @@ function reservaEmergenciaBoxHtml(m){
     <label for="reserva-emergencia-input">🛟 Reserva de emergência guardada este mês:</label>
     <div class="reserva-input-wrap">
       <span class="rs-prefix">R$</span>
-      <input type="text" inputmode="decimal" id="reserva-emergencia-input" value="${valor.toFixed(2)}" ${feita?'disabled':''}>
+      <input type="text" inputmode="decimal" id="reserva-emergencia-input" value="${fmtCampo(valor)}" ${feita?'disabled':''}>
     </div>
     <span class="reserva-hint">esse valor é descontado do saldo do mês</span>
   </div>`;
@@ -2211,7 +2502,7 @@ function itemRowHtml(monthKey, listKey, idx, item, detailIdx){
     ${item.anexo ? `<button class="item-anexo-view" title="Ver anexo">${anexoIconSvg()}</button>` : ''}
     <button class="item-link ${itemLinks(item).length ? 'has-link' : ''}" title="Adicionar link, texto ou anexo">${itemLinks(item).length ? linkIconSvg() : genericIconSvg()}</button>
     <span class="rs-prefix">R$</span>
-    <input type="text" inputmode="decimal" class="item-valor" value="${round2(item.valor).toFixed(2)}">
+    <input type="text" inputmode="decimal" class="item-valor" value="${fmtCampo(item.valor)}">
     <button class="item-remove" title="Remover item">×</button>
   </div>`;
 }
@@ -2250,7 +2541,7 @@ function fileIconSvg(){
 // detail.items[idx]) — alterações feitas aqui já refletem em DATA.
 // `onChange` é chamado após qualquer alteração para salvar e re-renderizar.
 let anexoPopoverEl = null;
-const ANEXO_MAX_BYTES = 500 * 1024; // 2MB — limite pensado para o armazenamento em base64 dentro do JSON
+const ANEXO_MAX_BYTES = 500 * 1024; // 500 KB para PDF e outros arquivos (fotos são reduzidas automaticamente)
 
 function fecharAnexoPopover(){
   if(anexoPopoverEl){ anexoPopoverEl.remove(); anexoPopoverEl = null; }
@@ -2260,12 +2551,21 @@ function onDocClickFecharAnexoPopover(e){
   if(anexoPopoverEl && !anexoPopoverEl.contains(e.target)) fecharAnexoPopover();
 }
 function posicionarAnexoPopover(el, triggerEl){
+  el._gatilho = triggerEl;
   const r = triggerEl.getBoundingClientRect();
-  const largura = 230;
   el.style.position = 'fixed';
-  el.style.top = Math.min(r.bottom + 6, window.innerHeight - 40) + 'px';
-  el.style.left = Math.max(8, Math.min(r.left, window.innerWidth - largura - 8)) + 'px';
   el.style.zIndex = 9999;
+  const largura = el.offsetWidth || 250, altura = el.offsetHeight || 0, margem = 8;
+  let top = r.bottom + 6;
+  // sem espaço embaixo: abre para cima; se também não couber, encosta na borda de baixo
+  if(top + altura > window.innerHeight - margem) top = r.top - altura - 6;
+  if(top < margem) top = Math.max(margem, window.innerHeight - altura - margem);
+  el.style.top = top + 'px';
+  el.style.left = Math.max(margem, Math.min(r.left, window.innerWidth - largura - margem)) + 'px';
+}
+// o conteúdo do popover muda de tamanho (menu → formulário): reposiciona
+function reposicionarAnexoPopover(el){
+  if(el && el._gatilho && el.isConnected && el._gatilho.isConnected) posicionarAnexoPopover(el, el._gatilho);
 }
 
 function attachItemAnexoHandlers(row, item, onChange){
@@ -2309,6 +2609,7 @@ function renderAnexoMenu(el, item, onChange){
       else if(opt==='remove-anexo'){ item.anexo = null; onChange(); fecharAnexoPopover(); }
     });
   });
+  reposicionarAnexoPopover(el);
 }
 
 function renderAnexoFormLink(el, item, onChange){
@@ -2338,13 +2639,14 @@ function renderAnexoFormLink(el, item, onChange){
   const atuais = itemLinks(item);
   (atuais.length ? atuais : ['']).forEach(l=>novaLinha(l));
   lista.querySelector('input').focus();
-  el.querySelector('.anexo-link-add').addEventListener('click', ()=> novaLinha('').focus());
+  el.querySelector('.anexo-link-add').addEventListener('click', ()=>{ novaLinha('').focus(); reposicionarAnexoPopover(el); });
   el.querySelector('.anexo-form-cancel').addEventListener('click', ()=> renderAnexoMenu(el, item, onChange));
   function salvar(){
     setItemLinks(item, Array.from(lista.querySelectorAll('input')).map(i=>i.value));
     onChange(); fecharAnexoPopover();
   }
   el.querySelector('.anexo-form-save').addEventListener('click', salvar);
+  reposicionarAnexoPopover(el);
 }
 
 function renderAnexoFormNota(el, item, onChange){
@@ -2365,6 +2667,7 @@ function renderAnexoFormNota(el, item, onChange){
     item.nota = v || null;
     onChange(); fecharAnexoPopover();
   });
+  reposicionarAnexoPopover(el);
 }
 
 function renderAnexoFormArquivo(el, item, onChange){
@@ -2374,7 +2677,7 @@ function renderAnexoFormArquivo(el, item, onChange){
       <input type="file" class="anexo-form-file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:none;">
       <span class="anexo-dropzone-icon">${uploadIconSvg()}</span>
       <span>Clique para escolher um arquivo</span>
-      <span class="anexo-dropzone-hint">máx. 2MB</span>
+      <span class="anexo-dropzone-hint">fotos: qualquer tamanho · PDF e outros: máx. 500 KB</span>
     </label>
     <div class="anexo-form-file-info" style="display:none;"></div>
     <div class="anexo-form-actions">
@@ -2412,6 +2715,7 @@ function renderAnexoFormArquivo(el, item, onChange){
   saveBtn.addEventListener('click', ()=>{
     if(novoAnexo){ item.anexo = novoAnexo; onChange(); fecharAnexoPopover(); }
   });
+  reposicionarAnexoPopover(el);
 }
 
 function abrirBalaoNotaItem(triggerEl, item, onChange){
@@ -2506,7 +2810,7 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta, pessoa){
     <div class="meta-row" data-meta-for="${listKey}">
       <span class="meta-label">Meta</span>
       <span class="rs-prefix">R$</span>
-      <input type="text" inputmode="decimal" class="meta-input" value="${meta ? round2(meta).toFixed(2) : ''}" placeholder="sem meta definida">
+      <input type="text" inputmode="decimal" class="meta-input" value="${meta ? fmtCampo(meta) : ''}" placeholder="sem meta">
     </div>
     ${metaBarraHtml(total, meta)}
     <div class="add-item-row" data-add="${listKey}">
@@ -2595,144 +2899,48 @@ function detailSectionHtml(monthKey, detail, dIdx){
 
 const MESES_ABREV = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
-// ============================= INSIGHTS AUTOMÁTICOS =============================
-// Compara o mês atual com o histórico e gera observações automáticas sobre um
-// item específico que veio bem mais caro que o normal pra ele. Não grava nada
-// em disco — os dispensados ficam só na memória da sessão atual.
-const insightsDispensados = new Set();
-
-function gerarInsightsMes(monthKey){
-  const m = DATA.months[monthKey];
-  if(!m) return [];
-  const insights = [];
-
-  // item individual muito fora do padrão de gasto dele mesmo no histórico —
-  // olha só pros meses ANTERIORES a este (senão comparar com meses futuros
-  // faria um insight de um mês antigo depender de dados que "ainda não existiam").
-  const idxAtual = DATA.monthOrder.indexOf(monthKey);
-  const mesesAnteriores = idxAtual > 0 ? DATA.monthOrder.slice(0, idxAtual) : [];
-  const historicoItem = {};
-  mesesAnteriores.forEach(k=>{
-    const mm = DATA.months[k];
-    if(!mm) return;
-    todosItensDoMes(mm).forEach(it=>{
-      const chave = String(it.desc||'').trim().toLowerCase();
-      if(!chave) return;
-      if(!historicoItem[chave]) historicoItem[chave] = [];
-      historicoItem[chave].push(Number(it.valor||0));
-    });
-  });
-  todosItensDoMes(m).forEach(it=>{
-    const chave = String(it.desc||'').trim().toLowerCase();
-    const valoresAnteriores = historicoItem[chave];
-    if(!valoresAnteriores || valoresAnteriores.length < 2) return;
-    const mediaItem = valoresAnteriores.reduce((s,v)=>s+v,0)/valoresAnteriores.length;
-    if(mediaItem <= 0) return;
-    const diff = Number(it.valor||0) - mediaItem;
-    const id = `item_${monthKey}_${chave}`;
-    if(insightsDispensados.has(id)) return;
-    if((diff/mediaItem) >= 0.4 && diff >= 20){
-      insights.push({ id, tipo:'atencao', score: diff,
-        html: `<b>${escapeHtml(it.desc)}</b> veio R$ ${fmt(round2(diff))} mais caro que o normal pra esse item — vale conferir` });
-    }
-  });
-
-  insights.sort((a,b)=>b.score-a.score);
-  return insights.slice(0,3);
-}
-
+// ============================= ALERTA DE VENCIMENTO =============================
 const INSIGHT_ESTILO = {
-  alerta:  { bg:'#FCEBEB', border:'#F09595', text:'#501313', icone:'&#9888;' },
-  elogio:  { bg:'#EAF3DE', border:'#97C459', text:'#173404', icone:'&#128077;' },
-  atencao: { bg:'#FAEEDA', border:'#EF9F27', text:'#412402', icone:'&#128161;' }
+  alerta:  { bg:'#FCEBEB', border:'#F09595', text:'#501313' },
+  atencao: { bg:'#FAEEDA', border:'#EF9F27', text:'#412402' }
 };
-function insightsHtml(monthKey){
-  const insights = gerarInsightsMes(monthKey);
-  if(!insights.length) return '';
-  return `<div class="insights-bar">${insights.map(ins=>{
-    const c = INSIGHT_ESTILO[ins.tipo];
-    return `<div class="insight-card" style="background:${c.bg}; border-color:${c.border};">
-      <span class="insight-icon">${c.icone}</span>
-      <span class="insight-text" style="color:${c.text};">${ins.html}</span>
-      <span class="insight-dismiss" data-dismiss="${escapeHtml(ins.id)}" title="Dispensar">×</span>
-    </div>`;
-  }).join('')}</div>`;
+// avisos dispensados no × ficam só na memória desta sessão (voltam ao recarregar)
+const avisosDispensados = new Set();
+// Quanto ainda está pendente (itens não marcados como pagos) nos quadros do dia 08 e
+// do dia 18 — mesma classificação por título usada nas pílulas "dia 08 / dia 18".
+function pendenteDiaQuadros(m){
+  const quadros = [{ titulo: m.labels.secaoDia08, items: m.dia08 }].concat(m.detalhamentos || []);
+  let p08 = 0, p18 = 0;
+  quadros.forEach(q=>{
+    const dia = diaDoQuadro(q.titulo);
+    const soma = (q.items||[]).filter(x=>!x.pago).reduce((s,x)=>s+valorDespesa(x.valor),0);
+    if(dia === '18') p18 += soma; else if(dia === '08') p08 += soma;
+  });
+  return { dia08: round2(p08), dia18: round2(p18) };
 }
-
-// ============================= RESUMO EM TEXTO GERADO POR IA =============================
-// Reaproveita os mesmos dados que já alimentam as metas de economia, monta um
-// payload compacto e pede pro backend gerar uma leitura em texto corrido do
-// mês. O texto fica guardado em m.resumoIA (junto com o resto dos dados do
-// mês, salvo no servidor) até o usuário clicar em "Atualizar" de novo — não é
-// gerado a cada render pra não gastar chamada de API sem necessidade.
-function montarPayloadResumoIA(monthKey){
-  const m = DATA.months[monthKey];
-  const t = monthTotals(m);
-  const metas = (DATA.metasEconomia||[]).map(g=>({
-    titulo: g.titulo,
-    pct: g.valorAlvo>0 ? round2((Number(g.valorAtual)||0)/Number(g.valorAlvo)*100) : 0,
-    streak: calcularStreakMeta(g)
-  }));
-  // reserva de emergência: sempre entra no payload, mesmo quando é zero — assim a leitura
-  // do mês nunca deixa de considerar quanto foi guardado (ou que nada foi guardado) neste mês,
-  // além do total já acumulado em todos os meses até aqui.
-  const reservaAcumulada = round2(
-    Object.values(DATA.months||{}).reduce((s,mm)=> s + Number(mm.reservaEmergencia||0), 0)
-  );
-  return {
-    mes: monthKey,
-    rendaTotal: t.rendaTotal, despesasTotal: t.despesasTotal, saldo: t.saldo,
-    reservaEmergenciaMes: t.reservaEmergencia, reservaEmergenciaAcumulada: reservaAcumulada,
-    metas
-  };
-}
-
-async function gerarResumoIA(monthKey){
-  const m = DATA.months[monthKey];
-  const btn = document.getElementById('resumo-ia-btn');
-  const erroEl = document.getElementById('resumo-ia-erro');
-  if(btn){ btn.disabled = true; btn.textContent = 'Gerando...'; }
-  if(erroEl) erroEl.style.display = 'none';
-  try{
-    const resp = await fetch(`${API_BASE}/api/resumo-ia/${APP_ID}`, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'x-app-password': currentPassword },
-      body: JSON.stringify(montarPayloadResumoIA(monthKey))
-    });
-    if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
-    const json = await resp.json();
-    m.resumoIA = { texto: json.texto, tags: json.tags||[], geradoEm: new Date().toISOString() };
-    await save();
-    renderContent();
-  }catch(e){
-    console.error('Erro ao gerar resumo IA', e);
-    if(btn){ btn.disabled = false; btn.textContent = 'Atualizar'; }
-    if(erroEl){ erroEl.textContent = 'Não foi possível gerar o resumo agora. Tente de novo em alguns segundos.'; erroEl.style.display = 'block'; }
-  }
-}
-
-function resumoIaHtml(monthKey){
-  const m = DATA.months[monthKey];
-  const r = m.resumoIA;
-  const dataFmt = r ? new Date(r.geradoEm).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) : '';
-  const tagsHtml = r && r.tags && r.tags.length
-    ? `<div class="resumo-ia-tags">${r.tags.map(tg=>`<span class="resumo-ia-tag ${escapeHtml(tg.tipo||'neutra')}">${escapeHtml(tg.texto)}</span>`).join('')}</div>`
-    : '';
-  return `
-  <div class="resumo-ia-card">
-    <div class="resumo-ia-head">
-      <div class="resumo-ia-titulo"><span class="resumo-ia-icon">✦</span>sua leitura do mês</div>
-      ${r ? `<span class="resumo-ia-data">gerado ${dataFmt}</span>` : ''}
-    </div>
-    ${r
-      ? `<p class="resumo-ia-texto">${escapeHtml(r.texto)}</p>${tagsHtml}`
-      : `<p class="resumo-ia-texto" style="color:var(--muted);">Ainda não gerado pra este mês. Clique em "Gerar resumo" pra ter uma leitura em texto do que aconteceu com seus gastos.</p>`}
-    <div class="resumo-ia-footer">
-      <span class="resumo-ia-fonte">Baseado nos lançamentos deste mês</span>
-      <button id="resumo-ia-btn" class="resumo-ia-btn">${r ? 'Atualizar' : 'Gerar resumo'}</button>
-    </div>
-    <div id="resumo-ia-erro" class="resumo-ia-erro" style="display:none;"></div>
-  </div>`;
+// Mostra o aviso de 7 dias antes do vencimento até 60 dias depois, enquanto houver valor pendente.
+function avisosVencimentoHtml(monthKey){
+  const m = DATA.months[monthKey], p = parseMonthKey(monthKey);
+  if(!m || !p) return '';
+  const pend = pendenteDiaQuadros(m);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const cards = [];
+  [['08', 8, pend.dia08], ['18', 18, pend.dia18]].forEach(([rotulo, dia, valor])=>{
+    if(!(valor > 0)) return;
+    const dias = Math.round((new Date(p.ano, p.idx, dia) - hoje) / 86400000);
+    if(dias > 7 || dias < -60) return;
+    const id = `venc_${monthKey}_${rotulo}`;
+    if(avisosDispensados.has(id)) return;
+    const quando = dias < 0 ? `venceu há ${-dias} dia${dias === -1 ? '' : 's'}`
+      : (dias === 0 ? 'vence hoje' : (dias === 1 ? 'vence amanhã' : `vence em ${dias} dias`));
+    const c = INSIGHT_ESTILO[dias <= 0 ? 'alerta' : 'atencao'];
+    cards.push(`<div class="insight-card" style="background:${c.bg}; border-color:${c.border}; align-items:center;">
+      <span class="insight-icon">&#128276;</span>
+      <span class="insight-text" style="color:${c.text};"><b>dia ${rotulo} ${quando}</b> — R$ ${fmt(valor)} ainda pendente${valor === 1 ? '' : 's'}</span>
+      <span class="insight-dismiss" data-dismiss="${escapeHtml(id)}" title="Dispensar este aviso" style="color:${c.text};">×</span>
+    </div>`);
+  });
+  return cards.length ? `<div class="insights-bar">${cards.join('')}</div>` : '';
 }
 
 function renderMonthView(monthKey){
@@ -2766,6 +2974,7 @@ function renderMonthView(monthKey){
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
     </div>
   </div>
+  ${isTemplate ? '' : avisosVencimentoHtml(monthKey)}
   <div class="summary-grid">
     <div class="summary-card accent-blue"><div class="label">Renda Total</div><div class="value">R$ ${fmt(t.rendaTotal)}</div></div>
     <div class="summary-card accent-red"><div class="label">Total Despesas${sufixoFiltro}</div><div class="value">R$ ${fmt(despesasExibida)}</div></div>
@@ -2822,10 +3031,10 @@ function renderMonthView(monthKey){
       </div>
       <div class="pessoa-receb-inputs">
         <label class="pessoa-receb-field">dia 08
-          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-thidia08" value="${round2(m.recebimentos.thiDia08).toFixed(2)}"></span>
+          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-thidia08" value="${fmtCampo(m.recebimentos.thiDia08)}"></span>
         </label>
         <label class="pessoa-receb-field">dia 18
-          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-thidia18" value="${round2(m.recebimentos.thiDia18).toFixed(2)}"></span>
+          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-thidia18" value="${fmtCampo(m.recebimentos.thiDia18)}"></span>
         </label>
         <span class="pessoa-receb-total">total
           <span class="pessoa-receb-total-valor"><span class="rs-prefix">R$</span> ${fmt(round2(Number(m.recebimentos.thiDia08||0) + Number(m.recebimentos.thiDia18||0)))}</span>
@@ -2857,7 +3066,7 @@ function renderMonthView(monthKey){
       </div>
       <div class="pessoa-receb-inputs">
         <label class="pessoa-receb-field">dia 18
-          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-pedia08" value="${round2(m.recebimentos.peDia08).toFixed(2)}"></span>
+          <span class="pessoa-receb-amount"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" id="receb-pedia18" value="${fmtCampo(m.recebimentos.peDia08)}"></span>
         </label>
       </div>
       <div class="pessoa-totais">
@@ -2895,8 +3104,10 @@ function attachMonthEvents(monthKey){
     if(exportBtn) exportBtn.addEventListener('click', ()=>exportarRelatorioMes(monthKey));
     content.querySelectorAll('.insight-dismiss').forEach(btn=>{
       btn.addEventListener('click', ()=>{
-        insightsDispensados.add(btn.dataset.dismiss);
+        avisosDispensados.add(btn.dataset.dismiss);
+        const barra = btn.closest('.insights-bar');
         btn.closest('.insight-card').remove();
+        if(barra && !barra.children.length) barra.remove();
       });
     });
   }
@@ -2939,18 +3150,18 @@ function attachMonthEvents(monthKey){
     const novoValor = parseValorBR(e.target.value);
     if(isNaN(novoValor)){
       alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 9900,00).');
-      e.target.value = round2(m.recebimentos.thiDia08).toFixed(2);
+      e.target.value = fmtCampo(m.recebimentos.thiDia08);
       return;
     }
     m.recebimentos.thiDia08 = round2(novoValor); save(); renderContent();
   });
 
-  const recebPeEl = content.querySelector('#receb-pedia08');
+  const recebPeEl = content.querySelector('#receb-pedia18');
   if(recebPeEl) recebPeEl.addEventListener('change', e=>{
     const novoValor = parseValorBR(e.target.value);
     if(isNaN(novoValor)){
       alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 9900,00).');
-      e.target.value = round2(m.recebimentos.peDia08).toFixed(2);
+      e.target.value = fmtCampo(m.recebimentos.peDia08);
       return;
     }
     m.recebimentos.peDia08 = round2(novoValor); save(); renderContent();
@@ -2961,7 +3172,7 @@ function attachMonthEvents(monthKey){
     const novoValor = parseValorBR(e.target.value);
     if(isNaN(novoValor)){
       alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 9900,00).');
-      e.target.value = round2(m.recebimentos.thiDia18).toFixed(2);
+      e.target.value = fmtCampo(m.recebimentos.thiDia18);
       return;
     }
     m.recebimentos.thiDia18 = round2(novoValor); save(); renderContent();
@@ -3003,7 +3214,7 @@ function attachMonthEvents(monthKey){
         recebDia18: "Recebimento · Dia 18",
         recebDia08: "Recebimento · Dia 08",
         recebThiDia08: "Recebimento Thi · Dia 08",
-        recebPeDia08: "Recebimento Pe · Dia 08",
+        recebPeDia08: "Recebimento Pe · Dia 18",   // o Pedro recebe no dia 18 (a chave interna manteve o nome antigo)
         recebThiDia18: "Recebimento Thi · Dia 18",
         secaoDia18: "DIA 18 · Vencimentos",
         secaoDia08: "DIA 08 · Vencimentos",
@@ -3089,7 +3300,7 @@ function attachMonthEvents(monthKey){
     const novoValor = parseValorBR(e.target.value);
     if(isNaN(novoValor)){
       alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 1000,00).');
-      e.target.value = round2(Number(m.reservaEmergencia||0)).toFixed(2);
+      e.target.value = fmtCampo(Number(m.reservaEmergencia||0));
       return;
     }
     m.reservaEmergencia = round2(novoValor); save(); renderContent();
@@ -3122,7 +3333,7 @@ function attachMonthEvents(monthKey){
       const novaMeta = parseValorBR(val);
       if(isNaN(novaMeta)){
         alert('Valor de meta inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 500,00).');
-        e.target.value = m.metas[listKey] ? round2(m.metas[listKey]).toFixed(2) : '';
+        e.target.value = m.metas[listKey] ? fmtCampo(m.metas[listKey]) : '';
         return;
       }
       m.metas[listKey] = round2(novaMeta);
@@ -3136,6 +3347,7 @@ function attachMonthEvents(monthKey){
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
         const novoDesc = e.target.value.trim();
+        if(!novoDesc){ e.target.value = list[idx].desc; return; }
         if(nomeDuplicado(list, novoDesc, idx)){
           alert('Já existe um item com esse nome neste bloco.');
           e.target.value = list[idx].desc;
@@ -3147,19 +3359,17 @@ function attachMonthEvents(monthKey){
         const novoValor = parseValorBR(e.target.value);
         if(isNaN(novoValor)){
           alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 150,00).');
-          e.target.value = round2(list[idx].valor).toFixed(2);
+          e.target.value = fmtCampo(list[idx].valor);
           return;
         }
         list[idx].valor = round2(novoValor); save(); renderContent();
       });
       attachItemAnexoHandlers(row, list[idx], ()=>{ save(); renderContent(); });
-      row.querySelector('.item-remove').addEventListener('click', ()=>{
-        if(!confirm(`Remover "${list[idx].desc}"?`)) return;
-        list.splice(idx,1); save(); renderContent();
-      });
+      row.querySelector('.item-remove').addEventListener('click', ()=> removerItemComDesfazer(list, idx));
     });
 
     const addRow = card.querySelector('.add-item-row');
+    ligarEnterAdicionar(addRow);
     addRow.querySelector('.btn-add').addEventListener('click', async ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valorStr = addRow.querySelector('.add-valor').value.trim();
@@ -3181,6 +3391,7 @@ function attachMonthEvents(monthKey){
       list.push({ desc, valor, pago:false });
       sortItemsByDesc(list);
       save(); renderContent();
+      if(resposta !== 'replicate') focarAddPendente();
       if(resposta === 'replicate'){
         let count = 0;
         mesesSeguintesETemplate(monthKey).forEach(mes=>{
@@ -3193,7 +3404,7 @@ function attachMonthEvents(monthKey){
           }
         });
         alert(`Item adicionado em mais ${count} mês(es)/Modelo.`);
-        save(); renderContent();
+        save(); renderContent(); focarAddPendente();
       }
     });
   });
@@ -3216,6 +3427,7 @@ function attachMonthEvents(monthKey){
       });
       row.querySelector('.item-desc').addEventListener('change', e=>{
         const novoDesc = e.target.value.trim();
+        if(!novoDesc){ e.target.value = detail.items[idx].desc; return; }
         if(nomeDuplicado(detail.items, novoDesc, idx)){
           alert('Já existe um item com esse nome neste detalhamento.');
           e.target.value = detail.items[idx].desc;
@@ -3227,21 +3439,18 @@ function attachMonthEvents(monthKey){
         const novoValor = parseValorBR(e.target.value);
         if(isNaN(novoValor)){
           alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 150,00).');
-          e.target.value = round2(detail.items[idx].valor).toFixed(2);
+          e.target.value = fmtCampo(detail.items[idx].valor);
           return;
         }
         detail.items[idx].valor = round2(novoValor);
         save(); renderContent();
       });
       attachItemAnexoHandlers(row, detail.items[idx], ()=>{ save(); renderContent(); });
-      row.querySelector('.item-remove').addEventListener('click', ()=>{
-        if(!confirm(`Remover "${detail.items[idx].desc}"?`)) return;
-        detail.items.splice(idx,1);
-        save(); renderContent();
-      });
+      row.querySelector('.item-remove').addEventListener('click', ()=> removerItemComDesfazer(detail.items, idx));
     });
 
     const addRow = card.querySelector('.add-item-row');
+    ligarEnterAdicionar(addRow);
     addRow.querySelector('.btn-add').addEventListener('click', async ()=>{
       const desc = addRow.querySelector('.add-desc').value.trim();
       const valorStr = addRow.querySelector('.add-valor').value.trim();
@@ -3263,6 +3472,7 @@ function attachMonthEvents(monthKey){
       detail.items.push({ desc, valor, pago:false });
       sortItemsByDesc(detail.items);
       save(); renderContent();
+      if(resposta !== 'replicate') focarAddPendente();
       if(resposta === 'replicate'){
         const tituloAlvo = detail.titulo.trim().toLowerCase();
         let count = 0;
@@ -3282,7 +3492,7 @@ function attachMonthEvents(monthKey){
           }
         });
         alert(`Item adicionado em mais ${count} mês(es)/Modelo (o box "${detail.titulo}" foi criado onde ainda não existia).`);
-        save(); renderContent();
+        save(); renderContent(); focarAddPendente();
       }
     });
   });
@@ -3376,9 +3586,9 @@ function loanTableHtml(key, loan){
   const rows = loan.parcelas.map((p, idx)=>`
     <tr data-idx="${idx}" class="${p.pago?'paid':''}">
       <td><input type="text" class="loan-parcela" value="${escapeHtml(p.parcela)}"></td>
-      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-saldo${saldoProjetado[idx] !== undefined ? ' loan-saldo-projetado' : ''}" value="${round2(saldoProjetado[idx] !== undefined ? saldoProjetado[idx] : p.saldo).toFixed(2)}" title="${saldoProjetado[idx] !== undefined ? 'Saldo estimado, já descontando as parcelas a pagar anteriores. Editar ajusta manualmente o saldo desta parcela em diante' : 'Editar ajusta manualmente o saldo desta parcela em diante'}"></span></td>
+      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-saldo${saldoProjetado[idx] !== undefined ? ' loan-saldo-projetado' : ''}" value="${fmtCampo(saldoProjetado[idx] !== undefined ? saldoProjetado[idx] : p.saldo)}" title="${saldoProjetado[idx] !== undefined ? 'Saldo estimado, já descontando as parcelas a pagar anteriores. Editar ajusta manualmente o saldo desta parcela em diante' : 'Editar ajusta manualmente o saldo desta parcela em diante'}"></span></td>
       <td class="loan-apagar">${aPagar[idx] !== undefined ? `<span class="cell-currency"><span class="rs-prefix">R$</span><span class="loan-apagar-valor">${fmt(aPagar[idx])}</span></span>` : '<span class="loan-apagar-vazio">—</span>'}</td>
-      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : ''}" placeholder="—"></span></td>
+      <td><span class="cell-currency"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="loan-valorpago" value="${p.valorPago !== null && p.valorPago !== undefined ? fmtCampo(p.valorPago) : ''}" placeholder="—"></span></td>
       <td><input type="date" class="loan-data" max="9999-12-31" value="${p.data ?? ''}"></td>
       <td><button class="loan-remove" title="Remover parcela">×</button></td>
     </tr>`).join('');
@@ -3395,7 +3605,7 @@ function loanTableHtml(key, loan){
       <span>Saldo inicial do empréstimo</span>
       <span class="loan-inicial-valor-group">
         <span class="rs-prefix-dark">R$</span>
-        <input type="text" inputmode="decimal" class="loan-saldo-inicial" value="${round2(loan.saldoInicial).toFixed(2)}">
+        <input type="text" inputmode="decimal" class="loan-saldo-inicial" value="${fmtCampo(loan.saldoInicial)}">
       </span>
     </label>
     ${projecaoQuitacaoHtml(loan)}
@@ -3529,40 +3739,60 @@ function exportarObrigacaoPdf(key){
 // Ajusta as parcelas FUTURAS (linhas vazias do fim da tabela) à quantidade
 // prevista pela projeção. Só mexe em linhas totalmente vazias no fim —
 // sem valor pago, sem data e sem ajuste manual de saldo. Nada lançado é apagado.
-function sincronizarParcelasFuturas(loan){
-  const proj = projecaoQuitacao(loan);
-  if(proj.faltam === null) return;
-  const alvo = Math.min(proj.faltam, 120);
-  const vazia = p => (p.valorPago === null || p.valorPago === undefined) && !p.data &&
-                     (p.saldoOverride === null || p.saldoOverride === undefined);
-  let fim = loan.parcelas.length;
-  while(fim > 0 && vazia(loan.parcelas[fim-1])) fim--;
-  const base = loan.parcelas.slice(0, fim);
-  const ref = base[base.length-1];
+function parcelaVazia(p){
+  return (p.valorPago === null || p.valorPago === undefined) && !p.data &&
+         (p.saldoOverride === null || p.saldoOverride === undefined);
+}
+// Nome da próxima parcela, continuando a numeração e o mês da última da lista.
+function nomeProximaParcela(lista){
   const reMes = /(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\/(\d{2})\s*$/i;
-  let mesIdx = null, ano = null, molde = ref ? String(ref.parcela) : 'Parcela 01';
-  const m = ref && String(ref.parcela).match(reMes);
+  const ref = lista[lista.length-1];
+  const num = String(lista.length + 1).padStart(2,'0');
+  const molde = ref ? String(ref.parcela || '') : '';
+  let nome = /\d+/.test(molde) ? molde.replace(/\d+/, num) : `Parcela ${num}`;
+  let mesIdx = null, ano = null;
+  const m = molde.match(reMes);
   if(m){
     mesIdx = MESES_ABREV.findIndex(x=>x.toLowerCase()===m[1].toLowerCase());
     ano = 2000 + parseInt(m[2],10);
   } else if(ref && ref.data){
-    const d = new Date(ref.data+'T00:00:00'); mesIdx = d.getMonth(); ano = d.getFullYear();
+    const d = new Date(ref.data+'T00:00:00');
+    if(!isNaN(d.getTime())){ mesIdx = d.getMonth(); ano = d.getFullYear(); }
   }
-  const novas = [];
-  for(let i=0; i<alvo; i++){
-    const num = String(base.length + i + 1).padStart(2,'0');
-    let nome;
-    if(/\d+/.test(molde)) nome = molde.replace(/\d+/, num); else nome = `Parcela ${num}`;
-    if(mesIdx !== null){
-      let mi = mesIdx + i + 1, an = ano + Math.floor(mi/12); mi = mi % 12;
-      const mesTxt = MESES_ABREV[mi], anoTxt = String(an).slice(-2);
-      const mm = nome.match(reMes);
-      const mesFmt = mm && mm[1] === mm[1].toLowerCase() ? mesTxt.toLowerCase() : mesTxt;
-      nome = mm ? nome.replace(reMes, `${mesFmt}/${anoTxt}`) : `${nome} · ${mesFmt}/${anoTxt}`;
-    }
-    novas.push({ parcela:nome, valorPago:null, data:null, pago:false, saldoOverride:null });
+  if(mesIdx !== null && mesIdx >= 0){
+    let mi = mesIdx + 1, an = ano;
+    if(mi > 11){ mi = 0; an++; }
+    const mesTxt = MESES_ABREV[mi], anoTxt = String(an).slice(-2);
+    const mm = nome.match(reMes);
+    const mesFmt = mm && mm[1] === mm[1].toLowerCase() ? mesTxt.toLowerCase() : mesTxt;
+    nome = mm ? nome.replace(reMes, `${mesFmt}/${anoTxt}`) : `${nome} · ${mesFmt}/${anoTxt}`;
   }
-  loan.parcelas = base.concat(novas);
+  return nome;
+}
+// Antes, as linhas futuras eram recriadas do zero a cada redesenho: o nome que você
+// dava a uma parcela futura se perdia, e "+ adicionar parcela" não tinha efeito.
+// Agora as linhas que já existem são mantidas como estão; só se acrescenta o que falta
+// ou se tira o que sobra (do fim). Parcelas adicionadas à mão (p.manual) nunca são tiradas.
+function sincronizarParcelasFuturas(loan){
+  const proj = projecaoQuitacao(loan);
+  if(proj.faltam === null) return;
+  const alvo = Math.min(proj.faltam, 120);
+  let fim = loan.parcelas.length;
+  while(fim > 0 && parcelaVazia(loan.parcelas[fim-1])) fim--;
+  const base = loan.parcelas.slice(0, fim);
+  const futuras = loan.parcelas.slice(fim);
+  const desejado = alvo + futuras.filter(p=>p.manual).length;
+  while(futuras.length > desejado){
+    let k = futuras.length - 1;
+    while(k >= 0 && futuras[k].manual) k--;
+    if(k < 0) break;
+    futuras.splice(k, 1);
+  }
+  const lista = base.concat(futuras);
+  while(lista.length - base.length < desejado){
+    lista.push({ parcela: nomeProximaParcela(lista), valorPago:null, data:null, pago:false, saldoOverride:null });
+  }
+  loan.parcelas = lista;
 }
 
 function renderEmprestimosView(){
@@ -3589,11 +3819,14 @@ function renderEmprestimosView(){
 // Nome do mês seguinte a uma chave "Mês/Ano" existente — usado pelo botão
 // "+ novo mês" (mesmo padrão de nome usado nas abas principais).
 function nomeMesSeguinte(chave){
-  // se o último mês foi renomeado para algo livre, parte do último mês com nome "Mês/Ano"
-  if(!parseMonthKey(chave) && Array.isArray(DATA.monthOrder)){
-    for(let i = DATA.monthOrder.length - 1; i >= 0; i--){ if(parseMonthKey(DATA.monthOrder[i])){ chave = DATA.monthOrder[i]; break; } }
-  }
-  const p = parseMonthKey(chave);
+  // parte do mês MAIS RECENTE no calendário entre os que têm nome "Mês/Ano" — e não da
+  // última aba: se as abas fossem reordenadas, o "próximo" já existia e nada era criado.
+  let p = null;
+  (Array.isArray(DATA.monthOrder) ? DATA.monthOrder : []).forEach(k=>{
+    const q = parseMonthKey(k);
+    if(q && (!p || q.ano > p.ano || (q.ano === p.ano && q.idx > p.idx))) p = q;
+  });
+  if(!p) p = parseMonthKey(chave);
   if(!p){ const h = new Date(); return `${NOMES_MESES[h.getMonth()]}/${h.getFullYear()}`; }
   let idx = p.idx + 1, ano = p.ano;
   if(idx > 11){ idx = 0; ano++; }
@@ -3784,10 +4017,10 @@ function metaEconomiaCardHtml(goal, idx){
   if(!atingida && goal.dataAlvo){
     if(dias === null){
       // data inválida — não mostra sugestão
-    } else if(dias > 0){
+    } else if(dias >= 0){
       const meses = Math.max(1, dias/30.44);
       const porMes = round2(falta/meses);
-      sugestaoHtml = `<div style="font-size:11.5px;color:var(--muted);margin-top:8px;">pra chegar lá até ${formatarDataBR(goal.dataAlvo)} (${dias} dias), guarde cerca de <b>R$ ${fmt(porMes)}/mês</b></div>`;
+      sugestaoHtml = `<div style="font-size:11.5px;color:var(--muted);margin-top:8px;">pra chegar lá até ${formatarDataBR(goal.dataAlvo)} (${dias === 0 ? 'hoje' : (dias === 1 ? '1 dia' : dias + ' dias')}), guarde cerca de <b>R$ ${fmt(porMes)}/mês</b></div>`;
     } else {
       sugestaoHtml = `<div style="font-size:11.5px;color:var(--red);margin-top:8px;font-weight:700;">prazo (${formatarDataBR(goal.dataAlvo)}) já passou</div>`;
     }
@@ -3820,10 +4053,10 @@ function metaEconomiaCardHtml(goal, idx){
     </div>
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px;">
       <label class="goal-field">valor alvo
-        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-alvo" value="${alvo.toFixed(2)}" style="width:110px;"></div>
+        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-alvo" value="${fmtCampo(alvo)}" style="width:110px;"></div>
       </label>
       <label class="goal-field">já guardado
-        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-atual" value="${atual.toFixed(2)}" style="width:110px;"></div>
+        <div class="cell-currency" style="margin-top:4px; display:inline-flex; width:auto;"><span class="rs-prefix">R$</span><input type="text" inputmode="decimal" class="goal-atual" value="${fmtCampo(atual)}" style="width:110px;"></div>
       </label>
       <label class="goal-field">data alvo (opcional)
         <div style="margin-top:4px;"><input type="date" class="goal-data" max="9999-12-31" value="${goal.dataAlvo || ''}"></div>
@@ -3870,14 +4103,13 @@ function totalReservaEmergenciaHtml(){
 // na ordem da lista — pra funcionar igual em qualquer tamanho de tela.
 function moveMetaEconomia(idx, direction){
   const metas = DATA.metasEconomia;
-  const ultimo = metas.length - 1;
-  if((direction === 'up' || direction === 'left') && idx - 1 >= 0){
-    [metas[idx], metas[idx-1]] = [metas[idx-1], metas[idx]];
-  } else if((direction === 'down' || direction === 'right') && idx + 1 <= ultimo){
-    [metas[idx], metas[idx+1]] = [metas[idx+1], metas[idx]];
-  } else {
-    return;
-  }
+  const passo = (direction === 'up' || direction === 'left') ? -1 : ((direction === 'down' || direction === 'right') ? 1 : 0);
+  if(!passo || !metas[idx]) return;
+  // troca com a vizinha VISÍVEL mais próxima (pula metas arquivadas, que ficam em outra lista)
+  let j = idx + passo;
+  while(j >= 0 && j < metas.length && !!metas[j].arquivada !== !!metas[idx].arquivada) j += passo;
+  if(j < 0 || j >= metas.length) return;
+  [metas[idx], metas[j]] = [metas[j], metas[idx]];
   save(); renderContent();
 }
 
@@ -3943,7 +4175,7 @@ function attachMetasEconomiaEvents(){
       const v = parseValorBR(e.target.value);
       if(isNaN(v)){
         alert('Valor inválido — mantendo o valor anterior.');
-        e.target.value = round2(goal.valorAlvo).toFixed(2);
+        e.target.value = fmtCampo(goal.valorAlvo);
         return;
       }
       goal.valorAlvo = round2(v); save(); renderContent();
@@ -3952,22 +4184,26 @@ function attachMetasEconomiaEvents(){
       const v = parseValorBR(e.target.value);
       if(isNaN(v)){
         alert('Valor inválido — mantendo o valor anterior.');
-        e.target.value = round2(goal.valorAtual).toFixed(2);
+        e.target.value = fmtCampo(goal.valorAtual);
         return;
       }
       goal.valorAtual = round2(v);
-      const mesCalendario = new Date().toISOString().slice(0,7);
+      const agoraLocal = new Date();   // mês no horário local (em UTC, depois das 21h do último dia já virava o mês seguinte)
+      const mesCalendario = agoraLocal.getFullYear() + '-' + String(agoraLocal.getMonth() + 1).padStart(2, '0');
       if(!goal.historicoMensal) goal.historicoMensal = {};
       goal.historicoMensal[mesCalendario] = goal.valorAtual;
       save(); renderContent();
     });
     card.querySelector('.goal-data').addEventListener('blur', e=>{
-      goal.dataAlvo = e.target.value || null;
+      const novaData = e.target.value || null;
+      if(novaData === (goal.dataAlvo || null)) return;   // nada mudou: não salva nem gera versão no histórico
+      goal.dataAlvo = novaData;
       save(); renderContent();
     });
     card.querySelector('.goal-link').addEventListener('blur', e=>{
-      const novoLink = e.target.value.trim();
-      goal.link = novoLink || null;
+      const novoLink = e.target.value.trim() || null;
+      if(novoLink === (goal.link || null)) return;
+      goal.link = novoLink;
       save(); renderContent();
     });
     card.querySelector('.goal-remove').addEventListener('click', ()=>{
@@ -4208,7 +4444,7 @@ function exportarRelatorioAnual(ano){
       const m = DATA.months[key];
       if(!m) return null;
       const partes = key.split('/');
-      if(partes[1] !== ano) return null;
+      if((partes[1] || '—') !== ano) return null;
       return { key, mes: partes[0], t: monthTotals(m) };
     })
     .filter(Boolean);
@@ -4314,7 +4550,7 @@ function attachEmprestimosEvents(){
       const novoValor = parseValorBR(e.target.value);
       if(isNaN(novoValor)){
         alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 50000,00).');
-        e.target.value = round2(loan.saldoInicial).toFixed(2);
+        e.target.value = fmtCampo(loan.saldoInicial);
         return;
       }
       loan.saldoInicial = round2(novoValor); sincronizarParcelasFuturas(loan); save(); renderContent();
@@ -4330,7 +4566,7 @@ function attachEmprestimosEvents(){
         const novoValor = parseValorBR(raw);
         if(isNaN(novoValor)){
           alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos.');
-          e.target.value = p.saldoOverride !== null && p.saldoOverride !== undefined ? round2(p.saldoOverride).toFixed(2) : '';
+          e.target.value = p.saldoOverride !== null && p.saldoOverride !== undefined ? fmtCampo(p.saldoOverride) : '';
           return;
         }
         p.saldoOverride = round2(novoValor);
@@ -4348,13 +4584,14 @@ function attachEmprestimosEvents(){
         const novoValor = parseValorBR(raw);
         if(isNaN(novoValor)){
           alert('Valor inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos.');
-          e.target.value = p.valorPago !== null && p.valorPago !== undefined ? round2(p.valorPago).toFixed(2) : '';
+          e.target.value = p.valorPago !== null && p.valorPago !== undefined ? fmtCampo(p.valorPago) : '';
           return;
         }
         const val = round2(novoValor);
         p.valorPago = val;
         // marca automaticamente como pago quando um valor é informado, e desmarca quando é apagado
         p.pago = val !== null;
+        delete p.manual;
         sincronizarParcelasFuturas(loan);
         save(); renderContent();
       });
@@ -4364,13 +4601,17 @@ function attachEmprestimosEvents(){
         p.data = novaData; save(); renderContent();
       });
       tr.querySelector('.loan-remove').addEventListener('click', ()=>{
+        if(parcelaVazia(p) && !p.manual && loan.parcelas.slice(idx).every(parcelaVazia) && loanCurrentBalance(loan) > 0){
+          alert('Esta parcela futura é calculada automaticamente a partir do saldo devedor (parcelas de até R$ 3.000). Ela some sozinha conforme o saldo diminui.');
+          return;
+        }
         if(!confirm(`Remover "${p.parcela}"?`)) return;
         loan.parcelas.splice(idx,1); save(); renderContent();
       });
     });
 
     card.querySelector('.loan-add-btn').addEventListener('click', ()=>{
-      loan.parcelas.push({ parcela: `Parcela ${String(loan.parcelas.length+1).padStart(2,'0')}`, valorPago:null, data:null, pago:false, saldoOverride:null });
+      loan.parcelas.push({ parcela: nomeProximaParcela(loan.parcelas), valorPago:null, data:null, pago:false, saldoOverride:null, manual:true });
       save(); renderContent();
     });
   });
@@ -4470,7 +4711,7 @@ function vgPeriodo(t){
 }
 // Moeda local da viagem: sem nada digitado (ou CLP) → pesos chilenos.
 function vgMoedaInfo(t){
-  const m = String(t.moeda || '').trim(), n = vgSemAcento(m);
+  const m = String(t.moeda || '').replace(/[<>&"']/g, '').trim(), n = vgSemAcento(m);
   // reconhece o que você digitou ("pesos chilenos", "peso chileno", "CLP"...) e usa sempre o código curto nas telas
   const conhecidas = [
     [/chilen|\bclp\b/, 'CLP', 'pesos chilenos'], [/argentin|\bars\b/, 'ARS', 'pesos argentinos'],
@@ -4525,7 +4766,7 @@ function vgMigrar(data){
 // ---------- cidades por dia ----------
 // Palavras (sem acento) que indicam a cidade onde o passeio acontece. A primeira que casar vale.
 const VG_CIDADES_PALAVRAS = [
-  ['Viña del Mar', ['vina del mar','renaca','castillo wulff','reloj de flores','quinta vergara','museo fonck','playa acapulco','vina']],
+  ['Viña del Mar', ['vina del mar','renaca','castillo wulff','reloj de flores','quinta vergara','museo fonck','playa acapulco']],
   ['Valparaíso', ['valparaiso','valpo','cerro alegre','cerro concepcion','la sebastiana','ascensor','muelle prat','paseo gervasoni','plaza sotomayor','cerro bellavista']],
   ['Concón', ['concon','dunas de concon']],
   ['Pirque', ['concha y toro','pirque']],
@@ -4661,8 +4902,10 @@ const VG_DATA_ATTR = 'min="2000-01-01" max="2099-12-31"';
 function vgCard(label, liveKey, valor, extra){
   return `<div class="summary-card"><div class="label">${label}</div><div class="value" data-live="${liveKey}">${valor}</div>${extra || ''}</div>`;
 }
-function vgMoverHTML(lista, i, n){
-  return `<span class="vg-mv"><button type="button" class="vg-mvb" data-act="mv" data-l="${lista}" data-i="${i}" data-dir="-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>▲</button><button type="button" class="vg-mvb" data-act="mv" data-l="${lista}" data-i="${i}" data-dir="1" aria-label="Descer" ${i === n - 1 ? 'disabled' : ''}>▼</button></span>`;
+function vgMoverHTML(lista, i, n, pos){
+  // passeios: "pos" é a posição dentro do dia (a ordem vale por dia); demais listas: o próprio índice
+  const p = pos === undefined ? i : pos, act = lista === 'passeios' ? 'mvp' : 'mv';
+  return `<span class="vg-mv"><button type="button" class="vg-mvb" data-act="${act}" data-l="${lista}" data-i="${i}" data-dir="-1" title="Subir" aria-label="Subir" ${p === 0 ? 'disabled' : ''}>▲</button><button type="button" class="vg-mvb" data-act="${act}" data-l="${lista}" data-i="${i}" data-dir="1" title="Descer" aria-label="Descer" ${p === n - 1 ? 'disabled' : ''}>▼</button></span>`;
 }
 function vgGripHTML(){
   return `<span class="vg-grip" draggable="true" title="Arraste para mudar a ordem" aria-hidden="true">⋮⋮</span>`;
@@ -4709,7 +4952,7 @@ function vgCapa(t){
   const feitos = t.checklist.filter(x=>x.ok).length, tot = t.checklist.length;
   const pct = tot ? Math.round(feitos / tot * 100) : 0;
   const n = t.checklist.length;
-  const lista = t.checklist.map((x, i)=>`<div class="vg-ck ${x.ok ? 'done' : ''}" data-row data-lista="checklist" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}"><button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const lista = t.checklist.map((x, i)=>`<div class="vg-ck ${x.ok ? 'done' : ''}" data-row data-lista="checklist" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-ck="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Concluído"><input type="text" data-ck="${i}" data-f="t" value="${escapeHtml(x.t)}">${vgMoverHTML('checklist', i, n)}<button type="button" class="vg-x" data-act="ck-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
   const diario = t.diario.map((e, i)=>({e, i})).reverse().map(({e, i})=>`<div class="vg-diary"><div class="vg-diary-top"><input type="date" ${VG_DATA_ATTR} data-di="${i}" data-f="d" value="${escapeHtml(e.d || '')}"><button type="button" class="vg-x" data-act="di-rm" data-i="${i}" aria-label="Remover entrada">×</button></div><textarea rows="3" data-di="${i}" data-f="txt" placeholder="Como foi o dia?">${escapeHtml(e.txt || '')}</textarea><div class="vg-nota"><span>Nota do dia</span><input type="range" min="0" max="10" step="1" data-di="${i}" data-f="nota" value="${vgNum(e.nota)}"><b data-nota="${i}">${vgNum(e.nota)}</b></div></div>`).join('');
   const link = (campo, rotulo)=>{
     const url = vgUrlSegura(t[campo]);
@@ -4839,7 +5082,7 @@ function vgPasseios(t){
         <td><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"></td>
         <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
-        <td class="c vg-acts"><button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
+        <td class="c vg-acts">${vgMoverHTML('passeios', i, nG, pos)}<button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
       </tr>`;
     }).join('');
     const cidade = g.d ? `<input type="text" class="vg-city" list="vg-cidades" data-cid="${escapeHtml(g.d)}" value="${escapeHtml(vgCidadeDia(t, g.d))}" placeholder="+ cidade" aria-label="Cidade deste dia">` : '';
@@ -4861,7 +5104,7 @@ function vgPasseios(t){
 }
 function vgMercado(t){
   const n = t.mercado.length, T = vgTotais(t), info = vgMoedaInfo(t), cot = vgNum(t.cotacao);
-  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" class="vg-mn" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><span class="vg-lb">qtd</span><input type="text" inputmode="decimal" class="vg-right vg-qtd" data-m="${i}" data-f="q" value="${vgLocal(vgQtd(x))}" placeholder="1" aria-label="Quantidade"><span class="vg-lb">× ${escapeHtml(info.cod)}</span><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgLocal(x.v)}" placeholder="0" aria-label="Valor unitário em ${escapeHtml(info.nome)}"><span class="vg-tot" data-tot="${i}">${vgNum(x.v) ? '= ' + vgLocal(vgLinhaMercado(x)) + ' ' + escapeHtml(info.cod) : ''}</span><span class="vg-brl" data-brl="${i}">${vgBrlItem(t, vgLinhaMercado(x))}</span><button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
+  const linhas = t.mercado.map((x, i)=>`<div class="vg-ck vg-mk ${x.ok ? 'done' : ''}" data-row data-lista="mercado" data-i="${i}">${vgGripHTML()}<input type="checkbox" data-m="${i}" data-f="ok" ${x.ok ? 'checked' : ''} aria-label="Comprado"><input type="text" class="vg-mn" data-m="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Item"><span class="vg-lb">qtd</span><input type="text" inputmode="decimal" class="vg-right vg-qtd" data-m="${i}" data-f="q" value="${vgLocal(vgQtd(x))}" placeholder="1" aria-label="Quantidade"><span class="vg-lb">× ${escapeHtml(info.cod)}</span><input type="text" inputmode="decimal" class="vg-right vg-val" data-m="${i}" data-f="v" value="${vgLocal(x.v)}" placeholder="0" aria-label="Valor unitário em ${escapeHtml(info.nome)}"><span class="vg-tot" data-tot="${i}">${vgNum(x.v) ? '= ' + vgLocal(vgLinhaMercado(x)) + ' ' + escapeHtml(info.cod) : ''}</span><span class="vg-brl" data-brl="${i}">${vgBrlItem(t, vgLinhaMercado(x))}</span>${vgMoverHTML('mercado', i, n)}<button type="button" class="vg-x" data-act="m-rm" data-i="${i}" aria-label="Remover item">×</button></div>`).join('');
   const card = (rot, loc, brl, vLoc, vBrl)=>`<div class="summary-card"><div class="label">${rot}</div><div class="value" data-live="${loc}">${vLoc}</div><div class="vg-muted" data-live="${brl}">${vBrl}</div></div>`;
   const brlTxt = v=>cot > 0 ? '≈ R$ ' + fmt(v) : 'informe a cotação';
   return `<p class="vg-muted" style="margin:0 0 10px;">Digite a quantidade e o valor de <b>cada unidade</b> em <b>${escapeHtml(info.nome)}</b> (${escapeHtml(info.cod)}); o app multiplica e soma. O total é convertido em reais pela cotação e entra no resumo e no total da viagem; marque o que já comprou.</p>
@@ -5382,7 +5625,19 @@ function initLock(){
     lockScreen.style.display = 'none';
     appRoot.style.display = 'block';
   }
-  function lock(){
+  async function lock(){
+    flushCampoEmFoco();
+    if(saveEmAndamento){ try{ await saveEmAndamento; }catch(_){} }
+    dataReady = false;
+    renderPendente = false; clearTimeout(renderTimer); renderTimer = null;
+    clearTimeout(retrySaveTimer);
+    // não deixa os dados na página escondida atrás da tela de senha
+    fecharBusca(true); fecharDesfazer();
+    fecharAnexoPopover();
+    document.querySelectorAll('.anexo-modal-overlay').forEach(el=>el.remove());
+    document.querySelectorAll('.modal-overlay').forEach(el=>{ el.style.display = 'none'; });
+    document.getElementById('content').innerHTML = '';
+    document.getElementById('tabs').innerHTML = '';
     appRoot.style.display = 'none';
     lockScreen.style.display = 'flex';
     errorMsg.style.display = 'none';
@@ -5470,6 +5725,7 @@ function initHistory(){
 
 initLock();
 initHistory();
+initBusca();
 </script>
 
 </body>
