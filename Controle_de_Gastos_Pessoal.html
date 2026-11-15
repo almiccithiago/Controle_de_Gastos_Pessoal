@@ -1140,7 +1140,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-15.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-15.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -5514,9 +5514,9 @@ function vgExportarPdf(nome){
     const sub = round2(g.itens.reduce((s, x)=>s + vgNum(x.v), 0));
     const cid = g.d ? vgCidadeDia(t, g.d).trim() : '';
     return `<div class="dia"><h3>${escapeHtml(g.d ? vgSemana(g.d) + ', ' + vgDataBR(g.d) : 'Sem data')}${cid ? ' · ' + escapeHtml(cid) : ''}<span>R$ ${fmt(sub)}</span></h3>
-    <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="h">${escapeHtml(x.h || '')}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td><td class="s">${x.pago ? 'pago' : 'a pagar'}</td></tr>`).join('')}</tbody></table></div>`;
+    <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="ck">${x.pago ? '☑' : '☐'}</td><td class="h">${escapeHtml(x.h || '')}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td></tr>`).join('')}</tbody></table></div>`;
   }).join('') || '<p class="m">Nenhum passeio cadastrado.</p>';
-  const duasColunas = t.passeios.length > 10;
+  const duasColunas = true;
   const c = t.car;
   const temCarro = !c.cancelado && (c.locadora || c.dataR || c.dataD || T.c > 0);
   const carro = temCarro ? `<h2>Aluguel de carro</h2><div class="box">
@@ -5527,8 +5527,8 @@ function vgExportarPdf(nome){
     <div><b>Total: R$ ${fmt(T.c)}</b> · ${c.pago ? 'reserva paga' : 'a pagar'}</div></div>` : '';
   const temMercado = t.mercado.some(x=>x.n || vgNum(x.v));
   const infoM = vgMoedaInfo(t), cotM = vgNum(t.cotacao);
-  const mercado = temMercado ? `<h2>Supermercado</h2><table><tbody>${t.mercado.map(x=>`<tr class="${x.ok ? 'ok' : ''}"><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">${vgLocal(vgQtd(x))} × ${vgLocal(x.v)} = ${vgLocal(vgLinhaMercado(x)) || '0'} ${escapeHtml(infoM.cod)}</td><td class="s">${x.ok ? 'comprado' : 'a comprar'}</td></tr>`).join('')}</tbody></table><div class="m" style="margin-top:6px;">Total do supermercado: <b>${vgInt(T.mLocal)} ${escapeHtml(infoM.cod)}</b>${cotM > 0 ? ' ≈ <b>R$ ' + fmt(T.m) + '</b>' : ''}</div>` : '';
-  const lista = t.checklist.length ? `<h2>Checklist</h2><ul>${t.checklist.map(x=>`<li class="${x.ok ? 'ok' : ''}">${x.ok ? '☑' : '☐'} ${escapeHtml(x.t)}</li>`).join('')}</ul>` : '';
+  const mercado = temMercado ? `<h2>Supermercado</h2><div class="cols"><table><tbody>${t.mercado.map(x=>`<tr class="${x.ok ? 'ok' : ''}"><td class="ck">${x.ok ? '☑' : '☐'}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">${vgLocal(vgQtd(x))} × ${vgLocal(x.v)} = ${vgLocal(vgLinhaMercado(x)) || '0'} ${escapeHtml(infoM.cod)}</td></tr>`).join('')}</tbody></table></div><div class="m" style="margin-top:6px;">Total do supermercado: <b>${vgInt(T.mLocal)} ${escapeHtml(infoM.cod)}</b>${cotM > 0 ? ' ≈ <b>R$ ' + fmt(T.m) + '</b>' : ''}</div>` : '';
+  const lista = t.checklist.length ? `<h2>Checklist</h2><ul class="cols">${t.checklist.map(x=>`<li class="${x.ok ? 'ok' : ''}">${x.ok ? '☑' : '☐'} ${escapeHtml(x.t)}</li>`).join('')}</ul>` : '';
   const htmlBruto = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escapeHtml(nome)} · viagem</title>
 <style>
   body{ font-family:Arial,Helvetica,sans-serif; color:#0F223D; margin:0; text-transform:lowercase; background:#F1F5F9; }
@@ -5543,7 +5543,7 @@ function vgExportarPdf(nome){
   ul{ list-style:none; padding:0; margin:0; font-size:12.5px; line-height:1.8; } li.ok{ color:#64748B; }
   .m{ color:#64748B; font-size:12.5px; } .f{ margin-top:26px; font-size:10px; color:#94A3B8; display:flex; justify-content:space-between; }
   .cols{ column-count:2; column-gap:26px; } .cols .dia{ break-inside:avoid; page-break-inside:avoid; } .cols h3:first-child{ margin-top:0; }
-  .cols table{ font-size:11.5px; } .cols td{ padding:3px 3px; } .cols td.s{ width:52px; }
+  .cols table{ font-size:11.5px; } .cols td{ padding:3px 3px; } td.ck{ width:14px; color:#64748B; font-size:13px; } tr.ok td{ color:#64748B; } ul.cols li{ break-inside:avoid; font-size:12px; line-height:1.7; }
   .sec{ break-before:page; page-break-before:always; margin-top:28px; border-top:1px dashed #CBD5E1; padding-top:4px; }
   @page{ size:A4; margin:12mm; }
   .print-btn{ position:fixed; top:16px; right:16px; padding:8px 14px; background:#ECFDF3; color:#15803D; border:1.5px solid #16A34A; border-radius:8px; font-weight:700; cursor:pointer; }
