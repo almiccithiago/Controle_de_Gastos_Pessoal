@@ -227,7 +227,7 @@
     border: 1px solid var(--border);
     position:relative; overflow:hidden;
   }
-  .summary-card .label{ font-size:11.5px; color:var(--muted); font-weight:600; text-transform:lowercase; letter-spacing:0.4px;}
+  .summary-card .label{ font-size:11.5px; color:var(--muted); font-weight:600; text-transform:none; letter-spacing:0.4px;}
   .summary-card .value{ font-size:20px; font-weight:800; margin-top:4px; }
   .summary-card.accent-teal{ border-top:3px solid var(--teal); }
   .summary-card.accent-blue{ border-top:3px solid var(--blue); }
@@ -688,7 +688,7 @@
   }
   table.loan-table{ width:100%; border-collapse: collapse; font-size:12.5px; }
   table.loan-table th{
-    text-align:left; font-size:10.5px; text-transform:lowercase; color:var(--muted);
+    text-align:left; font-size:10.5px; text-transform:none; color:var(--muted);
     padding: 6px 4px; border-bottom:2px solid var(--border);
   }
   table.loan-table td{ padding: 5px 4px; border-bottom:1px solid var(--border); vertical-align:middle;}
@@ -753,7 +753,7 @@
   h1, h2, h3, button, .label, .rlabel, th, .lock-card p, .lock-card h2,
   .detail-note, .empty-hint, .footer-note, .loan-sub, .loan-current,
   .loan-inicial-row span, .brand-text p, nav.tabs button {
-    text-transform: lowercase;
+    text-transform: none;
   }
   input, textarea, select { text-transform: lowercase; }
   .rs-prefix, .rs-prefix-dark, .receb-prefix { text-transform: none !important; }
@@ -777,7 +777,7 @@
   }
   .modal-card h3{ margin:0 0 16px 0; font-size:16px; color:var(--navy); }
   .modal-field{ display:block; margin-bottom:14px; }
-  .modal-field span{ display:block; font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; margin-bottom:5px; }
+  .modal-field span{ display:block; font-size:11.5px; font-weight:700; color:var(--muted); text-transform:none; margin-bottom:5px; }
   .modal-field select, .modal-field input{
     width:100%; border:1px solid var(--border); border-radius:8px; padding:9px 10px; font-size:14px;
   }
@@ -796,7 +796,7 @@
   .annual-chart-wrap{ margin: 6px 0 16px 0; }
   table.annual-table{ width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; }
   table.annual-table th{
-    text-align:center; font-size:10.5px; text-transform:lowercase; color:var(--muted);
+    text-align:center; font-size:10.5px; text-transform:none; color:var(--muted);
     padding:8px 6px; border-bottom:2px solid var(--border);
   }
   table.annual-table th:first-child, table.annual-table td:first-child{ text-align:left; }
@@ -819,7 +819,7 @@
   .month-title-input:hover{ background:#F1F5F9; border-radius:4px; }
   .month-title-input:focus{ outline:1px solid var(--blue); border-radius:4px; }
 
-  .goal-field{ font-size:11.5px; color:var(--muted); font-weight:700; text-transform:lowercase; }
+  .goal-field{ font-size:11.5px; color:var(--muted); font-weight:700; text-transform:none; }
   .goal-field .cell-currency{ background:#F4F6F9; border:1px solid var(--border); border-radius:8px; padding:5px 8px; }
   .goal-field .cell-currency input{ font-size:13px; font-weight:700; text-align:right; }
   .goal-field input[type=date]{ border:1px solid var(--border); border-radius:8px; padding:5px 8px; font-size:12.5px; }
@@ -1048,6 +1048,7 @@
   .vg-day-t{ display:inline-flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
   #vg-root .vg-day-t .vg-city{ display:inline-block; width:170px; max-width:100%; flex:0 0 auto; border:1px dashed var(--border); background:transparent; border-radius:8px; padding:3px 9px; font-size:13px; font-weight:600; color:var(--blue); }
   #vg-root .vg-day-t .vg-city:focus{ border-style:solid; background:#fff; outline:none; }
+  .vg-filtro{ display:flex; gap:8px; align-items:center; margin:0 0 10px; flex-wrap:wrap; } .vg-chip{ font-size:13px; padding:5px 12px; border-radius:999px; border:1px solid #CBD5E1; background:#fff; color:#475569; cursor:pointer; } .vg-chip.on{ border:1.5px solid #16A34A; background:#ECFDF3; color:#15803D; font-weight:600; }
   .vg-route{ background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:13px; }
   /* ===== v.5: capa em colunas, reordenar, supermercado, cobranças ===== */
   .vg-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); align-items:start; }
@@ -1140,7 +1141,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-15.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-15.6</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -3968,7 +3969,7 @@ function projecaoSaldoFuturoHtml(){
   ${alertaHtml}
   <div class="section-card" style="margin-bottom:0.5cm;">
     <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;">
-      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">projeção da reserva de emergência</span>
+      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:none; letter-spacing:0.4px;">projeção da reserva de emergência</span>
       <span style="font-size:10.5px; color:var(--muted);">baseado na média dos últimos ${ultimos.length} meses · ${MESES_PROJETADOS} meses à frente</span>
     </div>
     ${grafico}
@@ -4112,7 +4113,7 @@ function totalReservaEmergenciaHtml(){
   return `
   <div class="section-card" style="margin-bottom:0.5cm; border-top:4px solid var(--blue);">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:lowercase; letter-spacing:0.4px;">🛟 reserva de emergência · total acumulado</span>
+      <span style="font-size:11.5px; font-weight:700; color:var(--muted); text-transform:none; letter-spacing:0.4px;">🛟 reserva de emergência · total acumulado</span>
       <span style="font-size:20px; font-weight:800; color:var(--blue); font-family:'Poppins', sans-serif;">R$ ${fmt(total)}</span>
     </div>
     <div style="font-size:11px; color:var(--muted); margin-top:4px;">soma do valor guardado em cada mês (não inclui o Modelo)</div>
@@ -4664,6 +4665,7 @@ const VG_CAR_NUM = ["diarias","valorDiaria","seguro","taxas","comb"];
 const VG_LISTAS = ["checklist","mercado"];
 let viagemAtual = null;
 let viagemSecao = 'capa';
+let vgSoPagos = false;
 let viagemRetroPrevia = false;
 let vgPendente = false; // houve mudança de data/hora: redesenha só quando o campo perder o foco
 let vgTimer = null;
@@ -5087,6 +5089,7 @@ function vgPasseios(t){
   });
   let seq = 0, html = '';
   grupos.forEach(g=>{
+    if(vgSoPagos && !g.itens.some(i=>t.passeios[i].pago)) return;
     let titulo;
     if(!g.d){ titulo = 'sem data'; }
     else {
@@ -5095,7 +5098,7 @@ function vgPasseios(t){
       titulo = `${vgSemana(g.d)}, ${vgDataBR(g.d)}`;
     }
     const sub = round2(g.itens.reduce((s, i)=>s + vgNum(t.passeios[i].v), 0));
-    const linhas = g.itens.map(i=>{
+    const linhas = g.itens.filter(i=>!vgSoPagos || t.passeios[i].pago).map(i=>{
       const x = t.passeios[i];
  const pos = g.itens.indexOf(i), nG = g.itens.length;
       return `<tr class="vg-prow ${x.pago ? 'done' : ''}" data-row data-lista="passeios" data-i="${i}" data-dia="${escapeHtml(g.d)}">
@@ -5118,9 +5121,12 @@ function vgPasseios(t){
     </div>`;
   });
   if(!grupos.length) html = `<p class="vg-muted">Nenhum passeio ainda. Use "Adicionar passeio".</p>`;
+  else if(vgSoPagos && !html) html = `<p class="vg-muted">Nenhum passeio pago ainda.</p>`;
+  const nPagos = t.passeios.filter(x=>x.pago).length, nTodos = t.passeios.length;
+  const filtroBar = nTodos ? `<div class="vg-filtro"><span class="vg-muted">filtrar:</span><button type="button" class="vg-chip ${vgSoPagos ? '' : 'on'}" data-act="p-filtro" data-v="0">todos</button><button type="button" class="vg-chip ${vgSoPagos ? 'on' : ''}" data-act="p-filtro" data-v="1">${vgSoPagos ? '✓ ' : ''}só pagos</button><span class="vg-muted" style="margin-left:auto;">${vgSoPagos ? nPagos + ' de ' + nTodos : nTodos} ${nTodos === 1 ? 'passeio' : 'passeios'}</span></div>` : '';
   const rota = vgRoteiro(t);
   const datalist = `<datalist id="vg-cidades">${[...new Set(VG_CIDADES_PALAVRAS.map(c=>c[0]).concat(Object.values(t.cidades).filter(Boolean)))].map(c=>`<option value="${escapeHtml(c)}"></option>`).join('')}</datalist>`;
-  html = datalist + (rota.length ? `<div class="vg-route">🏨 onde você fica: <b>${rota.map(c=>escapeHtml(c.toLowerCase())).join(' → ')}</b></div>` : '') + html;
+  html = datalist + filtroBar + (rota.length ? `<div class="vg-route">🏨 onde você fica: <b>${rota.map(c=>escapeHtml(c.toLowerCase())).join(' → ')}</b></div>` : '') + html;
   const T = vgTotais(t), n = t.passeios.length;
   return html + `<div class="vg-addbar"><button type="button" class="vg-btn" data-act="p-add" data-d="">+ Adicionar passeio</button></div>
     <div class="summary-card" style="margin-top:12px;"><div class="label">total de passeios</div><div class="value" data-live="p-total">R$ ${fmt(T.p)}</div><div class="vg-muted" data-live="p-count">${n} ${n === 1 ? 'passeio' : 'passeios'}</div></div>`;
@@ -5427,7 +5433,8 @@ function vgOnClick(e){
     case 'di-rm':
       if(t.diario[+d.i] && t.diario[+d.i].txt && !confirm('Remover esta entrada do diário?')) return;
       t.diario.splice(+d.i, 1); break;
-    case 'p-add': t.passeios.push({n:'', d:d.d || '', h:'', v:0, pago:false}); break;
+    case 'p-filtro': vgSoPagos = d.v === '1'; vgRender(); return;
+    case 'p-add': vgSoPagos = false; t.passeios.push({n:'', d:d.d || '', h:'', v:0, pago:false}); break;
     case 'p-rm':
       if(t.passeios[+d.i] && t.passeios[+d.i].n && !confirm('Remover este passeio?')) return;
       t.passeios.splice(+d.i, 1); break;
