@@ -1142,6 +1142,13 @@
   .vg-mhead{ display:none; }
   table.vg-table col.pc-g{ width:4%; } table.vg-table col.pc-n{ width:29%; } table.vg-table col.pc-d{ width:19%; }
   table.vg-table col.pc-h{ width:13%; } table.vg-table col.pc-v{ width:19%; } table.vg-table col.pc-p{ width:6%; } table.vg-table col.pc-a{ width:10%; }
+  /* cabeçalho da aba Viagens (título, pastas e seções) fixo logo abaixo da barra do topo, em telas médias e largas */
+  @media (min-width:701px){
+    .vg-head{ position:sticky; top:var(--topbar-h, 121px); z-index:40; background:var(--bg); margin-top:-22px; padding-top:22px; }
+    .vg-head .month-title-bar{ margin-bottom:10px; }
+    .vg-head .vg-secs{ margin-bottom:0; }
+    .vg-head + *{ margin-top:14px; }
+  }
   .vg-colsel{ display:none; align-items:center; gap:6px; font-size:12.5px; font-weight:400; color:var(--muted); }
   .vg-colsel .vg-chip{ padding:3px 11px; }
   .vg-colbar{ display:none; }
@@ -1178,7 +1185,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.3</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.4</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -5235,16 +5242,16 @@ function renderViagensView(){
   const V = DATA.viagens;
   if(!V.itens[viagemAtual]) viagemAtual = V.ordem[0] || null;
   const t = viagemAtual ? V.itens[viagemAtual] : null;
-  let html = `<div id="vg-root"><div class="month-title-bar"><h2>✈ Viagens</h2></div>`;
+  let html = `<div id="vg-root"><div class="vg-head"><div class="month-title-bar"><h2>✈ Viagens</h2></div>`;
   html += `<div class="vg-folders">${V.ordem.map(n=>`<button type="button" class="vg-chip ${n === viagemAtual ? 'active' : ''}" data-act="pasta" data-nome="${escapeHtml(n)}">📁 ${escapeHtml(n)}</button>`).join('')}<button type="button" class="vg-chip vg-chip-add" data-act="nova">+ Nova viagem</button></div>`;
   if(!t){
-    return html + `<div class="vg-empty">Nenhuma viagem ainda. Crie a primeira em "+ Nova viagem" — por exemplo, Chile ou México.</div></div>`;
+    return html + `</div><div class="vg-empty">Nenhuma viagem ainda. Crie a primeira em "+ Nova viagem" — por exemplo, Chile ou México.</div></div>`;
   }
   html += `<div class="vg-secs">${VG_SECOES.map(([k, nome])=>`<button type="button" class="vg-sec ${k === viagemSecao ? 'active' : ''}" data-act="secao" data-s="${k}">${nome}</button>`).join('')}
     <span class="vg-spacer"></span>
     <button type="button" class="vg-btn" data-act="renomear">Renomear</button>
     <button type="button" class="toggle-all-btn" data-act="pdf" title="Gera um relatório desta viagem pra salvar como PDF ou imprimir">🖨️ exportar relatório</button>
-    <button type="button" class="vg-btn danger" data-act="excluir">Excluir viagem</button></div>`;
+    <button type="button" class="vg-btn danger" data-act="excluir">Excluir viagem</button></div></div>`;
   const corpo = { resumo:vgResumo, passeios:vgPasseios, mercado:vgMercado, car:vgCar }[viagemSecao] || vgCapa;
   return html + corpo(t) + `</div>`;
 }
@@ -5815,6 +5822,16 @@ function initHistory(){
     if(e.target.id === 'history-modal') document.getElementById('history-modal').style.display = 'none';
   });
 }
+
+// altura da barra do topo (muda com a largura da janela): usada para fixar o cabeçalho da aba Viagens logo abaixo dela
+(function(){
+  const topo = document.querySelector('header.topbar');
+  if(!topo) return;
+  const medir = ()=>{ const h = topo.offsetHeight; if(h) document.documentElement.style.setProperty('--topbar-h', h + 'px'); };
+  if(window.ResizeObserver) new ResizeObserver(medir).observe(topo);
+  window.addEventListener('resize', medir);
+  medir();
+})();
 
 initLock();
 initHistory();
