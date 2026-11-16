@@ -1144,6 +1144,9 @@
   table.vg-table col.pc-h{ width:12%; } table.vg-table col.pc-t{ width:8%; } table.vg-table col.pc-v{ width:17%; } table.vg-table col.pc-p{ width:6%; } table.vg-table col.pc-a{ width:9%; }
   .vg-dtpill{ display:inline-flex; align-items:center; height:30px; padding:0 9px; border-radius:8px; background:#EFF6FF; color:#1D4ED8; font-size:12px; font-weight:600; white-space:nowrap; }
   th.vg-thdt{ white-space:nowrap; }
+  .vg-hc{ display:flex; flex-direction:column; gap:3px; }
+  #vg-root .vg-hc input.vg-dur{ height:22px; padding:2px 7px !important; font-size:11.5px !important; color:var(--muted); border-style:dashed; background:transparent; }
+  #vg-root .vg-hc input.vg-dur:focus{ border-style:solid; background:#fff; color:var(--text); }
   /* cabeçalho da aba Viagens (título, pastas e seções) fixo logo abaixo da barra do topo, em telas médias e largas */
   @media (min-width:701px){
     .vg-head{ position:sticky; top:var(--topbar-h, 121px); z-index:40; background:var(--bg); margin-top:-22px; padding-top:22px; }
@@ -1240,7 +1243,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.13</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.14</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1466,6 +1469,7 @@ function defaultData(){
 let DATA = null;
 let currentTab = null;
 let dataReady = false;
+let roteiroChileAjustadoNestaCarga = false; // ajuste pontual (16/11/2026): nova ordem, horários e durações dos passeios do Chile
 let agostoClonadoNestaCarga = false; // migração pontual (14/08): true quando a aba Agosto/2026 acabou de ser clonada de Setembro/2026 nesta carga
 let colunaPagarDia18CorrigidaNestaCarga = false; // migração pontual (15/08): true quando a coluna dos blocos de detalhamento acabou de ser corrigida nesta carga
 let vencimentosAgostoOcultadoNestaCarga = false; // migração pontual (15/08): true quando o quadro Vencimentos (dia08) de Agosto/2026 acabou de ser ocultado nesta carga
@@ -2121,7 +2125,8 @@ async function initApp(){
     dataReady = true;
     renderTabs();
     renderContent();
-    if(agostoClonadoNestaCarga || colunaPagarDia18CorrigidaNestaCarga || vencimentosAgostoOcultadoNestaCarga){
+    if(agostoClonadoNestaCarga || colunaPagarDia18CorrigidaNestaCarga || vencimentosAgostoOcultadoNestaCarga || roteiroChileAjustadoNestaCarga){
+      roteiroChileAjustadoNestaCarga = false;
       agostoClonadoNestaCarga = false;
       colunaPagarDia18CorrigidaNestaCarga = false;
       vencimentosAgostoOcultadoNestaCarga = false;
@@ -4877,7 +4882,7 @@ function vgNormalizar(t){
   Object.keys(base.car).forEach(k=>{ if(t.car[k] === undefined || t.car[k] === null) t.car[k] = base.car[k]; });
   ['checklist','passeios','mercado','diario'].forEach(k=>{ if(!Array.isArray(t[k])) t[k] = []; });
   t.mercado.forEach(x=>{ if(!(vgNum(x.q) > 0)) x.q = 1; });
-  t.passeios.forEach(x=>{ x.dt = !!x.dt; });   // dt = passeio que ocupa o dia todo
+  t.passeios.forEach(x=>{ x.dt = !!x.dt; x.dur = Math.max(0, Math.round(vgNum(x.dur))); });   // dt = dia todo; dur = duração em minutos (0 = não informada)
   if(!t.cidades || typeof t.cidades !== 'object' || Array.isArray(t.cidades)) t.cidades = {};
   // corrige datas salvas com ano de 2 dígitos (ex.: 0027-01-01 → 2027-01-01)
   t.inicio = vgFixAno(t.inicio); t.fim = vgFixAno(t.fim);
@@ -4885,6 +4890,55 @@ function vgNormalizar(t){
   t.diario.forEach(x=>{ x.d = vgFixAno(x.d); });
   t.car.dataR = vgFixAno(t.car.dataR); t.car.dataD = vgFixAno(t.car.dataD);
   return t;
+}
+// Ajuste pontual (16/11/2026), roda uma vez só: reorganiza o roteiro do Chile (30/12 a 06/01) com a melhor ordem,
+// horários e duração de cada passeio. Só mexe nos passeios cujo nome casa com a lista; valores e "pago" ficam como estão.
+const VG_ROTEIRO_CHILE = [
+  ['mercado urbano tobalaba', '2026-12-30', '20:30', 90],
+  ['vina santa carolina',     '2026-12-31', '10:00', 90],
+  ['bairro italia',           '2026-12-31', '12:00', 150],
+  ['zoologico',               '2027-01-01', '11:00', 90],
+  ['teleferico',              '2027-01-01', '12:45', 120],
+  ['praca da constituicao',   '2027-01-02', '10:00', 45],
+  ['palacio de la moneda',    '2027-01-02', '10:45', 30],
+  ['plaza de armas',          '2027-01-02', '11:20', 30],
+  ['catedral',                '2027-01-02', '11:50', 30],
+  ['museu chileno de arte',   '2027-01-02', '12:30', 90],
+  ['la chascona',             '2027-01-02', '15:30', 75],
+  ['cajon del maipo',         '2027-01-03', '',      660, true],
+  ['plaza sotomayor',         '2027-01-04', '10:00', 45],
+  ['ascensor reina victoria', '2027-01-04', '10:50', 15],
+  ['cerro alegre',            '2027-01-04', '11:10', 90],
+  ['cerro concepcion',        '2027-01-04', '14:00', 90],
+  ['quinta vergara',          '2027-01-05', '10:00', 75],
+  ['museu fonk',              '2027-01-05', '11:30', 60],
+  ['playa caleta abarca',     '2027-01-05', '14:15', 30],
+  ['reloj de flores',         '2027-01-05', '14:50', 20],
+  ['castillo wulff',          '2027-01-05', '15:15', 45],
+  ['avenida peru',            '2027-01-05', '16:00', 40],
+  ['vergara pier',            '2027-01-05', '16:45', 30],
+  ['playa de renaca',         '2027-01-05', '17:30', 120],
+  ['paseo 21 de mayo',        '2027-01-06', '10:30', 60]
+];
+function vgAjustarRoteiroChile(data){
+  if(!Array.isArray(data.migracoes)) data.migracoes = [];
+  if(data.migracoes.includes('roteiro-chile-2026-11-16')) return;
+  const norm = x=>vgSemAcento(x).replace(/\s+/g, ' ').trim();
+  for(const nome of data.viagens.ordem){
+    const t = data.viagens.itens[nome];
+    if(!t || !Array.isArray(t.passeios)) continue;
+    const usados = new Set(), achados = [];
+    VG_ROTEIRO_CHILE.forEach(([chave, d, h, dur, dt])=>{
+      const i = t.passeios.findIndex((x, k)=>!usados.has(k) && norm(x.n).startsWith(chave));
+      if(i >= 0){ usados.add(i); achados.push([t.passeios[i], d, h, dur, !!dt]); }
+    });
+    if(achados.length < 15) continue;   // não é o roteiro do Chile
+    achados.forEach(([x, d, h, dur, dt])=>{ x.d = d; x.h = h; x.dur = dur; x.dt = dt; });
+    [...new Set(t.passeios.map(x=>x.d || ''))].forEach(d=>vgOrdenarDiaPorHora(t, d));
+    data.migracoes.push('roteiro-chile-2026-11-16');
+    roteiroChileAjustadoNestaCarga = true;
+    return;
+  }
 }
 function vgMigrar(data){
   if(!data.viagens || typeof data.viagens !== 'object') data.viagens = {};
@@ -4897,6 +4951,7 @@ function vgMigrar(data){
   });
   if(!Array.isArray(data.abasOcultas)) data.abasOcultas = [];
   data.abasOcultas = data.abasOcultas.filter(t=>["Modelo","Resumo Anual","Obrigações"].includes(t));
+  vgAjustarRoteiroChile(data);
   return data;
 }
 
@@ -4974,6 +5029,31 @@ function vgTotais(t){
 }
 // Horário de um passeio para mostrar: "dia todo", a hora digitada ou vazio.
 function vgHoraTxt(x){ return x.dt ? 'dia todo' : (x.h || ''); }
+// Duração: minutos ↔ texto ("1h30", "2h", "45min"). Entende 1h30, 1:30, 90, 90min, 2h, 45m.
+function vgDurTxt(min){
+  min = Math.round(vgNum(min)); if(!(min > 0)) return '';
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? `${h}h${m ? String(m).padStart(2, '0') : ''}` : `${m}min`;
+}
+function vgDurParse(v){
+  const s = String(v || '').trim().toLowerCase().replace(/\s/g, '');
+  if(!s) return 0;
+  let m;
+  if((m = /^(\d{1,2})h(\d{1,2})?(min|m)?$/.exec(s))) return +m[1] * 60 + (m[2] ? +m[2] : 0);
+  if((m = /^(\d{1,2}):(\d{2})$/.exec(s))) return +m[1] * 60 + +m[2];
+  if((m = /^(\d{1,4})(min|m)?$/.exec(s))) return +m[1];
+  return null;
+}
+// Horário com o fim calculado pela duração: "10:00–11:30"; "dia todo"; só a hora; ou só a duração.
+function vgHoraFaixa(x){
+  if(x.dt) return 'dia todo';
+  const dur = vgNum(x.dur);
+  if(x.h && dur > 0){
+    const [hh, mm] = x.h.split(':').map(Number), fim = (hh * 60 + mm + dur) % 1440;
+    return `${x.h}–${String(Math.floor(fim / 60)).padStart(2, '0')}:${String(fim % 60).padStart(2, '0')}`;
+  }
+  return x.h || vgDurTxt(dur);
+}
 // Chave para ordenar dentro do dia: passeios do dia todo vêm primeiro; sem hora, por último.
 function vgHoraChave(x, semHora){ return x.dt ? '00:00' : (x.h || semHora); }
 function vgOrdem(t){
@@ -5069,7 +5149,7 @@ function vgProximoHTML(t){
   const x = vgProximo(t);
   const titulo = `<div class="vg-card-title">📍 Próximo passeio</div>`;
   if(!x) return titulo + `<p class="vg-muted" style="margin:0;">${t.passeios.length ? 'Nenhum passeio pela frente.' : 'Cadastre os passeios na seção Passeios.'}</p>`;
-  return titulo + `<div class="vg-next"><div class="name">${escapeHtml(x.n || 'Sem nome')}</div><div class="vg-muted">${escapeHtml(vgSemana(x.d))}, ${vgDataBR(x.d)}${x.dt ? ' · dia todo' : (x.h ? ' às ' + escapeHtml(x.h) : '')}</div><div style="font-weight:700;margin-top:4px;">R$ ${fmt(vgNum(x.v))}</div></div>`;
+  return titulo + `<div class="vg-next"><div class="name">${escapeHtml(x.n || 'Sem nome')}</div><div class="vg-muted">${escapeHtml(vgSemana(x.d))}, ${vgDataBR(x.d)}${x.dt ? ' · dia todo' : (x.h ? ' às ' + escapeHtml(x.h) : '')}${!x.dt && vgNum(x.dur) > 0 ? ' (' + vgDurTxt(x.dur) + ')' : ''}</div><div style="font-weight:700;margin-top:4px;">R$ ${fmt(vgNum(x.v))}</div></div>`;
 }
 function vgRetroHTML(t){
   const liberada = (t.fim && vgDiasEntre(t.fim, vgHojeISO()) > 0) || viagemRetroPrevia;
@@ -5157,7 +5237,7 @@ function vgDetalhamento(t){
   const T = vgTotais(t), blocos = [];
   const linha = (nome, valor, pago, sub, txt)=>`<div class="vg-bill"><div class="vg-bill-n">${escapeHtml(nome)}${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</div><div class="vg-bill-s ${pago ? 'ok' : ''}">${pago ? 'pago' : 'a pagar'}</div><div class="vg-bill-v">${txt || 'R$ ' + fmt(valor)}</div></div>`;
   const ps = vgOrdem(t).map(i=>t.passeios[i]).filter(x=>vgNum(x.v) > 0);
-  if(ps.length) blocos.push(['📍 Passeios', ps.map(x=>linha(x.n || 'Sem nome', vgNum(x.v), x.pago, (x.d ? vgDataBR(x.d).slice(0,5) : '') + (vgHoraTxt(x) ? (x.d ? ' · ' : '') + vgHoraTxt(x) : ''))).join(''), T.p, ps.length]);
+  if(ps.length) blocos.push(['📍 Passeios', ps.map(x=>linha(x.n || 'Sem nome', vgNum(x.v), x.pago, (x.d ? vgDataBR(x.d).slice(0,5) : '') + (vgHoraFaixa(x) ? (x.d ? ' · ' : '') + vgHoraFaixa(x) : ''))).join(''), T.p, ps.length]);
   const c = t.car;
   if(!c.cancelado){
     const cl = [];
@@ -5236,7 +5316,7 @@ function vgPasseios(t){
         <td class="c">${vgGripHTML()}</td>
         <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
         <td><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
-        <td>${x.dt ? '<span class="vg-dtpill" title="Passeio do dia todo">dia todo</span>' : `<input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}">`}</td>
+        <td>${x.dt ? '<span class="vg-dtpill" title="Passeio do dia todo">dia todo</span>' : `<div class="vg-hc"><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"><input type="text" class="vg-dur" data-p="${i}" data-f="dur" value="${vgDurTxt(x.dur)}" placeholder="duração" title="Quanto tempo leva (ex.: 1h30, 45min)" aria-label="Duração"></div>`}</td>
         <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="dt" ${x.dt ? 'checked' : ''} aria-label="Dia todo" title="Marque se o passeio ocupa o dia todo"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
@@ -5247,7 +5327,7 @@ function vgPasseios(t){
     html += `<div class="vg-day">
       <div class="vg-day-head"><span class="vg-day-t">${escapeHtml(titulo)}${cidade}</span><span class="vg-muted">subtotal <b data-sub="${escapeHtml(g.d)}">R$ ${fmt(sub)}</b></span></div>
       <div class="vg-scroll"><table class="vg-table"><colgroup><col class="pc-g"><col class="pc-n"><col class="pc-d"><col class="pc-h"><col class="pc-v"><col class="pc-t"><col class="pc-p"><col class="pc-a"></colgroup>
-      <thead><tr><th></th><th>Passeio</th><th>Data</th><th>Hora</th><th class="r">Valor (R$)</th><th class="c vg-thdt">Dia todo</th><th class="c">Pago</th><th></th></tr></thead>
+      <thead><tr><th></th><th>Passeio</th><th>Data</th><th>Hora / duração</th><th class="r">Valor (R$)</th><th class="c vg-thdt">Dia todo</th><th class="c">Pago</th><th></th></tr></thead>
       <tbody>${linhas}</tbody></table></div>
       <button type="button" class="vg-link" data-act="p-add" data-d="${escapeHtml(g.d)}">+ Passeio neste dia</button>
     </div>`;
@@ -5408,7 +5488,8 @@ function vgAplicar(el){
     t.cidades[d.cid] = String(val).trim();
   } else if(d.p !== undefined){
     const x = t.passeios[+d.p]; if(!x) return false;
-    x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : ((d.f === 'pago' || d.f === 'dt') ? !!val : val);
+    if(d.f === 'dur'){ const m = vgDurParse(val); if(m === null) return false; x.dur = m; }
+    else x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : ((d.f === 'pago' || d.f === 'dt') ? !!val : val);
   } else if(d.ck !== undefined){
     const x = t.checklist[+d.ck]; if(!x) return false;
     x[d.f] = d.f === 'ok' ? !!val : val;
@@ -5446,6 +5527,10 @@ function vgOnInput(e){
 function vgOnChange(e){
   const el = e.target, d = el.dataset;
   const t = DATA.viagens.itens[viagemAtual];
+  if(d.p !== undefined && d.f === 'dur' && vgDurParse(el.value) === null){
+    el.value = vgDurTxt((t.passeios[+d.p] || {}).dur);   // duração inválida: volta para a última salva
+    return;
+  }
   if(d.hora !== undefined && vgHoraNorm(el.value) === null){
     // hora inválida: volta para o último valor salvo
     el.value = d.p !== undefined ? ((t.passeios[+d.p] || {}).h || '') : (t.car[d.car] || '');
@@ -5455,6 +5540,7 @@ function vgOnChange(e){
   if(d.hora !== undefined) el.value = vgHoraNorm(el.value);
   if(d.p !== undefined && (d.f === 'h' || d.f === 'dt') && vgOrdenarDiaPorHora(t, t.passeios[+d.p].d)) vgSemFoco = true;
   if(d.p !== undefined && d.f === 'v') el.value = vgMoney(t.passeios[+d.p].v);
+  if(d.p !== undefined && d.f === 'dur') el.value = vgDurTxt(t.passeios[+d.p].dur);
   if(d.m !== undefined && d.f === 'v') el.value = vgLocal(t.mercado[+d.m].v);
   if(d.m !== undefined && d.f === 'q') el.value = vgLocal(vgQtd(t.mercado[+d.m]));
   if(d.car !== undefined && VG_CAR_NUM.includes(d.car) && d.car !== 'diarias') el.value = vgMoney(t.car[d.car]);
@@ -5595,7 +5681,7 @@ function vgOnClick(e){
       if(t.diario[+d.i] && t.diario[+d.i].txt && !confirm('Remover esta entrada do diário?')) return;
       t.diario.splice(+d.i, 1); break;
     case 'p-filtro': vgFiltro = ['gratis','comvalor','pagos'].includes(d.v) ? d.v : 'todos'; vgRender(); return;
-    case 'p-add': vgFiltro = 'todos'; t.passeios.push({n:'', d:d.d || '', h:'', v:0, pago:false, dt:false}); break;
+    case 'p-add': vgFiltro = 'todos'; t.passeios.push({n:'', d:d.d || '', h:'', v:0, pago:false, dt:false, dur:0}); break;
     case 'p-rm':
       if(t.passeios[+d.i] && t.passeios[+d.i].n && !confirm('Remover este passeio?')) return;
       t.passeios.splice(+d.i, 1); break;
@@ -5682,7 +5768,7 @@ function vgExportarPdf(nome){
     const sub = round2(g.itens.reduce((s, x)=>s + vgNum(x.v), 0));
     const cid = g.d ? vgCidadeDia(t, g.d).trim() : '';
     return `<div class="dia"><h3>${escapeHtml(g.d ? vgSemana(g.d) + ', ' + vgDataBR(g.d) : 'Sem data')}${cid ? ' · ' + escapeHtml(cid) : ''}<span>R$ ${fmt(sub)}</span></h3>
-    <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="ck">${x.pago ? '☑' : '☐'}</td><td class="h">${escapeHtml(vgHoraTxt(x))}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td></tr>`).join('')}</tbody></table></div>`;
+    <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="ck">${x.pago ? '☑' : '☐'}</td><td class="h">${escapeHtml(vgHoraFaixa(x))}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td></tr>`).join('')}</tbody></table></div>`;
   }).join('') || '<p class="m">Nenhum passeio cadastrado.</p>';
   const duasColunas = true;
   const c = t.car;
@@ -5706,7 +5792,7 @@ function vgExportarPdf(nome){
   h2{ font-size:15px; margin:22px 0 8px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
   h3{ font-size:13px; margin:14px 0 4px; display:flex; justify-content:space-between; } h3 span{ color:#475569; }
   .cards{ display:flex; gap:10px; margin-top:16px; } .cards div{ flex:1; background:#F8FAFC; border-radius:8px; padding:10px 12px; font-size:11px; color:#64748B; } .cards b{ display:block; font-size:16px; color:#0F223D; margin-top:2px; }
-  table{ width:100%; border-collapse:collapse; font-size:12.5px; } td{ padding:5px 4px; border-bottom:1px solid #F1F5F9; } td.h{ width:64px; color:#64748B; white-space:nowrap; } td.r{ text-align:right; white-space:nowrap; } td.s{ width:70px; text-align:right; font-size:11px; color:#64748B; } tr.ok td.s{ color:#15803D; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; } td{ padding:5px 4px; border-bottom:1px solid #F1F5F9; } td.h{ width:92px; color:#64748B; white-space:nowrap; } td.r{ text-align:right; white-space:nowrap; } td.s{ width:70px; text-align:right; font-size:11px; color:#64748B; } tr.ok td.s{ color:#15803D; }
   .box{ background:#F8FAFC; border-radius:8px; padding:10px 14px; font-size:12.5px; line-height:1.7; }
   ul{ list-style:none; padding:0; margin:0; font-size:12.5px; line-height:1.8; } li.ok{ color:#64748B; }
   .m{ color:#64748B; font-size:12.5px; } .f{ margin-top:26px; font-size:10px; color:#94A3B8; display:flex; justify-content:space-between; }
