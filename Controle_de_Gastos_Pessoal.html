@@ -1152,6 +1152,10 @@
   .vg-hc .vg-durl svg{ width:11px; height:11px; flex-shrink:0; }
   #vg-root .vg-hc input.vg-dur{ height:22px; padding:0 !important; font-size:11.5px !important; color:#64748B; width:4.2em; text-align:left; }
   #vg-root .vg-hc input.vg-dur::placeholder{ color:#B6C2D2; }
+  /* cabeçalho do mês (título e botões) fixo logo abaixo da barra do topo, em telas médias e largas */
+  @media (min-width:701px){
+    .month-title-bar.mt-fixo{ position:sticky; top:var(--topbar-h, 121px); z-index:40; background:var(--bg); margin-top:-22px; padding:22px 0 12px; margin-bottom:6px; }
+  }
   /* cabeçalho da aba Viagens (título, pastas e seções) fixo logo abaixo da barra do topo, em telas médias e largas */
   @media (min-width:701px){
     .vg-head{ position:sticky; top:var(--topbar-h, 121px); z-index:40; background:var(--bg); margin-top:-22px; padding-top:22px; }
@@ -1248,7 +1252,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.16</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.18</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -2942,12 +2946,6 @@ function sectionHtml(monthKey, title, listKey, items, pillColor, meta, pessoa){
       </div>
     </div>
     ${rows}
-    <div class="meta-row" data-meta-for="${listKey}">
-      <span class="meta-label">Meta</span>
-      <span class="rs-prefix">R$</span>
-      <input type="text" inputmode="decimal" class="meta-input" value="${meta ? fmtCampo(meta) : ''}" placeholder="sem meta">
-    </div>
-    ${metaBarraHtml(total, meta)}
     <div class="add-item-row" data-add="${listKey}">
       <input type="text" class="add-desc" placeholder="Descrição">
       <span class="rs-prefix">R$</span>
@@ -3095,7 +3093,7 @@ function renderMonthView(monthKey){
   const oc = m.blocosOcultos;
 
   let html = `
-  <div class="month-title-bar">
+  <div class="month-title-bar mt-fixo">
     ${isTemplate
       ? `<div class="month-title-input" style="cursor:default;">modelo <span style="font-size:12px;color:var(--muted);font-weight:600;text-transform:none;">— usado como base</span></div>`
       : `<input type="text" class="month-title-input" id="month-title-input" value="${escapeHtml(monthKey)}" title="Clique para renomear este mês">`
@@ -3461,19 +3459,6 @@ function attachMonthEvents(monthKey){
     const listKey = card.dataset.section;
     const list = m[listKey];
 
-    card.querySelector('.meta-input').addEventListener('change', e=>{
-      if(!m.metas) m.metas = { dia18:null, dia08:null };
-      const val = e.target.value.trim();
-      if(val === ''){ m.metas[listKey] = null; save(); renderContent(); return; }
-      const novaMeta = parseValorBR(val);
-      if(isNaN(novaMeta)){
-        alert('Valor de meta inválido — mantendo o valor anterior. Use vírgula ou ponto para os centavos (ex: 500,00).');
-        e.target.value = m.metas[listKey] ? fmtCampo(m.metas[listKey]) : '';
-        return;
-      }
-      m.metas[listKey] = round2(novaMeta);
-      save(); renderContent();
-    });
 
     card.querySelectorAll('.item-row').forEach(row=>{
       const idx = parseInt(row.dataset.idx,10);
