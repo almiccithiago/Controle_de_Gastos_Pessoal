@@ -1217,7 +1217,7 @@
     .vg-days .vg-day-head{ font-size:13.5px; }
     .vg-days table.vg-table{ min-width:0; font-size:12.5px; }
     .vg-days table.vg-table col.pc-g{ width:22px; } .vg-days table.vg-table col.pc-n{ width:auto; } .vg-days table.vg-table col.pc-d{ width:124px; }
-    .vg-days table.vg-table col.pc-h{ width:66px; } .vg-days table.vg-table col.pc-t{ width:40px; } .vg-days table.vg-table col.pc-v{ width:84px; } .vg-days table.vg-table col.pc-p{ width:32px; } .vg-days table.vg-table col.pc-a{ width:58px; }
+    .vg-days table.vg-table col.pc-h{ width:66px; } .vg-days table.vg-table col.pc-t{ width:60px; } .vg-days table.vg-table col.pc-v{ width:84px; } .vg-days table.vg-table col.pc-p{ width:32px; } .vg-days table.vg-table col.pc-a{ width:58px; }
     .vg-days .vg-acts .vg-x{ padding:2px 4px; } .vg-days .vg-acts .vg-mvb{ padding:3px 4px; }
     #vg-root .vg-days table.vg-table input[type=text], #vg-root .vg-days table.vg-table input[type=date]{ padding:6px 7px; font-size:12.5px; }
     #vg-root .vg-days .vg-day-t .vg-city{ width:130px; }
@@ -1240,7 +1240,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.12</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.13</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -5237,8 +5237,8 @@ function vgPasseios(t){
         <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
         <td><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
         <td>${x.dt ? '<span class="vg-dtpill" title="Passeio do dia todo">dia todo</span>' : `<input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}">`}</td>
-        <td class="c"><input type="checkbox" data-p="${i}" data-f="dt" ${x.dt ? 'checked' : ''} aria-label="Dia todo" title="Marque se o passeio ocupa o dia todo"></td>
         <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
+        <td class="c"><input type="checkbox" data-p="${i}" data-f="dt" ${x.dt ? 'checked' : ''} aria-label="Dia todo" title="Marque se o passeio ocupa o dia todo"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
         <td class="c vg-acts">${vgMoverHTML('passeios', i, nG, pos)}<button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
       </tr>`;
@@ -5246,8 +5246,8 @@ function vgPasseios(t){
     const cidade = g.d ? `<input type="text" class="vg-city" list="vg-cidades" data-cid="${escapeHtml(g.d)}" value="${escapeHtml(vgCidadeDia(t, g.d))}" placeholder="+ cidade" aria-label="Cidade deste dia">` : '';
     html += `<div class="vg-day">
       <div class="vg-day-head"><span class="vg-day-t">${escapeHtml(titulo)}${cidade}</span><span class="vg-muted">subtotal <b data-sub="${escapeHtml(g.d)}">R$ ${fmt(sub)}</b></span></div>
-      <div class="vg-scroll"><table class="vg-table"><colgroup><col class="pc-g"><col class="pc-n"><col class="pc-d"><col class="pc-h"><col class="pc-t"><col class="pc-v"><col class="pc-p"><col class="pc-a"></colgroup>
-      <thead><tr><th></th><th>Passeio</th><th>Data</th><th>Hora</th><th class="c vg-thdt">Dia todo</th><th class="r">Valor (R$)</th><th class="c">Pago</th><th></th></tr></thead>
+      <div class="vg-scroll"><table class="vg-table"><colgroup><col class="pc-g"><col class="pc-n"><col class="pc-d"><col class="pc-h"><col class="pc-v"><col class="pc-t"><col class="pc-p"><col class="pc-a"></colgroup>
+      <thead><tr><th></th><th>Passeio</th><th>Data</th><th>Hora</th><th class="r">Valor (R$)</th><th class="c vg-thdt">Dia todo</th><th class="c">Pago</th><th></th></tr></thead>
       <tbody>${linhas}</tbody></table></div>
       <button type="button" class="vg-link" data-act="p-add" data-d="${escapeHtml(g.d)}">+ Passeio neste dia</button>
     </div>`;
