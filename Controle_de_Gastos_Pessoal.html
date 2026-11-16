@@ -1144,9 +1144,14 @@
   table.vg-table col.pc-h{ width:12%; } table.vg-table col.pc-t{ width:8%; } table.vg-table col.pc-v{ width:17%; } table.vg-table col.pc-p{ width:6%; } table.vg-table col.pc-a{ width:9%; }
   .vg-dtpill{ display:inline-flex; align-items:center; height:30px; padding:0 9px; border-radius:8px; background:#EFF6FF; color:#1D4ED8; font-size:12px; font-weight:600; white-space:nowrap; }
   th.vg-thdt{ white-space:nowrap; }
-  .vg-hc{ display:flex; flex-direction:column; gap:3px; }
-  #vg-root .vg-hc input.vg-dur{ height:22px; padding:2px 7px !important; font-size:11.5px !important; color:var(--muted); border-style:dashed; background:transparent; }
-  #vg-root .vg-hc input.vg-dur:focus{ border-style:solid; background:#fff; color:var(--text); }
+  .vg-hc{ display:flex; flex-direction:column; border:1px solid var(--border); border-radius:8px; background:#fff; overflow:hidden; transition:border-color .15s, box-shadow .15s; }
+  .vg-hc:focus-within{ border-color:#93B4E0; box-shadow:0 0 0 3px rgba(59,130,246,.12); }
+  #vg-root .vg-hc input{ border:0 !important; border-radius:0 !important; box-shadow:none !important; background:transparent !important; width:100%; min-width:0; text-align:center; }
+  #vg-root .vg-hc input[data-f="h"]{ height:28px; padding:0 6px !important; font-weight:500; }
+  .vg-hc .vg-durl{ display:flex; align-items:center; justify-content:center; gap:3px; border-top:1px solid #EEF2F7; background:#F8FAFC; padding:0 6px; color:#94A3B8; }
+  .vg-hc .vg-durl svg{ width:11px; height:11px; flex-shrink:0; }
+  #vg-root .vg-hc input.vg-dur{ height:22px; padding:0 !important; font-size:11.5px !important; color:#64748B; width:4.2em; text-align:left; }
+  #vg-root .vg-hc input.vg-dur::placeholder{ color:#B6C2D2; }
   /* cabeçalho da aba Viagens (título, pastas e seções) fixo logo abaixo da barra do topo, em telas médias e largas */
   @media (min-width:701px){
     .vg-head{ position:sticky; top:var(--topbar-h, 121px); z-index:40; background:var(--bg); margin-top:-22px; padding-top:22px; }
@@ -1243,7 +1248,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.14</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.15</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -5316,7 +5321,7 @@ function vgPasseios(t){
         <td class="c">${vgGripHTML()}</td>
         <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
         <td><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
-        <td>${x.dt ? '<span class="vg-dtpill" title="Passeio do dia todo">dia todo</span>' : `<div class="vg-hc"><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"><input type="text" class="vg-dur" data-p="${i}" data-f="dur" value="${vgDurTxt(x.dur)}" placeholder="duração" title="Quanto tempo leva (ex.: 1h30, 45min)" aria-label="Duração"></div>`}</td>
+        <td>${x.dt ? '<span class="vg-dtpill" title="Passeio do dia todo">dia todo</span>' : `<div class="vg-hc"><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"><label class="vg-durl" title="Quanto tempo leva (ex.: 1h30, 45min)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><input type="text" class="vg-dur" data-p="${i}" data-f="dur" value="${vgDurTxt(x.dur)}" placeholder="duração" aria-label="Duração"></label></div>`}</td>
         <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="dt" ${x.dt ? 'checked' : ''} aria-label="Dia todo" title="Marque se o passeio ocupa o dia todo"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
@@ -5327,7 +5332,7 @@ function vgPasseios(t){
     html += `<div class="vg-day">
       <div class="vg-day-head"><span class="vg-day-t">${escapeHtml(titulo)}${cidade}</span><span class="vg-muted">subtotal <b data-sub="${escapeHtml(g.d)}">R$ ${fmt(sub)}</b></span></div>
       <div class="vg-scroll"><table class="vg-table"><colgroup><col class="pc-g"><col class="pc-n"><col class="pc-d"><col class="pc-h"><col class="pc-v"><col class="pc-t"><col class="pc-p"><col class="pc-a"></colgroup>
-      <thead><tr><th></th><th>Passeio</th><th>Data</th><th>Hora / duração</th><th class="r">Valor (R$)</th><th class="c vg-thdt">Dia todo</th><th class="c">Pago</th><th></th></tr></thead>
+      <thead><tr><th></th><th>Passeio</th><th>Data</th><th title="Hora de início e duração">Hora</th><th class="r">Valor (R$)</th><th class="c vg-thdt">Dia todo</th><th class="c">Pago</th><th></th></tr></thead>
       <tbody>${linhas}</tbody></table></div>
       <button type="button" class="vg-link" data-act="p-add" data-d="${escapeHtml(g.d)}">+ Passeio neste dia</button>
     </div>`;
