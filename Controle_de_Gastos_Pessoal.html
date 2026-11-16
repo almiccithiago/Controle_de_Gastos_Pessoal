@@ -1145,10 +1145,46 @@
   /* cabeçalho da aba Viagens (título, pastas e seções) fixo logo abaixo da barra do topo, em telas médias e largas */
   @media (min-width:701px){
     .vg-head{ position:sticky; top:var(--topbar-h, 121px); z-index:40; background:var(--bg); margin-top:-22px; padding-top:22px; }
-    .vg-head .month-title-bar{ margin-bottom:10px; }
+    .vg-head .month-title-bar{ margin-bottom:0; }
     .vg-head .vg-secs{ margin-bottom:0; }
     .vg-head + *{ margin-top:14px; }
   }
+  /* ===== v.7: cabeçalho da aba Viagens mais limpo (abas sublinhadas, ações em ícones) ===== */
+  #vg-root .vg-toprow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0; justify-content:flex-start; }
+  .vg-period{ font-size:12.5px; color:var(--muted); }
+  .vg-topacts{ margin-left:auto; display:flex; gap:6px; align-items:center; }
+  details.vg-menu{ position:relative; }
+  details.vg-menu > summary{ list-style:none; cursor:pointer; user-select:none; }
+  details.vg-menu > summary::-webkit-details-marker{ display:none; }
+  .vg-trip{ display:inline-flex; align-items:center; gap:6px; font-size:14px; font-weight:600; color:var(--navy); background:var(--card); border:1px solid var(--border-strong); border-radius:999px; padding:5px 12px; font-family:inherit; cursor:pointer; }
+  .vg-trip:hover{ border-color:var(--navy); }
+  .vg-caret{ font-size:10px; color:var(--muted); }
+  .vg-ib{ height:34px; min-width:34px; border-radius:9px; border:1px solid var(--border); background:var(--card); display:inline-flex; align-items:center; justify-content:center; gap:6px; color:var(--muted); padding:0 9px; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; }
+  .vg-ib:hover{ border-color:var(--border-strong); color:var(--text); }
+  .vg-ib.pri{ color:var(--navy); padding:0 12px; }
+  .vg-ib svg{ flex:0 0 auto; }
+  .vg-pop{ position:absolute; top:calc(100% + 6px); left:0; z-index:60; min-width:200px; background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:0 10px 30px rgba(15,34,61,.14); padding:6px; display:flex; flex-direction:column; }
+  .vg-pop.right{ left:auto; right:0; }
+  .vg-popi{ text-align:left; background:transparent; border:none; border-radius:8px; padding:8px 10px; font-family:inherit; font-size:13px; font-weight:500; color:var(--text); cursor:pointer; white-space:nowrap; }
+  .vg-popi:hover{ background:#F1F5F9; }
+  .vg-popi.on{ color:#15803D; font-weight:700; }
+  .vg-popi.danger{ color:var(--red); }
+  .vg-popi.danger:hover{ background:#FEF2F2; }
+  .vg-popsep{ height:1px; background:var(--border); margin:4px 2px; }
+  .vg-tabs{ display:flex; gap:26px; border-bottom:1px solid var(--border); margin-top:14px; overflow-x:auto; scrollbar-width:none; }
+  .vg-tabs::-webkit-scrollbar{ display:none; }
+  .vg-tab{ background:transparent; border:none; border-bottom:2px solid transparent; margin-bottom:-1px; padding:0 0 10px; font-family:inherit; font-size:13.5px; font-weight:600; color:var(--muted); cursor:pointer; white-space:nowrap; }
+  .vg-tab:hover{ color:var(--text); }
+  .vg-tab.active{ color:var(--navy); border-bottom-color:var(--teal); }
+  .vg-filtro .vg-segf{ display:inline-flex; background:#EEF0F3; border-radius:9px; padding:3px; gap:2px; flex-wrap:wrap; }
+  .vg-segb{ background:transparent; border:none; border-radius:7px; padding:5px 12px; font-family:inherit; font-size:12.5px; font-weight:600; color:var(--muted); cursor:pointer; }
+  .vg-segb:hover{ color:var(--text); }
+  .vg-segb.on{ background:var(--card); color:var(--navy); box-shadow:0 1px 3px rgba(15,34,61,.15); }
+  .vg-routein{ font-size:12.5px; color:var(--muted); margin-left:6px; }
+  .vg-routein b{ color:var(--text); font-weight:600; }
+  .vg-cnt{ margin-left:auto; }
+  .vg-filtro{ gap:10px; margin-bottom:14px; }
+  @media (max-width:700px){ .vg-tabs{ gap:18px; } .vg-period{ flex-basis:100%; order:3; } .vg-routein{ flex-basis:100%; margin-left:0; order:5; } }
   .vg-colsel{ display:none; align-items:center; gap:2px; background:#EEF0F3; border-radius:9px; padding:3px; flex:0 0 auto; }
   .vg-colb{ border:none; background:transparent; color:#94A3B8; width:34px; height:28px; border-radius:7px; padding:0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto; transition:background .15s ease, color .15s ease; }
   .vg-colb:hover{ color:var(--text); }
@@ -1188,7 +1224,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.8</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.10</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -1985,7 +2021,7 @@ function setSaveStatus(state){
 // Salvamentos em fila: nunca há dois POSTs ao mesmo tempo. Antes, edições
 // rápidas disparavam vários POSTs em paralelo e, se um mais antigo chegasse
 // ao servidor depois de um mais novo, a versão antiga sobrescrevia a nova.
-let saveEmAndamento = null, salvarDeNovo = false, ultimoSaveFalhou = false, retrySaveTimer = null;
+let saveEmAndamento = null, salvarDeNovo = false, ultimoSaveFalhou = false, retrySaveTimer = null, ultimoSaveStatus = null;
 window.addEventListener('online', ()=>{ if(ultimoSaveFalhou && dataReady) save(); });
 function save(){
   if(!dataReady || !DATA) return Promise.resolve();
@@ -2031,10 +2067,11 @@ async function saveUmaVez(){
     }
     if(!resp || !resp.ok) throw ultimoErro || new Error('sem resposta');
     setSaveStatus('saved');
-    ultimoSaveFalhou = false;
+    ultimoSaveFalhou = false; ultimoSaveStatus = null;
     clearTimeout(retrySaveTimer);
   }catch(e){
     console.error('Falha ao salvar dados no servidor', e);
+    ultimoSaveStatus = (e && e.status) || null;
     setSaveStatus('error');
     const el = document.getElementById('save-status');
     if(el) el.textContent = '⚠ não foi possível salvar' + (e && e.status ? ' (erro ' + e.status + ')' : ' (sem conexão com o servidor)') + (e && e.status === 413 ? ' — clique aqui' : ' — tente de novo');
@@ -2058,7 +2095,8 @@ document.addEventListener('click', e=>{
   if(t && t.id === 'peso-link'){ e.preventDefault(); if(dataReady) abrirPainelPeso(); }
   else if(t && t.id === 'peso-fechar'){ document.getElementById('peso-modal').style.display = 'none'; }
   else if(t && t.id === 'peso-comprimir'){ comprimirTodasImagens(); }
-  else if(t && t.id === 'save-status' && t.classList.contains('error') && dataReady){ abrirPainelPeso(); }
+  // erro 413 = dados grandes demais → painel de tamanho; qualquer outro erro → tenta salvar de novo agora
+  else if(t && t.id === 'save-status' && t.classList.contains('error') && dataReady){ if(ultimoSaveStatus === 413) abrirPainelPeso(); else save(); }
 });
 async function initApp(){
   try{
@@ -4973,7 +5011,7 @@ function vgContagem(t){
   if(!t.inicio) return { big:'—', label:'defina as datas da viagem' };
   const ate = vgDiasEntre(hoje, t.inicio);
   if(ate > 0) return { big:String(ate), label: ate === 1 ? 'dia para embarcar' : 'dias para embarcar' };
-  const fim = t.fim || t.inicio;
+  const fim = (t.fim && t.fim >= t.inicio) ? t.fim : t.inicio;   // volta antes da ida: considera só o dia da ida
   if(vgDiasEntre(fim, hoje) > 0) return { big:'✓', label:'viagem concluída' };
   const dia = vgDiasEntre(t.inicio, hoje) + 1, total = vgDiasEntre(t.inicio, fim) + 1;
   return { big:String(dia), label:`dia ${dia} de ${total} · boa viagem!` };
@@ -5196,11 +5234,12 @@ function vgPasseios(t){
   else if(vgFiltro !== 'todos' && !html) html = `<p class="vg-muted">${vgFiltro === 'gratis' ? 'Nenhum passeio gratuito.' : (vgFiltro === 'comvalor' ? 'Nenhum passeio com valor: todos são gratuitos.' : 'Nenhum passeio pago ainda.')}</p>`;
   else if(vgCols('passeios') === 2) html = `<div class="vg-days">${html}</div>`;
   const nFiltro = t.passeios.filter(vgPassaFiltro).length, nTodos = t.passeios.length;
-  const chipF = (v, rotulo, dica)=>`<button type="button" class="vg-chip ${vgFiltro === v ? 'on' : ''}" data-act="p-filtro" data-v="${v}" title="${dica}">${rotulo}</button>`;
-  const filtroBar = nTodos ? `<div class="vg-filtro"><span class="vg-muted">filtrar:</span>${chipF('todos', 'todos', 'Mostra todos os passeios')}${chipF('gratis', 'gratuitos', 'Mostra só os passeios gratuitos (sem valor)')}${chipF('comvalor', 'não gratuitos', 'Mostra só os passeios que têm valor')}${chipF('pagos', 'pagos', 'Mostra só os passeios que já foram pagos')}<span class="vg-muted" style="margin-left:auto;">${vgFiltro !== 'todos' ? nFiltro + ' de ' + nTodos : nTodos} ${nTodos === 1 ? 'passeio' : 'passeios'}</span>${vgColsHTML('passeios')}</div>` : '';
+  const chipF = (v, rotulo, dica)=>`<button type="button" class="vg-segb ${vgFiltro === v ? 'on' : ''}" data-act="p-filtro" data-v="${v}" title="${dica}" aria-pressed="${vgFiltro === v}">${rotulo}</button>`;
   const rota = vgRoteiro(t);
+  const rotaHTML = rota.length ? `<span class="vg-routein" title="Onde você fica">🏨 ${rota.map(c=>`<b>${escapeHtml(c.toLowerCase())}</b>`).join(' → ')}</span>` : '';
+  const filtroBar = nTodos ? `<div class="vg-filtro"><div class="vg-segf" role="group" aria-label="Filtrar passeios">${chipF('todos', 'todos', 'Mostra todos os passeios')}${chipF('gratis', 'gratuitos', 'Mostra só os passeios gratuitos (sem valor)')}${chipF('comvalor', 'não gratuitos', 'Mostra só os passeios que têm valor')}${chipF('pagos', 'pagos', 'Mostra só os passeios que já foram pagos')}</div>${rotaHTML}<span class="vg-muted vg-cnt">${vgFiltro !== 'todos' ? nFiltro + ' de ' + nTodos : nTodos} ${nTodos === 1 ? 'passeio' : 'passeios'}</span>${vgColsHTML('passeios')}</div>` : (rotaHTML ? `<div class="vg-filtro">${rotaHTML}</div>` : '');
   const datalist = `<datalist id="vg-cidades">${[...new Set(VG_CIDADES_PALAVRAS.map(c=>c[0]).concat(Object.values(t.cidades).filter(Boolean)))].map(c=>`<option value="${escapeHtml(c)}"></option>`).join('')}</datalist>`;
-  html = datalist + filtroBar + (rota.length ? `<div class="vg-route">🏨 onde você fica: <b>${rota.map(c=>escapeHtml(c.toLowerCase())).join(' → ')}</b></div>` : '') + html;
+  html = datalist + filtroBar + html;
   const T = vgTotais(t), n = t.passeios.length;
   return html + `<div class="vg-addbar"><button type="button" class="vg-btn" data-act="p-add" data-d="">+ Adicionar passeio</button></div>
     <div class="summary-card" style="margin-top:12px;"><div class="label">total de passeios</div><div class="value" data-live="p-total">R$ ${fmt(T.p)}</div><div class="vg-muted" data-live="p-count">${n} ${n === 1 ? 'passeio' : 'passeios'}</div></div>`;
@@ -5254,16 +5293,28 @@ function renderViagensView(){
   const V = DATA.viagens;
   if(!V.itens[viagemAtual]) viagemAtual = V.ordem[0] || null;
   const t = viagemAtual ? V.itens[viagemAtual] : null;
-  let html = `<div id="vg-root"><div class="vg-head"><div class="month-title-bar"><h2>✈ Viagens</h2></div>`;
-  html += `<div class="vg-folders">${V.ordem.map(n=>`<button type="button" class="vg-chip ${n === viagemAtual ? 'active' : ''}" data-act="pasta" data-nome="${escapeHtml(n)}">📁 ${escapeHtml(n)}</button>`).join('')}<button type="button" class="vg-chip vg-chip-add" data-act="nova">+ Nova viagem</button></div>`;
+  const icImp = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>`;
+  const icMais = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>`;
+  let html = `<div id="vg-root"><div class="vg-head"><div class="month-title-bar vg-toprow"><h2>✈ Viagens</h2>`;
   if(!t){
-    return html + `</div><div class="vg-empty">Nenhuma viagem ainda. Crie a primeira em "+ Nova viagem" — por exemplo, Chile ou México.</div></div>`;
+    return html + `<button type="button" class="vg-trip" data-act="nova">+ Nova viagem</button></div></div><div class="vg-empty">Nenhuma viagem ainda. Crie a primeira em "+ Nova viagem" — por exemplo, Chile ou México.</div></div>`;
   }
-  html += `<div class="vg-secs">${VG_SECOES.map(([k, nome])=>`<button type="button" class="vg-sec ${k === viagemSecao ? 'active' : ''}" data-act="secao" data-s="${k}">${nome}</button>`).join('')}
-    <span class="vg-spacer"></span>
-    <button type="button" class="vg-btn" data-act="renomear">Renomear</button>
-    <button type="button" class="toggle-all-btn" data-act="pdf" title="Gera um relatório desta viagem pra salvar como PDF ou imprimir">🖨️ exportar relatório</button>
-    <button type="button" class="vg-btn danger" data-act="excluir">Excluir viagem</button></div></div>`;
+  // seletor de viagem: a viagem atual com ▾; abre a lista das viagens e "+ nova viagem"
+  html += `<details class="vg-menu"><summary class="vg-trip" title="Trocar de viagem">📁 ${escapeHtml(viagemAtual)} <span class="vg-caret">▾</span></summary><div class="vg-pop">`
+    + V.ordem.map(n=>`<button type="button" class="vg-popi ${n === viagemAtual ? 'on' : ''}" data-act="pasta" data-nome="${escapeHtml(n)}">📁 ${escapeHtml(n)}</button>`).join('')
+    + `<div class="vg-popsep"></div><button type="button" class="vg-popi" data-act="nova">+ Nova viagem</button></div></details>`;
+  if(t.inicio && t.fim){
+    const nd = vgDiasEntre(t.inicio, t.fim);
+    html += `<span class="vg-period">${vgDataBR(t.inicio).slice(0, 5)} – ${vgDataBR(t.fim).slice(0, 5)}${nd !== null && nd >= 0 ? ` · ${nd + 1} ${nd === 0 ? 'dia' : 'dias'}` : ''}</span>`;
+  }
+  html += `<div class="vg-topacts"><button type="button" class="vg-ib pri" data-act="pdf" title="Gera um relatório desta viagem pra salvar como PDF ou imprimir">${icImp}Relatório</button>
+    <details class="vg-menu"><summary class="vg-ib" title="Mais opções" aria-label="Mais opções">${icMais}</summary><div class="vg-pop right">
+      <button type="button" class="vg-popi" data-act="nova">+ Nova viagem</button>
+      <button type="button" class="vg-popi" data-act="renomear">Renomear viagem</button>
+      <div class="vg-popsep"></div>
+      <button type="button" class="vg-popi danger" data-act="excluir">Excluir viagem</button>
+    </div></details></div></div>`;
+  html += `<nav class="vg-tabs">${VG_SECOES.map(([k, nome])=>`<button type="button" class="vg-tab ${k === viagemSecao ? 'active' : ''}" data-act="secao" data-s="${k}">${escapeHtml(nome.replace(/^\S+\s+/, ''))}</button>`).join('')}</nav></div>`;
   const corpo = { resumo:vgResumo, passeios:vgPasseios, mercado:vgMercado, car:vgCar }[viagemSecao] || vgCapa;
   return html + corpo(t) + `</div>`;
 }
@@ -5437,6 +5488,7 @@ function vgRender(){
 function vgNomeValido(nome, ignorar){
   nome = String(nome || '').trim();
   if(!nome) return '';
+  if(nome in Object.prototype){ alert(`"${nome}" não pode ser usado como nome de viagem. Escolha outro.`); return ''; }
   const existe = DATA.viagens.ordem.some(n=>n !== ignorar && n.trim().toLowerCase() === nome.toLowerCase());
   if(existe){ alert(`Já existe uma viagem chamada "${nome}".`); return ''; }
   return nome;
@@ -5450,6 +5502,17 @@ function vgMoverItem(lista, de, para){
   arr.splice(para, 0, it);
   return true;
 }
+// fecha os menus do cabeçalho (seletor de viagem e "⋯") ao clicar fora ou apertar Esc
+document.addEventListener('click', e=>{
+  document.querySelectorAll('details.vg-menu[open]').forEach(m=>{ if(!m.contains(e.target)) m.removeAttribute('open'); });
+});
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Escape') return;
+  document.querySelectorAll('details.vg-menu[open]').forEach(m=>m.removeAttribute('open'));
+  const rep = document.getElementById('replicate-modal');
+  if(rep && rep.style.display === 'flex'){ const c = document.getElementById('replicate-btn-cancel'); if(c && c.onclick) c.onclick(); else rep.style.display = 'none'; }
+  ['history-modal','peso-modal'].forEach(id=>{ const m = document.getElementById(id); if(m && m.style.display && m.style.display !== 'none') m.style.display = 'none'; });
+});
 function vgOnClick(e){
   const b = e.target.closest('[data-act]');
   if(!b) return;
@@ -5818,7 +5881,9 @@ async function restaurarSnapshot(id){
     renderTabs();
     renderContent();
     document.getElementById('history-modal').style.display = 'none';
-    alert('Versão restaurada com sucesso.');
+    alert(ultimoSaveFalhou
+      ? 'A versão foi carregada na tela, mas não deu para gravar no servidor agora. Clique no aviso "não foi possível salvar", no topo, para tentar de novo, e não feche a página até aparecer "salvo".'
+      : 'Versão restaurada com sucesso.');
   }catch(e){
     console.error('Erro ao restaurar snapshot', e);
     alert('Não foi possível restaurar essa versão agora.');
