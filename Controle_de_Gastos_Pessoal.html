@@ -1248,7 +1248,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.15</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.16</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -3103,7 +3103,7 @@ function renderMonthView(monthKey){
     <div class="month-title-actions">
       <span class="dia-pill">dia 08 · R$ ${fmt(totalsDiaQuadros(m).totalDia08)}</span>
       <span class="dia-pill">dia 18 · R$ ${fmt(totalsDiaQuadros(m).totalDia18)}</span>
-      ${!isTemplate ? `<button id="export-pdf-btn" class="toggle-all-btn" title="Gera um relatório deste mês pra salvar como PDF ou imprimir"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>Exportar relatório</button>` : ''}
+      ${!isTemplate ? `<button id="export-pdf-btn" class="toggle-all-btn" title="Gera um relatório deste mês pra salvar como PDF ou imprimir"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>relatório</button>` : ''}
       ${!isTemplate ? `<button id="duplicate-month-btn" class="toggle-all-btn" title="Cria o próximo mês que falta, copiando este"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>Duplicar mês</button>` : ''}
       ${!isTemplate ? `<button id="delete-month-btn" title="Excluir este mês">Excluir mês</button>` : ''}
       <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg>Marcar/Desmarcar tudo</button>
@@ -3732,7 +3732,7 @@ function loanTableHtml(key, loan){
   <div class="loan-card" data-loan="${key}">
     <div style="display:flex; align-items:center; gap:8px;">
       <input type="text" class="loan-title-input" value="${escapeHtml(loan.titulo)}" style="flex:1; min-width:0;">
-      <button class="toggle-all-btn loan-pdf-btn" data-loan-pdf="${key}" title="Gera um relatório desta obrigação pra salvar como PDF ou imprimir"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>exportar relatório</button>
+      <button class="toggle-all-btn loan-pdf-btn" data-loan-pdf="${key}" title="Gera um relatório desta obrigação pra salvar como PDF ou imprimir"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>relatório</button>
       <button class="block-remove" data-loan-remove="${key}" title="Excluir esta obrigação">×</button>
     </div>
     <div class="loan-sub">Controle de obrigações</div>
@@ -4439,7 +4439,7 @@ function relatorioMesHtml(monthKey){
     if(!items || !items.length) return '';
     const linhas = items.map(it=>`
       <tr class="${it.pago ? 'pago' : ''}">
-        <td>${escapeHtml(it.desc)}</td>
+        <td>${escapeHtml(String(it.desc||'').toLocaleLowerCase('pt-BR'))}</td>
         <td style="text-align:right; font-weight:700;">R$ ${fmt(it.valor)}</td>
         <td style="text-align:center;"><span class="rel-status ${it.pago ? 'pago' : 'pendente'}">${it.pago ? 'Pago' : 'Pendente'}</span></td>
       </tr>`).join('');
@@ -4633,7 +4633,7 @@ function renderResumoAnualView(){
     <div class="section-card annual-card">
       <div class="section-header">
         <h3>ano ${escapeHtml(ano)}</h3>
-        <button class="toggle-all-btn export-anual-btn" data-export-ano="${escapeHtml(ano)}"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>exportar relatório</button>
+        <button class="toggle-all-btn export-anual-btn" data-export-ano="${escapeHtml(ano)}"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>relatório</button>
         <a href="#" class="goal-link-open abrir-relatorio-anual" data-abrir-ano="${escapeHtml(ano)}">↗ abrir</a>
       </div>
       <div class="annual-chart-wrap">${chart}</div>
