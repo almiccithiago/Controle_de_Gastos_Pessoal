@@ -1140,8 +1140,10 @@
   /* ===== v.6: supermercado e passeios em duas colunas (telas largas), com seletor de 1 ou 2 colunas ===== */
   .vg-totbox{ display:contents; }
   .vg-mhead{ display:none; }
-  table.vg-table col.pc-g{ width:4%; } table.vg-table col.pc-n{ width:29%; } table.vg-table col.pc-d{ width:19%; }
-  table.vg-table col.pc-h{ width:13%; } table.vg-table col.pc-v{ width:19%; } table.vg-table col.pc-p{ width:6%; } table.vg-table col.pc-a{ width:10%; }
+  table.vg-table col.pc-g{ width:4%; } table.vg-table col.pc-n{ width:26%; } table.vg-table col.pc-d{ width:18%; }
+  table.vg-table col.pc-h{ width:12%; } table.vg-table col.pc-t{ width:8%; } table.vg-table col.pc-v{ width:17%; } table.vg-table col.pc-p{ width:6%; } table.vg-table col.pc-a{ width:9%; }
+  .vg-dtpill{ display:inline-flex; align-items:center; height:30px; padding:0 9px; border-radius:8px; background:#EFF6FF; color:#1D4ED8; font-size:12px; font-weight:600; white-space:nowrap; }
+  th.vg-thdt{ white-space:nowrap; }
   /* cabeçalho da aba Viagens (título, pastas e seções) fixo logo abaixo da barra do topo, em telas médias e largas */
   @media (min-width:701px){
     .vg-head{ position:sticky; top:var(--topbar-h, 121px); z-index:40; background:var(--bg); margin-top:-22px; padding-top:22px; }
@@ -1214,17 +1216,31 @@
     .vg-days .vg-day{ margin:0; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px 6px; }
     .vg-days .vg-day-head{ font-size:13.5px; }
     .vg-days table.vg-table{ min-width:0; font-size:12.5px; }
-    .vg-days table.vg-table col.pc-g{ width:22px; } .vg-days table.vg-table col.pc-n{ width:auto; } .vg-days table.vg-table col.pc-d{ width:128px; }
-    .vg-days table.vg-table col.pc-h{ width:60px; } .vg-days table.vg-table col.pc-v{ width:84px; } .vg-days table.vg-table col.pc-p{ width:32px; } .vg-days table.vg-table col.pc-a{ width:58px; }
+    .vg-days table.vg-table col.pc-g{ width:22px; } .vg-days table.vg-table col.pc-n{ width:auto; } .vg-days table.vg-table col.pc-d{ width:124px; }
+    .vg-days table.vg-table col.pc-h{ width:66px; } .vg-days table.vg-table col.pc-t{ width:40px; } .vg-days table.vg-table col.pc-v{ width:84px; } .vg-days table.vg-table col.pc-p{ width:32px; } .vg-days table.vg-table col.pc-a{ width:58px; }
     .vg-days .vg-acts .vg-x{ padding:2px 4px; } .vg-days .vg-acts .vg-mvb{ padding:3px 4px; }
     #vg-root .vg-days table.vg-table input[type=text], #vg-root .vg-days table.vg-table input[type=date]{ padding:6px 7px; font-size:12.5px; }
     #vg-root .vg-days .vg-day-t .vg-city{ width:130px; }
   }
+  /* ===== v.8: padrão único dos botões de ação (fundo branco, borda clara, texto azul-marinho) ===== */
+  .vg-btn,.vg-ib,.toggle-all-btn,.add-block-btn,.btn-add,.loan-add-btn,.block-restore,.modal-btn-primary,.modal-btn-secondary,.anexo-form-save,.anexo-form-cancel,.anexo-form-edit,.anexo-link-add,.anexo-modal-remove,.anexo-modal-download,.anexo-modal-close,.desfazer-btn,.goal-archive-btn,.goal-unarchive-btn,.history-restore-btn,.pessoa-toggle-btn,#lock-btn,#history-btn,#logout-btn,#history-close,#peso-comprimir,#peso-fechar,#delete-month-btn,#delete-tab-btn,#add-detail-right-btn,#add-obrigacao-btn,#add-meta-economia-btn{
+    display:inline-flex !important; align-items:center !important; justify-content:center; gap:6px;
+    height:34px !important; min-height:34px; padding:0 12px !important; box-sizing:border-box;
+    background:#fff !important; color:var(--navy) !important; border:1px solid var(--border) !important; border-radius:9px !important;
+    font-family:inherit !important; font-size:12.5px !important; font-weight:600 !important; line-height:1 !important;
+    box-shadow:none !important; text-decoration:none !important; cursor:pointer; white-space:nowrap;
+    transition:background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .vg-btn:hover,.vg-ib:hover,.toggle-all-btn:hover,.add-block-btn:hover,.btn-add:hover,.loan-add-btn:hover,.block-restore:hover,.modal-btn-primary:hover,.modal-btn-secondary:hover,.anexo-form-save:hover,.anexo-form-cancel:hover,.anexo-form-edit:hover,.anexo-link-add:hover,.anexo-modal-remove:hover,.anexo-modal-download:hover,.anexo-modal-close:hover,.desfazer-btn:hover,.goal-archive-btn:hover,.goal-unarchive-btn:hover,.history-restore-btn:hover,.pessoa-toggle-btn:hover,#lock-btn:hover,#history-btn:hover,#logout-btn:hover,#history-close:hover,#peso-comprimir:hover,#peso-fechar:hover,#delete-month-btn:hover,#delete-tab-btn:hover,#add-detail-right-btn:hover,#add-obrigacao-btn:hover,#add-meta-economia-btn:hover{ background:#F8FAFC !important; border-color:var(--border-strong) !important; color:var(--text) !important; }
+  .vg-btn:disabled,.vg-ib:disabled,.toggle-all-btn:disabled,.add-block-btn:disabled,.btn-add:disabled,.loan-add-btn:disabled,.block-restore:disabled,.modal-btn-primary:disabled,.modal-btn-secondary:disabled,.anexo-form-save:disabled,.anexo-form-cancel:disabled,.anexo-form-edit:disabled,.anexo-link-add:disabled,.anexo-modal-remove:disabled,.anexo-modal-download:disabled,.anexo-modal-close:disabled,.desfazer-btn:disabled,.goal-archive-btn:disabled,.goal-unarchive-btn:disabled,.history-restore-btn:disabled,.pessoa-toggle-btn:disabled,#lock-btn:disabled,#history-btn:disabled,#logout-btn:disabled,#history-close:disabled,#peso-comprimir:disabled,#peso-fechar:disabled,#delete-month-btn:disabled,#delete-tab-btn:disabled,#add-detail-right-btn:disabled,#add-obrigacao-btn:disabled,#add-meta-economia-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .vg-btn .btn-ico,.vg-ib .btn-ico,.toggle-all-btn .btn-ico,.add-block-btn .btn-ico,.btn-add .btn-ico,.loan-add-btn .btn-ico,.block-restore .btn-ico,.modal-btn-primary .btn-ico,.modal-btn-secondary .btn-ico,.anexo-form-save .btn-ico,.anexo-form-cancel .btn-ico,.anexo-form-edit .btn-ico,.anexo-link-add .btn-ico,.anexo-modal-remove .btn-ico,.anexo-modal-download .btn-ico,.anexo-modal-close .btn-ico,.desfazer-btn .btn-ico,.goal-archive-btn .btn-ico,.goal-unarchive-btn .btn-ico,.history-restore-btn .btn-ico,.pessoa-toggle-btn .btn-ico,#lock-btn .btn-ico,#history-btn .btn-ico,#logout-btn .btn-ico,#history-close .btn-ico,#peso-comprimir .btn-ico,#peso-fechar .btn-ico,#delete-month-btn .btn-ico,#delete-tab-btn .btn-ico,#add-detail-right-btn .btn-ico,#add-obrigacao-btn .btn-ico,#add-meta-economia-btn .btn-ico{ flex:0 0 auto; }
+  .vg-btn.danger,.anexo-modal-remove,#delete-month-btn,#delete-tab-btn{ color:var(--red) !important; }
+  .vg-btn.danger:hover,.anexo-modal-remove:hover,#delete-month-btn:hover,#delete-tab-btn:hover{ background:#FEF2F2 !important; border-color:#FCA5A5 !important; color:var(--red) !important; }
 </style>
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.10</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.12</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -3077,10 +3093,10 @@ function renderMonthView(monthKey){
     <div class="month-title-actions">
       <span class="dia-pill">dia 08 · R$ ${fmt(totalsDiaQuadros(m).totalDia08)}</span>
       <span class="dia-pill">dia 18 · R$ ${fmt(totalsDiaQuadros(m).totalDia18)}</span>
-      ${!isTemplate ? `<button id="export-pdf-btn" class="toggle-all-btn" title="Gera um relatório deste mês pra salvar como PDF ou imprimir">🖨️ Exportar relatório</button>` : ''}
-      ${!isTemplate ? `<button id="duplicate-month-btn" class="toggle-all-btn" title="Cria o próximo mês que falta, copiando este">⧉ Duplicar mês</button>` : ''}
+      ${!isTemplate ? `<button id="export-pdf-btn" class="toggle-all-btn" title="Gera um relatório deste mês pra salvar como PDF ou imprimir"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>Exportar relatório</button>` : ''}
+      ${!isTemplate ? `<button id="duplicate-month-btn" class="toggle-all-btn" title="Cria o próximo mês que falta, copiando este"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>Duplicar mês</button>` : ''}
       ${!isTemplate ? `<button id="delete-month-btn" title="Excluir este mês">Excluir mês</button>` : ''}
-      <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez">✓ Marcar/Desmarcar tudo</button>
+      <button id="toggle-all-btn" class="toggle-all-btn" title="Marca ou desmarca todos os itens como pagos de uma vez"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg>Marcar/Desmarcar tudo</button>
     </div>
   </div>
   ${isTemplate ? '' : avisosVencimentoHtml(monthKey)}
@@ -3706,7 +3722,7 @@ function loanTableHtml(key, loan){
   <div class="loan-card" data-loan="${key}">
     <div style="display:flex; align-items:center; gap:8px;">
       <input type="text" class="loan-title-input" value="${escapeHtml(loan.titulo)}" style="flex:1; min-width:0;">
-      <button class="toggle-all-btn loan-pdf-btn" data-loan-pdf="${key}" title="Gera um relatório desta obrigação pra salvar como PDF ou imprimir">🖨️ exportar relatório</button>
+      <button class="toggle-all-btn loan-pdf-btn" data-loan-pdf="${key}" title="Gera um relatório desta obrigação pra salvar como PDF ou imprimir"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>exportar relatório</button>
       <button class="block-remove" data-loan-remove="${key}" title="Excluir esta obrigação">×</button>
     </div>
     <div class="loan-sub">Controle de obrigações</div>
@@ -3801,11 +3817,11 @@ function exportarObrigacaoPdf(key){
   .tot .big span{ color:#86EFAC; font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:1px; margin-right:8px; }
   .tot .pg{ align-self:center; } .tot .pg b{ color:#15803D; }
   .ftr{ padding:12px 40px; border-top:1px solid #E2E8F0; font-size:9.5px; color:#94A3B8; display:flex; justify-content:space-between; }
-  .print-btn{ position:fixed; top:16px; right:16px; display:inline-flex; align-items:center; justify-content:center; height:34px; padding:0 14px; background:#ECFDF3; color:#15803D; border:1.5px solid #16A34A; box-shadow:0 1px 3px rgba(22,163,74,0.18); border-radius:8px; font-family:'Poppins', Arial, sans-serif; font-weight:700; font-size:12.5px; line-height:1; cursor:pointer; transition:background .15s ease, color .15s ease; }
-  .print-btn:hover{ background:#16A34A; color:#fff; }
+  .print-btn{ position:fixed; top:16px; right:16px; display:inline-flex; align-items:center; justify-content:center; gap:6px; height:34px; padding:0 12px; background:#fff; color:#0F2A4A; border:1px solid #E5E7EB; border-radius:9px; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(15,34,61,.08); }
+  .print-btn:hover{ background:#F8FAFC; border-color:#CBD5E1; }
   @media print{ body{ background:#fff; } .print-btn{ display:none; } .page{ margin:0; } }
 </style></head><body>
-<button class="print-btn" onclick="window.print()">salvar em PDF</button>
+<button class="print-btn" onclick="window.print()"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>salvar em PDF</button>
 <div class="page">
   <div class="hdr">
     <div class="kicker">controle de obrigações</div>
@@ -4149,8 +4165,8 @@ function metaEconomiaCardHtml(goal, idx){
       </div>
       <div class="section-header-actions">
         ${streakHtml}
-        ${atingida && !arquivada ? `<button class="goal-archive-btn" title="Arquivar esta meta">📦 arquivar</button>` : ''}
-        ${arquivada ? `<button class="goal-unarchive-btn" title="Trazer esta meta de volta">↩ desarquivar</button>` : ''}
+        ${atingida && !arquivada ? `<button class="goal-archive-btn" title="Arquivar esta meta"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/></svg>arquivar</button>` : ''}
+        ${arquivada ? `<button class="goal-unarchive-btn" title="Trazer esta meta de volta"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>desarquivar</button>` : ''}
         ${!arquivada ? `<div class="move-btns">
           <button class="move-btn" data-move="left" data-meta-move="${idx}" title="Mover para a esquerda">◀</button>
           <button class="move-btn" data-move="up" data-meta-move="${idx}" title="Mover para cima">▲</button>
@@ -4468,8 +4484,8 @@ function relatorioPaginaHtml(titulo, conteudoHtml){
 <title>${escapeHtml(titulo)}</title>
 <style>
   body{ margin:0; padding:28px 20px 40px; background:#f4f1ea; }
-  .rel-print-btn{ position:fixed; top:16px; right:16px; display:inline-flex; align-items:center; justify-content:center; height:34px; padding:0 14px; background:#ECFDF3; color:#15803D; border:1.5px solid #16A34A; box-shadow:0 1px 3px rgba(22,163,74,0.18); border-radius:8px; font-family:'Poppins',Arial,sans-serif; font-weight:700; font-size:12.5px; line-height:1; cursor:pointer; z-index:10; transition:background .15s ease, color .15s ease; }
-  .rel-print-btn:hover{ background:#16A34A; color:#fff; }
+  .rel-print-btn{ position:fixed; top:16px; right:16px; display:inline-flex; align-items:center; justify-content:center; gap:6px; height:34px; padding:0 12px; background:#fff; color:#0F2A4A; border:1px solid #E5E7EB; border-radius:9px; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(15,34,61,.08); }
+  .rel-print-btn:hover{ background:#F8FAFC; border-color:#CBD5E1; }
   @media print{
     body{ background:#fff; padding:0; }
     .rel-print-btn{ display:none; }
@@ -4493,7 +4509,7 @@ function relatorioPaginaHtml(titulo, conteudoHtml){
 </style>
 </head>
 <body>
-<button class="rel-print-btn" onclick="window.print()">🖨️ imprimir / salvar PDF</button>
+<button class="rel-print-btn" onclick="window.print()"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>imprimir / salvar PDF</button>
 ${conteudoHtml}
 </body>
 </html>`;
@@ -4607,7 +4623,7 @@ function renderResumoAnualView(){
     <div class="section-card annual-card">
       <div class="section-header">
         <h3>ano ${escapeHtml(ano)}</h3>
-        <button class="toggle-all-btn export-anual-btn" data-export-ano="${escapeHtml(ano)}">🖨️ exportar relatório</button>
+        <button class="toggle-all-btn export-anual-btn" data-export-ano="${escapeHtml(ano)}"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>exportar relatório</button>
         <a href="#" class="goal-link-open abrir-relatorio-anual" data-abrir-ano="${escapeHtml(ano)}">↗ abrir</a>
       </div>
       <div class="annual-chart-wrap">${chart}</div>
@@ -4861,6 +4877,7 @@ function vgNormalizar(t){
   Object.keys(base.car).forEach(k=>{ if(t.car[k] === undefined || t.car[k] === null) t.car[k] = base.car[k]; });
   ['checklist','passeios','mercado','diario'].forEach(k=>{ if(!Array.isArray(t[k])) t[k] = []; });
   t.mercado.forEach(x=>{ if(!(vgNum(x.q) > 0)) x.q = 1; });
+  t.passeios.forEach(x=>{ x.dt = !!x.dt; });   // dt = passeio que ocupa o dia todo
   if(!t.cidades || typeof t.cidades !== 'object' || Array.isArray(t.cidades)) t.cidades = {};
   // corrige datas salvas com ano de 2 dígitos (ex.: 0027-01-01 → 2027-01-01)
   t.inicio = vgFixAno(t.inicio); t.fim = vgFixAno(t.fim);
@@ -4955,6 +4972,10 @@ function vgTotais(t){
   const total = p + c + m, pago = pp + (t.car.pago ? c : 0) + mp;
   return { p:round2(p), c:round2(c), m:round2(m), mComprado:round2(mp), mLocal:round2(ml), mLocalComprado:round2(mlp), total:round2(total), pago:round2(pago), aPagar:round2(total - pago) };
 }
+// Horário de um passeio para mostrar: "dia todo", a hora digitada ou vazio.
+function vgHoraTxt(x){ return x.dt ? 'dia todo' : (x.h || ''); }
+// Chave para ordenar dentro do dia: passeios do dia todo vêm primeiro; sem hora, por último.
+function vgHoraChave(x, semHora){ return x.dt ? '00:00' : (x.h || semHora); }
 function vgOrdem(t){
   return t.passeios.map((_, i)=>i).sort((a, b)=>{
     const A = t.passeios[a], B = t.passeios[b];
@@ -4968,7 +4989,7 @@ function vgOrdemTempo(t){
     const A = t.passeios[a], B = t.passeios[b];
     const da = A.d || '9999', db = B.d || '9999';
     if(da !== db) return da < db ? -1 : 1;
-    return String(A.h || '').localeCompare(String(B.h || '')) || (a - b);
+    return vgHoraChave(A, '').localeCompare(vgHoraChave(B, '')) || (a - b);
   });
 }
 // Posições (no vetor) dos passeios de um dia, na ordem atual.
@@ -4989,7 +5010,7 @@ function vgOrdenarDiaPorHora(t, d){
   const G = vgIdxDia(t, d);
   const itens = G.map(i=>({x:t.passeios[i], k:i}));
   itens.sort((A, B)=>{
-    const ha = A.x.h || '99:99', hb = B.x.h || '99:99';
+    const ha = vgHoraChave(A.x, '99:99'), hb = vgHoraChave(B.x, '99:99');
     return ha === hb ? A.k - B.k : (ha < hb ? -1 : 1);
   });
   const mudou = itens.some((o, k)=>o.k !== G[k]);
@@ -5002,7 +5023,7 @@ function vgProximo(t){
   for(const i of vgOrdemTempo(t)){
     const x = t.passeios[i];
     if(!x.d) continue;
-    if(x.d > hoje || (x.d === hoje && (x.h || '23:59') >= hm)) return x;
+    if(x.d > hoje || (x.d === hoje && (x.dt ? '23:59' : (x.h || '23:59')) >= hm)) return x;
   }
   return null;
 }
@@ -5048,7 +5069,7 @@ function vgProximoHTML(t){
   const x = vgProximo(t);
   const titulo = `<div class="vg-card-title">📍 Próximo passeio</div>`;
   if(!x) return titulo + `<p class="vg-muted" style="margin:0;">${t.passeios.length ? 'Nenhum passeio pela frente.' : 'Cadastre os passeios na seção Passeios.'}</p>`;
-  return titulo + `<div class="vg-next"><div class="name">${escapeHtml(x.n || 'Sem nome')}</div><div class="vg-muted">${escapeHtml(vgSemana(x.d))}, ${vgDataBR(x.d)}${x.h ? ' às ' + escapeHtml(x.h) : ''}</div><div style="font-weight:700;margin-top:4px;">R$ ${fmt(vgNum(x.v))}</div></div>`;
+  return titulo + `<div class="vg-next"><div class="name">${escapeHtml(x.n || 'Sem nome')}</div><div class="vg-muted">${escapeHtml(vgSemana(x.d))}, ${vgDataBR(x.d)}${x.dt ? ' · dia todo' : (x.h ? ' às ' + escapeHtml(x.h) : '')}</div><div style="font-weight:700;margin-top:4px;">R$ ${fmt(vgNum(x.v))}</div></div>`;
 }
 function vgRetroHTML(t){
   const liberada = (t.fim && vgDiasEntre(t.fim, vgHojeISO()) > 0) || viagemRetroPrevia;
@@ -5136,7 +5157,7 @@ function vgDetalhamento(t){
   const T = vgTotais(t), blocos = [];
   const linha = (nome, valor, pago, sub, txt)=>`<div class="vg-bill"><div class="vg-bill-n">${escapeHtml(nome)}${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</div><div class="vg-bill-s ${pago ? 'ok' : ''}">${pago ? 'pago' : 'a pagar'}</div><div class="vg-bill-v">${txt || 'R$ ' + fmt(valor)}</div></div>`;
   const ps = vgOrdem(t).map(i=>t.passeios[i]).filter(x=>vgNum(x.v) > 0);
-  if(ps.length) blocos.push(['📍 Passeios', ps.map(x=>linha(x.n || 'Sem nome', vgNum(x.v), x.pago, (x.d ? vgDataBR(x.d).slice(0,5) : '') + (x.h ? (x.d ? ' · ' : '') + x.h : ''))).join(''), T.p, ps.length]);
+  if(ps.length) blocos.push(['📍 Passeios', ps.map(x=>linha(x.n || 'Sem nome', vgNum(x.v), x.pago, (x.d ? vgDataBR(x.d).slice(0,5) : '') + (vgHoraTxt(x) ? (x.d ? ' · ' : '') + vgHoraTxt(x) : ''))).join(''), T.p, ps.length]);
   const c = t.car;
   if(!c.cancelado){
     const cl = [];
@@ -5215,7 +5236,8 @@ function vgPasseios(t){
         <td class="c">${vgGripHTML()}</td>
         <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
         <td><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
-        <td><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"></td>
+        <td>${x.dt ? '<span class="vg-dtpill" title="Passeio do dia todo">dia todo</span>' : `<input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}">`}</td>
+        <td class="c"><input type="checkbox" data-p="${i}" data-f="dt" ${x.dt ? 'checked' : ''} aria-label="Dia todo" title="Marque se o passeio ocupa o dia todo"></td>
         <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
         <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
         <td class="c vg-acts">${vgMoverHTML('passeios', i, nG, pos)}<button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
@@ -5224,8 +5246,8 @@ function vgPasseios(t){
     const cidade = g.d ? `<input type="text" class="vg-city" list="vg-cidades" data-cid="${escapeHtml(g.d)}" value="${escapeHtml(vgCidadeDia(t, g.d))}" placeholder="+ cidade" aria-label="Cidade deste dia">` : '';
     html += `<div class="vg-day">
       <div class="vg-day-head"><span class="vg-day-t">${escapeHtml(titulo)}${cidade}</span><span class="vg-muted">subtotal <b data-sub="${escapeHtml(g.d)}">R$ ${fmt(sub)}</b></span></div>
-      <div class="vg-scroll"><table class="vg-table"><colgroup><col class="pc-g"><col class="pc-n"><col class="pc-d"><col class="pc-h"><col class="pc-v"><col class="pc-p"><col class="pc-a"></colgroup>
-      <thead><tr><th></th><th>Passeio</th><th>Data</th><th>Hora</th><th class="r">Valor (R$)</th><th class="c">Pago</th><th></th></tr></thead>
+      <div class="vg-scroll"><table class="vg-table"><colgroup><col class="pc-g"><col class="pc-n"><col class="pc-d"><col class="pc-h"><col class="pc-t"><col class="pc-v"><col class="pc-p"><col class="pc-a"></colgroup>
+      <thead><tr><th></th><th>Passeio</th><th>Data</th><th>Hora</th><th class="c vg-thdt">Dia todo</th><th class="r">Valor (R$)</th><th class="c">Pago</th><th></th></tr></thead>
       <tbody>${linhas}</tbody></table></div>
       <button type="button" class="vg-link" data-act="p-add" data-d="${escapeHtml(g.d)}">+ Passeio neste dia</button>
     </div>`;
@@ -5386,7 +5408,7 @@ function vgAplicar(el){
     t.cidades[d.cid] = String(val).trim();
   } else if(d.p !== undefined){
     const x = t.passeios[+d.p]; if(!x) return false;
-    x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : (d.f === 'pago' ? !!val : val);
+    x[d.f] = d.f === 'v' ? vgNum(parseValorBR(val)) : ((d.f === 'pago' || d.f === 'dt') ? !!val : val);
   } else if(d.ck !== undefined){
     const x = t.checklist[+d.ck]; if(!x) return false;
     x[d.f] = d.f === 'ok' ? !!val : val;
@@ -5431,7 +5453,7 @@ function vgOnChange(e){
   }
   if(!vgAplicar(el)) return;
   if(d.hora !== undefined) el.value = vgHoraNorm(el.value);
-  if(d.p !== undefined && d.f === 'h' && vgOrdenarDiaPorHora(t, t.passeios[+d.p].d)) vgSemFoco = true;
+  if(d.p !== undefined && (d.f === 'h' || d.f === 'dt') && vgOrdenarDiaPorHora(t, t.passeios[+d.p].d)) vgSemFoco = true;
   if(d.p !== undefined && d.f === 'v') el.value = vgMoney(t.passeios[+d.p].v);
   if(d.m !== undefined && d.f === 'v') el.value = vgLocal(t.mercado[+d.m].v);
   if(d.m !== undefined && d.f === 'q') el.value = vgLocal(vgQtd(t.mercado[+d.m]));
@@ -5440,7 +5462,7 @@ function vgOnChange(e){
   if(d.k === 'cotacao') el.value = vgCot(t.cotacao);
   save();
   const segmentado = el.type === 'date' || el.type === 'time' || d.hora !== undefined;
-  const estrutural = d.cid !== undefined || (d.p !== undefined && (d.f === 'd' || d.f === 'h' || d.f === 'n'))
+  const estrutural = d.cid !== undefined || (d.p !== undefined && (d.f === 'd' || d.f === 'h' || d.f === 'n' || d.f === 'dt'))
     || ['playlist','galeria','inicio','fim'].includes(d.k) || d.car === 'link';
   if(estrutural && segmentado){ vgPendente = true; vgRefresh(); }   // não redesenha enquanto digita a data
   else if(estrutural){ vgAgendarRender(); }
@@ -5573,7 +5595,7 @@ function vgOnClick(e){
       if(t.diario[+d.i] && t.diario[+d.i].txt && !confirm('Remover esta entrada do diário?')) return;
       t.diario.splice(+d.i, 1); break;
     case 'p-filtro': vgFiltro = ['gratis','comvalor','pagos'].includes(d.v) ? d.v : 'todos'; vgRender(); return;
-    case 'p-add': vgFiltro = 'todos'; t.passeios.push({n:'', d:d.d || '', h:'', v:0, pago:false}); break;
+    case 'p-add': vgFiltro = 'todos'; t.passeios.push({n:'', d:d.d || '', h:'', v:0, pago:false, dt:false}); break;
     case 'p-rm':
       if(t.passeios[+d.i] && t.passeios[+d.i].n && !confirm('Remover este passeio?')) return;
       t.passeios.splice(+d.i, 1); break;
@@ -5660,7 +5682,7 @@ function vgExportarPdf(nome){
     const sub = round2(g.itens.reduce((s, x)=>s + vgNum(x.v), 0));
     const cid = g.d ? vgCidadeDia(t, g.d).trim() : '';
     return `<div class="dia"><h3>${escapeHtml(g.d ? vgSemana(g.d) + ', ' + vgDataBR(g.d) : 'Sem data')}${cid ? ' · ' + escapeHtml(cid) : ''}<span>R$ ${fmt(sub)}</span></h3>
-    <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="ck">${x.pago ? '☑' : '☐'}</td><td class="h">${escapeHtml(x.h || '')}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td></tr>`).join('')}</tbody></table></div>`;
+    <table><tbody>${g.itens.map(x=>`<tr class="${x.pago ? 'ok' : ''}"><td class="ck">${x.pago ? '☑' : '☐'}</td><td class="h">${escapeHtml(vgHoraTxt(x))}</td><td>${escapeHtml(x.n || 'Sem nome')}</td><td class="r">R$ ${fmt(vgNum(x.v))}</td></tr>`).join('')}</tbody></table></div>`;
   }).join('') || '<p class="m">Nenhum passeio cadastrado.</p>';
   const duasColunas = true;
   const c = t.car;
@@ -5684,7 +5706,7 @@ function vgExportarPdf(nome){
   h2{ font-size:15px; margin:22px 0 8px; border-bottom:1px solid #E2E8F0; padding-bottom:4px; }
   h3{ font-size:13px; margin:14px 0 4px; display:flex; justify-content:space-between; } h3 span{ color:#475569; }
   .cards{ display:flex; gap:10px; margin-top:16px; } .cards div{ flex:1; background:#F8FAFC; border-radius:8px; padding:10px 12px; font-size:11px; color:#64748B; } .cards b{ display:block; font-size:16px; color:#0F223D; margin-top:2px; }
-  table{ width:100%; border-collapse:collapse; font-size:12.5px; } td{ padding:5px 4px; border-bottom:1px solid #F1F5F9; } td.h{ width:52px; color:#64748B; } td.r{ text-align:right; white-space:nowrap; } td.s{ width:70px; text-align:right; font-size:11px; color:#64748B; } tr.ok td.s{ color:#15803D; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; } td{ padding:5px 4px; border-bottom:1px solid #F1F5F9; } td.h{ width:64px; color:#64748B; white-space:nowrap; } td.r{ text-align:right; white-space:nowrap; } td.s{ width:70px; text-align:right; font-size:11px; color:#64748B; } tr.ok td.s{ color:#15803D; }
   .box{ background:#F8FAFC; border-radius:8px; padding:10px 14px; font-size:12.5px; line-height:1.7; }
   ul{ list-style:none; padding:0; margin:0; font-size:12.5px; line-height:1.8; } li.ok{ color:#64748B; }
   .m{ color:#64748B; font-size:12.5px; } .f{ margin-top:26px; font-size:10px; color:#94A3B8; display:flex; justify-content:space-between; }
@@ -5692,10 +5714,11 @@ function vgExportarPdf(nome){
   .cols table{ font-size:11.5px; } .cols td{ padding:3px 3px; } td.ck{ width:14px; color:#64748B; font-size:13px; } tr.ok td{ color:#64748B; } ul.cols li{ break-inside:avoid; font-size:12px; line-height:1.7; }
   .sec{ break-before:page; page-break-before:always; margin-top:28px; border-top:1px dashed #CBD5E1; padding-top:4px; }
   @page{ size:A4; margin:12mm; }
-  .print-btn{ position:fixed; top:16px; right:16px; padding:8px 14px; background:#ECFDF3; color:#15803D; border:1.5px solid #16A34A; border-radius:8px; font-weight:700; cursor:pointer; }
+  .print-btn{ position:fixed; top:16px; right:16px; display:inline-flex; align-items:center; justify-content:center; gap:6px; height:34px; padding:0 12px; background:#fff; color:#0F2A4A; border:1px solid #E5E7EB; border-radius:9px; font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(15,34,61,.08); }
+  .print-btn:hover{ background:#F8FAFC; border-color:#CBD5E1; }
   @media print{ body{ background:#fff; } .print-btn{ display:none; } .page{ margin:0; padding:0; max-width:none; } .sec{ margin-top:0; border-top:0; padding-top:0; } }
 </style></head><body>
-<button class="print-btn" onclick="window.print()">salvar em PDF</button>
+<button class="print-btn" onclick="window.print()"><svg class="btn-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>salvar em PDF</button>
 <div class="page">
   <div class="k">controle de viagens</div>
   <h1>${escapeHtml(nome)}</h1>
