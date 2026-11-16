@@ -1178,7 +1178,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.2</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.3</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4197,7 +4197,7 @@ function renderMetasEconomiaHtml(){
       <span style="display:inline-flex; align-items:center; gap:12px;">${ativasComIdx.length ? vgColsHTML('metas') : ''}<button id="add-meta-economia-btn" class="add-block-btn">+ nova meta</button></span>
     </div>
     ${ativasComIdx.length
-      ? `<div class="${vgCols('metas') ? 'vg-g' + vgCols('metas') : ''}" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; align-items:start;">${ativasComIdx.map(x=>metaEconomiaCardHtml(x.g,x.idx)).join('')}</div>`
+      ? `<div class="vg-g${vgCols('metas')}" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; align-items:start;">${ativasComIdx.map(x=>metaEconomiaCardHtml(x.g,x.idx)).join('')}</div>`
       : `<div class="empty-hint">Nenhuma meta cadastrada ainda — crie uma pra juntar dinheiro pra algo específico (viagem, reserva de emergência, etc).</div>`}
     ${arquivadasHtml}
   </div>`;
@@ -4977,18 +4977,17 @@ function vgGripHTML(){
   return `<span class="vg-grip" draggable="true" title="Arraste para mudar a ordem" aria-hidden="true">⋮⋮</span>`;
 }
 // Quantas colunas usar em cada tela (capa, passeios, mercado): 1 ou 2. Vale para todas as viagens.
-// "bills" (o que está sendo cobrado) e "metas" (metas de economia) também aceitam 0 = automático (quantas couberem).
-const VG_COLS_AUTO = ['bills','metas'];
-function vgCols(sec){ const c = ((DATA.viagens || {}).colunas || {})[sec]; return (c === 1 || c === 2) ? c : (VG_COLS_AUTO.includes(sec) ? 0 : 2); }
+// telas cujo seletor aparece também em telas médias (as demais só em telas largas)
+const VG_COLS_MEDIAS = ['capa','bills','metas'];
+function vgCols(sec){ const c = ((DATA.viagens || {}).colunas || {})[sec]; return c === 1 ? 1 : 2; }
 function vgColsGravar(sec, v){
   if(!DATA.viagens.colunas || typeof DATA.viagens.colunas !== 'object') DATA.viagens.colunas = {};
-  DATA.viagens.colunas[sec] = v === '1' ? 1 : (v === '2' ? 2 : 0);
+  DATA.viagens.colunas[sec] = v === '1' ? 1 : 2;
 }
 function vgColsHTML(sec){
   const c = vgCols(sec);
   const b = v=>`<button type="button" class="vg-chip ${c === v ? 'on' : ''}" data-act="cols" data-sec="${sec}" data-v="${v}" title="Mostrar em ${v} coluna${v > 1 ? 's' : ''}">${v}</button>`;
-  const auto = VG_COLS_AUTO.includes(sec) ? `<button type="button" class="vg-chip ${c === 0 ? 'on' : ''}" data-act="cols" data-sec="${sec}" data-v="0" title="Quantas colunas couberem na tela">auto</button>` : '';
-  return `<span class="vg-colsel ${(sec === 'capa' || auto) ? 'capa' : ''}">colunas: ${b(1)}${b(2)}${auto}</span>`;
+  return `<span class="vg-colsel ${VG_COLS_MEDIAS.includes(sec) ? 'capa' : ''}">colunas: ${b(1)}${b(2)}</span>`;
 }
 function vgProximoHTML(t){
   const x = vgProximo(t);
@@ -5098,7 +5097,7 @@ function vgDetalhamento(t){
   }
   const qtd = blocos.reduce((s, b)=>s + b[3], 0);
   const corpo = blocos.length
-    ? `<div class="vg-bills ${vgCols('bills') ? 'vg-g' + vgCols('bills') : ''}">${blocos.map(b=>`<div class="vg-bill-block"><div class="vg-bill-head"><span>${b[0]}</span><b>R$ ${fmt(b[2])}</b></div>${b[1]}</div>`).join('')}</div><div class="vg-bill-total"><span>Total cobrado</span><b>R$ ${fmt(T.total)}</b></div>`
+    ? `<div class="vg-bills vg-g${vgCols('bills')}">${blocos.map(b=>`<div class="vg-bill-block"><div class="vg-bill-head"><span>${b[0]}</span><b>R$ ${fmt(b[2])}</b></div>${b[1]}</div>`).join('')}</div><div class="vg-bill-total"><span>Total cobrado</span><b>R$ ${fmt(T.total)}</b></div>`
     : `<p class="vg-muted" style="margin:0;">Ainda não há nada com valor. Cadastre passeios, supermercado ou aluguel de carro e tudo aparece aqui.</p>`;
   return `<div class="vg-card" style="margin-top:12px;"><div class="vg-card-title"><span>🧾 O que está sendo cobrado <span class="vg-muted">${qtd} ${qtd === 1 ? 'item' : 'itens'}</span></span>${blocos.length ? vgColsHTML('bills') : ''}</div>${corpo}</div>`;
 }
