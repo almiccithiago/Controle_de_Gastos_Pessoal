@@ -1149,8 +1149,11 @@
     .vg-head .vg-secs{ margin-bottom:0; }
     .vg-head + *{ margin-top:14px; }
   }
-  .vg-colsel{ display:none; align-items:center; gap:6px; font-size:12.5px; font-weight:400; color:var(--muted); }
-  .vg-colsel .vg-chip{ padding:3px 11px; }
+  .vg-colsel{ display:none; align-items:center; gap:2px; background:#EEF0F3; border-radius:9px; padding:3px; flex:0 0 auto; }
+  .vg-colb{ border:none; background:transparent; color:#94A3B8; width:34px; height:28px; border-radius:7px; padding:0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto; transition:background .15s ease, color .15s ease; }
+  .vg-colb:hover{ color:var(--text); }
+  .vg-colb.on{ background:#fff; color:var(--teal); box-shadow:0 1px 3px rgba(15,34,61,.18); }
+  .vg-colb svg{ width:18px; height:14px; pointer-events:none; }
   .vg-colbar{ display:none; }
   @media (min-width:601px){
     .vg-colsel.capa{ display:inline-flex; }
@@ -1185,7 +1188,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.4</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.5</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4993,8 +4996,9 @@ function vgColsGravar(sec, v){
 }
 function vgColsHTML(sec){
   const c = vgCols(sec);
-  const b = v=>`<button type="button" class="vg-chip ${c === v ? 'on' : ''}" data-act="cols" data-sec="${sec}" data-v="${v}" title="Mostrar em ${v} coluna${v > 1 ? 's' : ''}">${v}</button>`;
-  return `<span class="vg-colsel ${VG_COLS_MEDIAS.includes(sec) ? 'capa' : ''}">colunas: ${b(1)}${b(2)}</span>`;
+  const icone = { 1:'M2 3h16M2 8h16M2 13h16', 2:'M2 3h6M2 8h6M2 13h6M12 3h6M12 8h6M12 13h6' };
+  const b = v=>`<button type="button" class="vg-colb ${c === v ? 'on' : ''}" data-act="cols" data-sec="${sec}" data-v="${v}" title="Mostrar em ${v} coluna${v > 1 ? 's' : ''}" aria-label="Mostrar em ${v} coluna${v > 1 ? 's' : ''}" aria-pressed="${c === v}"><svg viewBox="0 0 20 16" aria-hidden="true"><path d="${icone[v]}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`;
+  return `<span class="vg-colsel ${VG_COLS_MEDIAS.includes(sec) ? 'capa' : ''}" role="group" aria-label="Colunas">${b(1)}${b(2)}</span>`;
 }
 function vgProximoHTML(t){
   const x = vgProximo(t);
