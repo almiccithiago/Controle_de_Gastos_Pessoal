@@ -1188,7 +1188,7 @@
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.7</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.8</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -4716,8 +4716,13 @@ const VG_CAR_NUM = ["diarias","valorDiaria","seguro","taxas","comb"];
 const VG_LISTAS = ["checklist","mercado"];
 let viagemAtual = null;
 let viagemSecao = 'capa';
-let vgFiltro = 'todos';   // filtro dos passeios: 'todos' | 'gratis' (valor zero) | 'pagos' (caixinha "pago" marcada)
-function vgPassaFiltro(x){ return vgFiltro === 'gratis' ? !(vgNum(x.v) > 0) : (vgFiltro === 'pagos' ? !!x.pago : true); }
+let vgFiltro = 'todos';   // filtro dos passeios: 'todos' | 'gratis' (valor zero) | 'comvalor' (valor maior que zero) | 'pagos' (caixinha "pago" marcada)
+function vgPassaFiltro(x){
+  if(vgFiltro === 'gratis') return !(vgNum(x.v) > 0);
+  if(vgFiltro === 'comvalor') return vgNum(x.v) > 0;
+  if(vgFiltro === 'pagos') return !!x.pago;
+  return true;
+}
 let viagemRetroPrevia = false;
 let vgPendente = false; // houve mudança de data/hora: redesenha só quando o campo perder o foco
 let vgTimer = null;
@@ -5188,11 +5193,11 @@ function vgPasseios(t){
     </div>`;
   });
   if(!grupos.length) html = `<p class="vg-muted">Nenhum passeio ainda. Use "Adicionar passeio".</p>`;
-  else if(vgFiltro !== 'todos' && !html) html = `<p class="vg-muted">${vgFiltro === 'gratis' ? 'Nenhum passeio gratuito.' : 'Nenhum passeio pago ainda.'}</p>`;
+  else if(vgFiltro !== 'todos' && !html) html = `<p class="vg-muted">${vgFiltro === 'gratis' ? 'Nenhum passeio gratuito.' : (vgFiltro === 'comvalor' ? 'Nenhum passeio com valor: todos são gratuitos.' : 'Nenhum passeio pago ainda.')}</p>`;
   else if(vgCols('passeios') === 2) html = `<div class="vg-days">${html}</div>`;
   const nFiltro = t.passeios.filter(vgPassaFiltro).length, nTodos = t.passeios.length;
   const chipF = (v, rotulo, dica)=>`<button type="button" class="vg-chip ${vgFiltro === v ? 'on' : ''}" data-act="p-filtro" data-v="${v}" title="${dica}">${rotulo}</button>`;
-  const filtroBar = nTodos ? `<div class="vg-filtro"><span class="vg-muted">filtrar:</span>${chipF('todos', 'todos', 'Mostra todos os passeios')}${chipF('gratis', 'gratuitos', 'Mostra só os passeios gratuitos (sem valor)')}${chipF('pagos', 'pagos', 'Mostra só os passeios que já foram pagos')}<span class="vg-muted" style="margin-left:auto;">${vgFiltro !== 'todos' ? nFiltro + ' de ' + nTodos : nTodos} ${nTodos === 1 ? 'passeio' : 'passeios'}</span>${vgColsHTML('passeios')}</div>` : '';
+  const filtroBar = nTodos ? `<div class="vg-filtro"><span class="vg-muted">filtrar:</span>${chipF('todos', 'todos', 'Mostra todos os passeios')}${chipF('gratis', 'gratuitos', 'Mostra só os passeios gratuitos (sem valor)')}${chipF('comvalor', 'não gratuitos', 'Mostra só os passeios que têm valor')}${chipF('pagos', 'pagos', 'Mostra só os passeios que já foram pagos')}<span class="vg-muted" style="margin-left:auto;">${vgFiltro !== 'todos' ? nFiltro + ' de ' + nTodos : nTodos} ${nTodos === 1 ? 'passeio' : 'passeios'}</span>${vgColsHTML('passeios')}</div>` : '';
   const rota = vgRoteiro(t);
   const datalist = `<datalist id="vg-cidades">${[...new Set(VG_CIDADES_PALAVRAS.map(c=>c[0]).concat(Object.values(t.cidades).filter(Boolean)))].map(c=>`<option value="${escapeHtml(c)}"></option>`).join('')}</datalist>`;
   html = datalist + filtroBar + (rota.length ? `<div class="vg-route">🏨 onde você fica: <b>${rota.map(c=>escapeHtml(c.toLowerCase())).join(' → ')}</b></div>` : '') + html;
@@ -5504,7 +5509,7 @@ function vgOnClick(e){
     case 'di-rm':
       if(t.diario[+d.i] && t.diario[+d.i].txt && !confirm('Remover esta entrada do diário?')) return;
       t.diario.splice(+d.i, 1); break;
-    case 'p-filtro': vgFiltro = ['gratis','pagos'].includes(d.v) ? d.v : 'todos'; vgRender(); return;
+    case 'p-filtro': vgFiltro = ['gratis','comvalor','pagos'].includes(d.v) ? d.v : 'todos'; vgRender(); return;
     case 'p-add': vgFiltro = 'todos'; t.passeios.push({n:'', d:d.d || '', h:'', v:0, pago:false}); break;
     case 'p-rm':
       if(t.passeios[+d.i] && t.passeios[+d.i].n && !confirm('Remover este passeio?')) return;
