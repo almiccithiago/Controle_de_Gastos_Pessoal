@@ -1258,8 +1258,8 @@
     /* o iPhone dá zoom sozinho ao tocar num campo com letra menor que 16px e a tela fica deslocada */
     input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea{ font-size:16px !important; }
     /* campo de data do iPhone respeita a largura da coluna (antes invadia a coluna ao lado) */
-    input[type=date]{ -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; }
-    #vg-root input[type=date]{ display:block; min-height:38px; text-align:left; }
+    input[type=date]{ min-width:0; max-width:100%; }
+    #vg-root input[type=date]{ -webkit-appearance:none; appearance:none; display:block; min-height:38px; text-align:left; }
     input[type=date]::-webkit-date-and-time-value{ text-align:left; }
     /* passeios: cada passeio vira um cartão, sem tabela de 600px rolando para o lado */
     #vg-root .vg-scroll{ overflow:visible; }
