@@ -1248,11 +1248,92 @@
   .vg-btn .btn-ico,.vg-ib .btn-ico,.toggle-all-btn .btn-ico,.add-block-btn .btn-ico,.btn-add .btn-ico,.loan-add-btn .btn-ico,.block-restore .btn-ico,.modal-btn-primary .btn-ico,.modal-btn-secondary .btn-ico,.anexo-form-save .btn-ico,.anexo-form-cancel .btn-ico,.anexo-form-edit .btn-ico,.anexo-link-add .btn-ico,.anexo-modal-remove .btn-ico,.anexo-modal-download .btn-ico,.anexo-modal-close .btn-ico,.desfazer-btn .btn-ico,.goal-archive-btn .btn-ico,.goal-unarchive-btn .btn-ico,.history-restore-btn .btn-ico,.pessoa-toggle-btn .btn-ico,#lock-btn .btn-ico,#history-btn .btn-ico,#logout-btn .btn-ico,#history-close .btn-ico,#peso-comprimir .btn-ico,#peso-fechar .btn-ico,#delete-month-btn .btn-ico,#delete-tab-btn .btn-ico,#add-detail-right-btn .btn-ico,#add-obrigacao-btn .btn-ico,#add-meta-economia-btn .btn-ico{ flex:0 0 auto; }
   .vg-btn.danger,.anexo-modal-remove,#delete-month-btn,#delete-tab-btn{ color:var(--red) !important; }
   .vg-btn.danger:hover,.anexo-modal-remove:hover,#delete-month-btn:hover,#delete-tab-btn:hover{ background:#FEF2F2 !important; border-color:#FCA5A5 !important; color:var(--red) !important; }
+  /* ===== v.9: ajustes de celular ===== */
+  /* a página não "escorrega" para o lado no iPhone (clip não atrapalha o topo fixo, ao contrário de hidden) */
+  body{ overflow-x:clip; }
+  /* abas internas da viagem não se espremem (antes "supermercado" e "aluguel de carro" ficavam grudadas) */
+  .vg-tab{ flex:0 0 auto; }
+  .vg-day-head > .vg-muted{ white-space:nowrap; flex:0 0 auto; }
+  @media (max-width:600px){
+    /* o iPhone dá zoom sozinho ao tocar num campo com letra menor que 16px e a tela fica deslocada */
+    input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea{ font-size:16px !important; }
+    /* campo de data do iPhone respeita a largura da coluna (antes invadia a coluna ao lado) */
+    input[type=date]{ -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; }
+    #vg-root input[type=date]{ display:block; min-height:38px; text-align:left; }
+    input[type=date]::-webkit-date-and-time-value{ text-align:left; }
+    /* passeios: cada passeio vira um cartão, sem tabela de 600px rolando para o lado */
+    #vg-root .vg-scroll{ overflow:visible; }
+    #vg-root table.vg-table, #vg-root table.vg-table tbody{ display:block; min-width:0; width:100%; }
+    #vg-root table.vg-table colgroup, #vg-root table.vg-table thead{ display:none; }
+    #vg-root table.vg-table tbody{ display:flex; flex-direction:column; gap:8px; }
+    #vg-root tr.vg-prow{
+      display:grid; grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap:6px 8px;
+      grid-template-areas:"g n n a" ". d d h" ". v t p";
+      align-items:start; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 10px 8px 6px;
+    }
+    #vg-root tr.vg-prow td{ display:block; padding:0; background:transparent !important; border-radius:0 !important; min-width:0; }
+    #vg-root tr.vg-prow.done{ background:#EEF0F3; }
+    #vg-root tr.vg-prow.over{ box-shadow:0 -2px 0 var(--blue); }
+    #vg-root tr.vg-prow td[data-l]::before{ content:attr(data-l); display:block; font-size:11px; font-weight:600; color:var(--muted); margin:0 0 3px 2px; text-align:left; }
+    #vg-root .vg-c-g{ grid-area:g; align-self:center; }
+    #vg-root .vg-c-n{ grid-area:n; }
+    #vg-root .vg-c-d{ grid-area:d; }
+    #vg-root .vg-c-h{ grid-area:h; }
+    #vg-root .vg-c-v{ grid-area:v; }
+    #vg-root tr.vg-prow td.vg-c-t, #vg-root tr.vg-prow td.vg-c-p{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--muted); }
+    #vg-root .vg-c-t{ grid-area:t; } #vg-root .vg-c-p{ grid-area:p; }
+    #vg-root tr.vg-prow td.vg-c-t::before, #vg-root tr.vg-prow td.vg-c-p::before{ display:none; }
+    #vg-root .vg-c-t::after, #vg-root .vg-c-p::after{ content:attr(data-l); }
+    #vg-root .vg-c-a{ grid-area:a; justify-self:end; align-self:center; }
+    #vg-root .vg-c-n{ grid-column:2 / 4; }
+    #vg-root tr.vg-prow td.vg-c-t, #vg-root tr.vg-prow td.vg-c-p{ align-self:end; min-height:38px; }
+    #vg-root .vg-hc input[data-f="h"]{ height:36px; }
+    #vg-root .vg-hc input.vg-dur{ width:100%; height:26px; }
+    #vg-root .vg-dtpill{ height:38px; }
+  }
+  /* ===== v.9: revisão geral (computador e celular) ===== */
+  /* abas do topo: não encolhem (o texto ficava cortado/encostado) e quebram linha se não couberem */
+  nav.tabs button{ flex:0 0 auto; }
+  @media (min-width:481px){
+    nav.tabs{ flex-wrap:wrap; overflow-x:visible; }
+    /* ícones de fixar/renomear ficam sobre a margem do botão, sem alargar a aba */
+    nav.tabs button{ position:relative; padding:10px 13px; }
+    nav.tabs{ gap:2px; }
+    nav.tabs button .pin-btn{ position:absolute; left:3px; top:50%; transform:translateY(-50%); margin:0; font-size:10px; }
+    nav.tabs button .rename-btn{ position:absolute; right:3px; top:50%; transform:translateY(-50%); margin:0; font-size:11px; }
+  }
+  /* em tela de toque não existe "passar o mouse": os ícones invisíveis de fixar/renomear só ocupavam espaço */
+  @media (hover:none), (max-width:480px){
+    nav.tabs button .pin-btn:not(.pinned){ display:none; }
+    nav.tabs button:not(.active) .rename-btn{ display:none; }
+    nav.tabs button.active .rename-btn{ opacity:.75; }
+  }
+  /* resumo anual: botão "relatório" junto do "abrir", à direita */
+  .annual-card .section-header .export-anual-btn{ margin-left:auto; margin-right:12px; }
+  @media (max-width:600px){
+    /* contas do mês: [caixinha + nome] na 1ª linha, [ícones, R$, valor, ×] na 2ª (antes eram 3 linhas) */
+    .item-row .item-desc{ flex:1 1 calc(100% - 48px); }
+    /* obrigações: coluna da parcela legível; a tabela rola para o lado dentro do cartão */
+    table.loan-table{ min-width:745px; }
+    table.loan-table col.c-parc{ width:185px; }
+    .loan-footer{ flex-wrap:wrap; gap:10px; }
+    .loan-totais{ margin-left:auto; text-align:right; }
+    /* resumo anual: tabela compacta, sem quebrar "R$" do número */
+    .annual-card{ overflow-x:auto; }
+    table.annual-table{ font-size:11px; table-layout:auto; }
+    table.annual-table th, table.annual-table td{ padding:7px 3px; white-space:nowrap; }
+    table.annual-table th{ white-space:normal; }
+    /* resumo da viagem: botão "abrir" embaixo, valor sem quebrar */
+    .vg-seccard{ flex-direction:column; align-items:stretch; }
+    .vg-seccard .value{ white-space:nowrap; font-size:18px; }
+    .vg-seccard .vg-btn{ align-self:flex-start; }
+    .summary-card .value{ overflow-wrap:anywhere; }
+  }
 </style>
 </head>
 <body>
 
-<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-16.18</div>
+<div id="version-badge" style="position:fixed; top:8px; right:10px; z-index:200; background:rgba(11,31,56,0.35); color:rgba(255,255,255,0.85); font-weight:600; font-size:10px; padding:2px 7px; border-radius:6px; font-family:monospace; pointer-events:none;">v2026-11-20.1</div>
 <div id="lock-screen">
   <div class="lock-card">
     <div class="lock-mark">TA</div>
@@ -5303,14 +5384,14 @@ function vgPasseios(t){
       const x = t.passeios[i];
  const pos = g.itens.indexOf(i), nG = g.itens.length;
       return `<tr class="vg-prow ${x.pago ? 'done' : ''}" data-row data-lista="passeios" data-i="${i}" data-dia="${escapeHtml(g.d)}">
-        <td class="c">${vgGripHTML()}</td>
-        <td><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
-        <td><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
-        <td>${x.dt ? '<span class="vg-dtpill" title="Passeio do dia todo">dia todo</span>' : `<div class="vg-hc"><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"><label class="vg-durl" title="Quanto tempo leva (ex.: 1h30, 45min)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><input type="text" class="vg-dur" data-p="${i}" data-f="dur" value="${vgDurTxt(x.dur)}" placeholder="duração" aria-label="Duração"></label></div>`}</td>
-        <td><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
-        <td class="c"><input type="checkbox" data-p="${i}" data-f="dt" ${x.dt ? 'checked' : ''} aria-label="Dia todo" title="Marque se o passeio ocupa o dia todo"></td>
-        <td class="c"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
-        <td class="c vg-acts">${vgMoverHTML('passeios', i, nG, pos)}<button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
+        <td class="c vg-c-g">${vgGripHTML()}</td>
+        <td class="vg-c-n"><input type="text" data-p="${i}" data-f="n" value="${escapeHtml(x.n || '')}" placeholder="Passeio"></td>
+        <td class="vg-c-d" data-l="data"><input type="date" ${VG_DATA_ATTR} data-p="${i}" data-f="d" value="${escapeHtml(x.d || '')}"></td>
+        <td class="vg-c-h" data-l="hora">${x.dt ? '<span class="vg-dtpill" title="Passeio do dia todo">dia todo</span>' : `<div class="vg-hc"><input type="text" ${VG_HORA_ATTR} data-p="${i}" data-f="h" value="${escapeHtml(x.h || '')}"><label class="vg-durl" title="Quanto tempo leva (ex.: 1h30, 45min)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><input type="text" class="vg-dur" data-p="${i}" data-f="dur" value="${vgDurTxt(x.dur)}" placeholder="duração" aria-label="Duração"></label></div>`}</td>
+        <td class="vg-c-v" data-l="valor (R$)"><input type="text" inputmode="decimal" class="vg-right" data-p="${i}" data-f="v" value="${vgMoney(x.v)}" placeholder="0,00"></td>
+        <td class="c vg-c-t" data-l="dia todo"><input type="checkbox" data-p="${i}" data-f="dt" ${x.dt ? 'checked' : ''} aria-label="Dia todo" title="Marque se o passeio ocupa o dia todo"></td>
+        <td class="c vg-c-p" data-l="pago"><input type="checkbox" data-p="${i}" data-f="pago" ${x.pago ? 'checked' : ''} aria-label="Pago"></td>
+        <td class="c vg-acts vg-c-a">${vgMoverHTML('passeios', i, nG, pos)}<button type="button" class="vg-x" data-act="p-rm" data-i="${i}" aria-label="Remover passeio">×</button></td>
       </tr>`;
     }).join('');
     const cidade = g.d ? `<input type="text" class="vg-city" list="vg-cidades" data-cid="${escapeHtml(g.d)}" value="${escapeHtml(vgCidadeDia(t, g.d))}" placeholder="+ cidade" aria-label="Cidade deste dia">` : '';
